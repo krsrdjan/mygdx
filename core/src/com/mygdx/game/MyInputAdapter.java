@@ -18,7 +18,7 @@ public class MyInputAdapter extends InputAdapter {
 
     @Override
     public boolean keyDown(int keycode) {
-        System.out.println("touchDown called " + keycode);
+        //System.out.println("touchDown called " + keycode);
         switch (keycode) {
             case 51:
                 //move up

@@ -3,6 +3,7 @@ package com.mygdx.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 
+import java.util.AbstractCollection;
 import java.util.Random;
 
 public class Monster extends Creature {
@@ -62,15 +63,19 @@ public class Monster extends Creature {
                         continue;
                     }
 
-                    //move to hero position
-                    if (heroPos.x - position.x < 0) {
-                        setPosition(new Position(position.x - 1, position.y));
-                    } else if (heroPos.x - position.x > 0) {
-                        setPosition(new Position(position.x + 1, position.y));
-                    } else if (heroPos.y - position.y < 0) {
-                        setPosition(new Position(position.x, position.y - 1));
-                    } else if (heroPos.y - position.y > 0) {
-                        setPosition(new Position(position.x, position.y + 1));
+                    // chase the hero in zigzag fashion
+                    if(Math.abs(heroPos.x - position.x) > Math.abs(heroPos.y - position.y)) {
+                        if(heroPos.x > position.x) {
+                            setPosition(new Position(position.x+1, position.y));
+                        } else {
+                            setPosition(new Position(position.x-1, position.y));
+                        }
+                    } else {
+                        if(heroPos.y > position.y) {
+                            setPosition(new Position(position.x, position.y+1));
+                        } else {
+                            setPosition(new Position(position.x, position.y-1));
+                        }
                     }
 
                     try {

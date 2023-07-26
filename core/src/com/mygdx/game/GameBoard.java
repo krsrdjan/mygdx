@@ -11,7 +11,7 @@ public class GameBoard {
     private Hero hero;
     private Monster monster;
     public static final int SQUARE_SIZE = 128;
-    public static final int BOARD_SQUARE_LENGTH = 4;
+    public static final int BOARD_SQUARE_LENGTH = 6;
 
     public GameBoard() {
         board = new Texture[BOARD_SQUARE_LENGTH][BOARD_SQUARE_LENGTH];
@@ -21,7 +21,7 @@ public class GameBoard {
 
         Random random = new Random();
         monster = new Monster("monster.png", 8, this);
-        monster.setPosition(new Position(3,3));
+        monster.setPosition(new Position(5,5));
 //        monster.setPosition(new Position(
 //                random.nextInt(1,4),
 //                random.nextInt(1,4))
