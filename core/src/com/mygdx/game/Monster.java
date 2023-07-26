@@ -44,7 +44,12 @@ public class Monster extends Creature {
         return position;
     }
 
-    public void moveToHeroAndAttack(final Hero hero) {
+    public void startTurn() {
+        speed = MAX_SPEED;
+        moveToHeroAndAttack(board.getHero());
+    }
+
+    private void moveToHeroAndAttack(final Hero hero) {
 
         new Thread(new Runnable() {
             @Override
@@ -78,8 +83,6 @@ public class Monster extends Creature {
                 }
 
                 attackHero(hero);
-
-                speed = MAX_SPEED;
             }
         }).start();
 

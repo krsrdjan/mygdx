@@ -79,7 +79,12 @@ public class GameBoard {
     }
 
     public void endHeroTurn() {
-        hero.resetSpeed();
-        monster.moveToHeroAndAttack(hero);
+        monster.startTurn();
+        hero.startTurn();
     }
+
+    public Hero getHero() {
+        return hero;
+    }
+
 }
