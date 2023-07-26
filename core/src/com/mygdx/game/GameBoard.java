@@ -11,10 +11,10 @@ public class GameBoard {
     private Hero hero;
     private Monster monster;
     public static final int SQUARE_SIZE = 128;
-    public static final int BOARD_SQUARE_LENGHT = 4;
+    public static final int BOARD_SQUARE_LENGTH = 4;
 
     public GameBoard() {
-        board = new Texture[BOARD_SQUARE_LENGHT][BOARD_SQUARE_LENGHT];
+        board = new Texture[BOARD_SQUARE_LENGTH][BOARD_SQUARE_LENGTH];
 
         hero = new Hero("hero.png", 10, this);
         hero.setPosition(new Position(0,0));
@@ -75,13 +75,7 @@ public class GameBoard {
     }
 
     public void heroAttack() {
-        System.out.println("Hero Attack");
-        Position heroPos = hero.getPosition();
-
-        Position monsterPos = monster.getPosition();
-        if(Math.abs(heroPos.x - monsterPos.x) <= 1 && Math.abs(heroPos.y - monsterPos.y) <= 1) {
-            monster.takeDamage(hero.attack());
-        }
+        hero.attackMonster(monster);
     }
 
     public void endHeroTurn() {

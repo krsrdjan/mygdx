@@ -8,7 +8,8 @@ import java.util.Random;
 public class Hero extends Creature {
 
     private Sound weaponHit;
-    private int speed = 5;
+    private int MAX_SPEED = 5;
+    private int speed = MAX_SPEED;
     private Position position;
     private GameBoard board;
     private Sound deathSound;
@@ -39,7 +40,7 @@ public class Hero extends Creature {
     }
 
     public void resetSpeed() {
-        speed = 5;
+        speed = MAX_SPEED;
     }
 
     public void takeDamage(int damage) {
@@ -88,6 +89,13 @@ public class Hero extends Creature {
                 setPosition(new Position(pos.x-1, pos.y));
                 speed--;
             }
+        }
+    }
+
+    public void attackMonster(Monster monster) {
+        Position monsterPos = monster.getPosition();
+        if(Position.isNear(getPosition(), monsterPos)) {
+            monster.takeDamage(attack());
         }
     }
 }

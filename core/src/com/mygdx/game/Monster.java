@@ -10,7 +10,8 @@ public class Monster extends Creature {
     private Sound deathSound;
     private Position position;
     private GameBoard board;
-    private int speed = 5;
+    private int MAX_SPEED = 3;
+    private int speed = MAX_SPEED;
     private Sound weaponHit;
 
     public Monster(String image, int health, GameBoard board) {
@@ -50,8 +51,7 @@ public class Monster extends Creature {
             public void run() {
                 while(speed > 0) {
                     Position heroPos = hero.getPosition();
-                    if (Math.abs(heroPos.x - position.x) == 1 && heroPos.y == position.y ||
-                            Math.abs(heroPos.y - position.y) == 1 && heroPos.x == position.x) {
+                    if (Position.isNear(heroPos, position)) {
                         System.out.println("Already near hero");
                         speed--;
                         continue;
@@ -79,7 +79,7 @@ public class Monster extends Creature {
 
                 attackHero(hero);
 
-                speed = 5;
+                speed = MAX_SPEED;
             }
         }).start();
 
@@ -87,9 +87,7 @@ public class Monster extends Creature {
 
     public void attackHero(Hero hero) {
         Position heroPos = hero.getPosition();
-        if((heroPos.x == position.x && Math.abs(heroPos.y - position.y) == 1)  ||
-                (heroPos.y == position.y && Math.abs(heroPos.x - position.x) == 1)) {
-
+        if(Position.isNear(heroPos, position)) {
             weaponHit.play();
             hero.takeDamage(attack());
         }

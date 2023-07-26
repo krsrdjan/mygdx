@@ -10,8 +10,8 @@ public class DesktopLauncher {
 		config.setForegroundFPS(24);
 		config.setTitle("My GDX Game");
 		config.setWindowedMode(
-				GameBoard.BOARD_SQUARE_LENGHT * GameBoard.SQUARE_SIZE,
-				GameBoard.BOARD_SQUARE_LENGHT * GameBoard.SQUARE_SIZE
+				GameBoard.BOARD_SQUARE_LENGTH * GameBoard.SQUARE_SIZE,
+				GameBoard.BOARD_SQUARE_LENGTH * GameBoard.SQUARE_SIZE
 				);
 		new Lwjgl3Application(new MyGdxGame(), config);
 	}
