@@ -45,6 +45,11 @@ public class Hero extends Creature {
         attack = 1;
     }
 
+    public void endTurn() {
+        speed = 0;
+        attack = 0;
+    }
+
     public void takeDamage(int damage) {
         System.out.println("Damage taken: " + damage);
         health = health - damage;

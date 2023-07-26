@@ -50,6 +50,10 @@ public class Monster extends Creature {
         moveToHeroAndAttack(board.getHero());
     }
 
+    public void endTurn() {
+        speed = 0;
+    }
+
     private void moveToHeroAndAttack(final Hero hero) {
 
         new Thread(new Runnable() {
@@ -88,6 +92,7 @@ public class Monster extends Creature {
                 }
 
                 attackHero(hero);
+                board.endMonsterTurn();
             }
         }).start();
 
