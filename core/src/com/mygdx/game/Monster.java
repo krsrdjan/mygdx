@@ -46,6 +46,11 @@ public class Monster extends Creature {
     }
 
     public void startTurn() {
+        if(health <= 0) {
+            board.endMonsterTurn();
+            return;
+        };
+
         speed = MAX_SPEED;
         moveToHeroAndAttack(board.getHero());
     }
