@@ -10,7 +10,7 @@ public class Monster extends Creature {
     private Sound deathSound;
     private Position position;
     private GameBoard board;
-    private int speed = 6;
+    private int speed = 5;
     private Sound weaponHit;
 
     public Monster(String image, int health, GameBoard board) {
@@ -57,6 +57,7 @@ public class Monster extends Creature {
                         continue;
                     }
 
+                    //move to hero position
                     if (heroPos.x - position.x < 0) {
                         setPosition(new Position(position.x - 1, position.y));
                     } else if (heroPos.x - position.x > 0) {
@@ -68,7 +69,7 @@ public class Monster extends Creature {
                     }
 
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(500);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -77,17 +78,24 @@ public class Monster extends Creature {
                 }
 
                 attackHero(hero);
+
+                speed = 5;
             }
         }).start();
 
     }
 
     public void attackHero(Hero hero) {
-        weaponHit.play();
-        hero.takeDamage(attack());
+        Position heroPos = hero.getPosition();
+        if((heroPos.x == position.x && Math.abs(heroPos.y - position.y) == 1)  ||
+                (heroPos.y == position.y && Math.abs(heroPos.x - position.x) == 1)) {
+
+            weaponHit.play();
+            hero.takeDamage(attack());
+        }
     }
 
     public int attack() {
-        return new Random().nextInt(5);
+        return new Random().nextInt(3);
     }
 }

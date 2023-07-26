@@ -59,31 +59,19 @@ public class GameBoard {
     }
 
     public void moveHeroUp(){
-        Position pos = hero.getPosition();
-        if(pos.y < board.length - 1 && board[pos.x][pos.y+1] == null) {
-            hero.setPosition(new Position(pos.x, pos.y+1));
-        }
+        hero.moveUp();
     }
 
     public void moveHeroRight(){
-        Position pos = hero.getPosition();
-        if(pos.x < board.length - 1 && board[pos.x+1][pos.y] == null) {
-            hero.setPosition(new Position(pos.x+1, pos.y));
-        }
+        hero.moveRight();
     }
 
     public void moveHeroDown(){
-        Position pos = hero.getPosition();
-        if(pos.y > 0 && board[pos.x][pos.y-1] == null) {
-            hero.setPosition(new Position(pos.x, pos.y-1));
-        }
+        hero.moveDown();
     }
 
     public void moveHeroLeft(){
-        Position pos = hero.getPosition();
-        if(pos.x > 0 && board[pos.x-1][pos.y] == null) {
-            hero.setPosition(new Position(pos.x-1, pos.y));
-        }
+        hero.moveLeft();
     }
 
     public void heroAttack() {
@@ -99,6 +87,5 @@ public class GameBoard {
     public void endHeroTurn() {
         hero.resetSpeed();
         monster.moveToHeroAndAttack(hero);
-        //monster.attackHero(hero);
     }
 }

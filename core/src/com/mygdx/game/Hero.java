@@ -1,6 +1,5 @@
 package com.mygdx.game;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 
@@ -49,6 +48,46 @@ public class Hero extends Creature {
         if(health <= 0) {
             deathSound.play();
             board.getBoard()[position.x][position.y] = null;
+        }
+    }
+
+    public void moveUp() {
+        if(speed > 0) {
+            Position pos = getPosition();
+            if(pos.y < board.getBoard().length - 1 && board.getBoard()[pos.x][pos.y+1] == null) {
+                setPosition(new Position(pos.x, pos.y+1));
+                speed--;
+            }
+        }
+    }
+
+    public void moveRight() {
+        if(speed > 0) {
+            Position pos = getPosition();
+            if(pos.x < board.getBoard().length - 1 && board.getBoard()[pos.x+1][pos.y] == null) {
+                setPosition(new Position(pos.x+1, pos.y));
+                speed--;
+            }
+        }
+    }
+
+    public void moveDown() {
+        if(speed > 0) {
+            Position pos = getPosition();
+            if(pos.y > 0 && board.getBoard()[pos.x][pos.y-1] == null) {
+                setPosition(new Position(pos.x, pos.y-1));
+                speed--;
+            }
+        }
+    }
+
+    public void moveLeft() {
+        if(speed > 0) {
+            Position pos = getPosition();
+            if(pos.x > 0 && board.getBoard()[pos.x-1][pos.y] == null) {
+                setPosition(new Position(pos.x-1, pos.y));
+                speed--;
+            }
         }
     }
 }
