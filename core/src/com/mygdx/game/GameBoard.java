@@ -75,7 +75,13 @@ public class GameBoard {
     }
 
     public void heroAttack() {
-        hero.attackMonster(monster);
+        Monster nearest = getNearestMonster();
+        hero.attackMonster(nearest);
+    }
+
+    private Monster getNearestMonster() {
+        //TODO
+        return monster;
     }
 
     public void endHeroTurn() {
