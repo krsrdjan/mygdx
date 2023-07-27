@@ -2,6 +2,8 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.graphics.Texture;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 
@@ -9,7 +11,7 @@ public class GameBoard {
 
     private Texture[][] board;
     private Hero hero;
-    private Monster monster;
+    private List<Monster> monster = new ArrayList<Monster>();
     public static final int SQUARE_SIZE = 128;
     public static final int BOARD_SQUARE_LENGTH = 6;
 
@@ -20,8 +22,11 @@ public class GameBoard {
         hero.setPosition(new Position(0,0));
 
         Random random = new Random();
-        monster = new Monster("monster.png", 8, this);
-        monster.setPosition(new Position(5,5));
+        monster.add(new Monster("monster.png", 8, this));
+        monster.add(new Monster("monster.png", 8, this));
+
+        monster.get(0).setPosition(new Position(5,5));
+        monster.get(1).setPosition(new Position(5,4));
 //        monster.setPosition(new Position(
 //                random.nextInt(1,4),
 //                random.nextInt(1,4))
@@ -75,22 +80,33 @@ public class GameBoard {
     }
 
     public void heroAttack() {
-        Monster nearest = getNearestMonster();
+        Monster nearest = getNearestMonster(hero);
         hero.attackMonster(nearest);
     }
 
-    private Monster getNearestMonster() {
-        //TODO
-        return monster;
+    private Monster getNearestMonster(Hero hero) {
+        int distance = BOARD_SQUARE_LENGTH + BOARD_SQUARE_LENGTH;
+        Monster nearest = null;
+
+       for(Monster m : monster) {
+           int current = Position.calculateDistance(hero.getPosition(), m.getPosition());
+           if(current <= distance) {
+               nearest = m;
+               distance = current;
+           }
+       }
+
+       return nearest;
     }
 
     public void endHeroTurn() {
         hero.endTurn();
-        monster.startTurn();
+        for(Monster m : monster) {
+            m.startTurn();
+        }
     }
 
     public void endMonsterTurn() {
-        monster.endTurn();
         hero.startTurn();
     }
 

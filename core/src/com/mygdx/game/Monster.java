@@ -3,7 +3,6 @@ package com.mygdx.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 
-import java.util.AbstractCollection;
 import java.util.Random;
 
 public class Monster extends Creature {
@@ -74,33 +73,55 @@ public class Monster extends Creature {
 
                     // chase the hero in zigzag fashion
                     if(Math.abs(heroPos.x - position.x) > Math.abs(heroPos.y - position.y)) {
-                        if(heroPos.x > position.x) {
-                            setPosition(new Position(position.x+1, position.y));
+                        if(heroPos.x > position.x) {//move by x
+                            if(board.getBoard()[position.x+1][position.y] == null) {
+                                setPosition(new Position(position.x+1, position.y));
+                                waitABit();
+                                continue;
+                            }
                         } else {
-                            setPosition(new Position(position.x-1, position.y));
+                            if(board.getBoard()[position.x-1][position.y] == null) {
+                                setPosition(new Position(position.x-1, position.y));
+                                waitABit();
+                                continue;
+                            }
                         }
                     } else {
-                        if(heroPos.y > position.y) {
-                            setPosition(new Position(position.x, position.y+1));
+                        if(heroPos.y > position.y) {//move by y
+                            if(board.getBoard()[position.x][position.y+1] == null) {
+                                setPosition(new Position(position.x, position.y+1));
+                                waitABit();
+                                continue;
+                            }
                         } else {
-                            setPosition(new Position(position.x, position.y-1));
+                            if(board.getBoard()[position.x][position.y-1] == null) {
+                                setPosition(new Position(position.x, position.y-1));
+                                waitABit();
+                                continue;
+                            }
                         }
                     }
 
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+                    waitABit();
 
                     speed--;
                 }
 
                 attackHero(hero);
+                endTurn();
                 board.endMonsterTurn();
+
             }
         }).start();
 
+    }
+
+    private void waitABit() {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void attackHero(Hero hero) {
