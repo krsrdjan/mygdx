@@ -11,7 +11,7 @@ public class GameBoard {
 
     private Texture[][] board;
     private Hero hero;
-    private List<Monster> monster = new ArrayList<Monster>();
+    private List<Monster> monster = new ArrayList<>();
     public static final int SQUARE_SIZE = 128;
     public static final int BOARD_SQUARE_LENGTH = 6;
 
@@ -24,9 +24,11 @@ public class GameBoard {
         Random random = new Random();
         monster.add(new Monster("monster.png", 8, this));
         monster.add(new Monster("monster.png", 8, this));
+        monster.add(new Monster("monster.png", 8, this));
 
         monster.get(0).setPosition(new Position(5,5));
-        monster.get(1).setPosition(new Position(5,4));
+        monster.get(1).setPosition(new Position(5,3));
+        monster.get(2).setPosition(new Position(5,0));
 //        monster.setPosition(new Position(
 //                random.nextInt(1,4),
 //                random.nextInt(1,4))
@@ -114,5 +116,18 @@ public class GameBoard {
     public Hero getHero() {
         return hero;
     }
+
+    public boolean isSquareEmpty(int x, int y) {
+        if(x >= BOARD_SQUARE_LENGTH) {
+            return false;
+        }
+
+        if(y >= BOARD_SQUARE_LENGTH) {
+            return false;
+        }
+
+        return board[x][y] == null;
+    }
+
 
 }

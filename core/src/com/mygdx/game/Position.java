@@ -13,6 +13,11 @@ public class Position {
         return Math.abs(pos1.x - pos2.x) <= 1 && Math.abs(pos1.y - pos2.y) <= 1;
     }
 
+    public static boolean isVeryNear(Position pos1, Position pos2) {
+        return (Math.abs(pos1.x - pos2.x) <= 1 && pos1.y == pos2.y) ||
+                (Math.abs(pos1.y - pos2.y) <= 1 && pos1.x == pos2.x);
+    }
+
     public static int calculateDistance(Position pos1, Position pos2) {
         return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y);
     }
