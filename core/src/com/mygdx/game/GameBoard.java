@@ -101,6 +101,7 @@ public class GameBoard {
 
     public void endHeroTurn() {
         hero.endTurn();
+
         for(Monster m : monster) {
             m.startTurn();
         }

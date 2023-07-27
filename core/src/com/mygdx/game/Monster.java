@@ -48,7 +48,9 @@ public class Monster extends Creature {
         if(health <= 0) {
             board.endMonsterTurn();
             return;
-        };
+        }
+
+        waitABitLess();
 
         speed = MAX_SPEED;
         moveToHeroAndAttack(board.getHero());
@@ -77,12 +79,14 @@ public class Monster extends Creature {
                             if(board.getBoard()[position.x+1][position.y] == null) {
                                 setPosition(new Position(position.x+1, position.y));
                                 waitABit();
+                                speed--;
                                 continue;
                             }
                         } else {
                             if(board.getBoard()[position.x-1][position.y] == null) {
                                 setPosition(new Position(position.x-1, position.y));
                                 waitABit();
+                                speed--;
                                 continue;
                             }
                         }
@@ -91,19 +95,20 @@ public class Monster extends Creature {
                             if(board.getBoard()[position.x][position.y+1] == null) {
                                 setPosition(new Position(position.x, position.y+1));
                                 waitABit();
+                                speed--;
                                 continue;
                             }
                         } else {
                             if(board.getBoard()[position.x][position.y-1] == null) {
                                 setPosition(new Position(position.x, position.y-1));
                                 waitABit();
+                                speed--;
                                 continue;
                             }
                         }
                     }
 
                     waitABit();
-
                     speed--;
                 }
 
@@ -119,6 +124,14 @@ public class Monster extends Creature {
     private void waitABit() {
         try {
             Thread.sleep(500);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void waitABitLess() {
+        try {
+            Thread.sleep(300);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
