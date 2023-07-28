@@ -11,6 +11,7 @@ public class Hero extends Creature {
     private int MAX_SPEED = 5;
     private int speed = MAX_SPEED;
     private int attack = 1;
+    private int damage = 10;
     private Position position;
     private GameBoard board;
     private Sound deathSound;
@@ -37,7 +38,7 @@ public class Hero extends Creature {
 
     public int attack() {
         weaponHit.play();
-        return new Random().nextInt(5);
+        return new Random().nextInt(damage);
     }
 
     public void startTurn() {

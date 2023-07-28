@@ -12,6 +12,7 @@ public class Monster extends Creature {
     private GameBoard board;
     private int MAX_SPEED = 3;
     private int speed = MAX_SPEED;
+    private int damage = 2;
     private Sound weaponHit;
 
     public Monster(String image, int health, GameBoard board) {
@@ -28,6 +29,7 @@ public class Monster extends Creature {
         if(health <= 0) {
             deathSound.play();
             board.getBoard()[position.x][position.y] = null;
+            board.removeMonster(this);
         }
     }
 
@@ -50,7 +52,7 @@ public class Monster extends Creature {
             return;
         }
 
-        waitABitLess();
+        //waitABitLess();
 
         speed = MAX_SPEED;
         moveToHeroAndAttack(board.getHero());
@@ -65,112 +67,114 @@ public class Monster extends Creature {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while(speed > 0) {
-                    Position heroPos = hero.getPosition();
-                    // chase the hero until very near, same x or y position, no diagonal
-                    if (Position.isVeryNear(heroPos, position)) {
-                        System.out.println("Already very near hero");
-                        speed--;
-                        continue;
-                    }
+                synchronized (GameBoard.getLockObject()) {
+                    while (speed > 0) {
+                        Position heroPos = hero.getPosition();
 
-                    boolean tryOut = new Random().nextBoolean();
+                        // chase the hero until very near, same x or y position, no diagonal
+                        if (Position.isVeryNear(heroPos, position)) {
+                            System.out.println("Already very near hero");
+                            speed--;
+                            continue;
+                        }
 
-                    // chase the hero in zigzag fashion
-                    if(Math.abs(heroPos.x - position.x) > Math.abs(heroPos.y - position.y)) {
-                        if(heroPos.x > position.x) {//move right
-                            if(board.isSquareEmpty(position.x+1,position.y)) {
-                                setPosition(new Position(position.x+1, position.y));
-                                waitABit();
-                                speed--;
-                                continue;
-                            } else {
-                                if(tryOut && board.isSquareEmpty(position.x, position.y+1)) { //try up
-                                    setPosition(new Position(position.x, position.y+1));
+                        boolean tryOut = new Random().nextBoolean();
+
+                        // chase the hero in zigzag fashion
+                        if (Math.abs(heroPos.x - position.x) > Math.abs(heroPos.y - position.y)) {
+                            if (heroPos.x > position.x) {//move right
+                                if (board.isSquareEmpty(position.x + 1, position.y)) {
+                                    setPosition(new Position(position.x + 1, position.y));
                                     waitABit();
                                     speed--;
                                     continue;
+                                } else {
+                                    if (tryOut && board.isSquareEmpty(position.x, position.y + 1)) { //try up
+                                        setPosition(new Position(position.x, position.y + 1));
+                                        waitABit();
+                                        speed--;
+                                        continue;
+                                    }
+                                    if (board.isSquareEmpty(position.x, position.y - 1)) { //try down
+                                        setPosition(new Position(position.x, position.y - 1));
+                                        waitABit();
+                                        speed--;
+                                        continue;
+                                    }
                                 }
-                                if(board.isSquareEmpty(position.x, position.y-1)) { //try down
-                                    setPosition(new Position(position.x, position.y-1));
+                            } else { //move left
+                                if (board.isSquareEmpty(position.x - 1, position.y)) {
+                                    setPosition(new Position(position.x - 1, position.y));
                                     waitABit();
                                     speed--;
                                     continue;
+                                } else {
+                                    if (tryOut && board.isSquareEmpty(position.x, position.y + 1)) { //try up
+                                        setPosition(new Position(position.x, position.y + 1));
+                                        waitABit();
+                                        speed--;
+                                        continue;
+                                    }
+                                    if (board.isSquareEmpty(position.x, position.y - 1)) { //try down
+                                        setPosition(new Position(position.x, position.y - 1));
+                                        waitABit();
+                                        speed--;
+                                        continue;
+                                    }
                                 }
                             }
-                        } else { //move left
-                            if(board.isSquareEmpty(position.x-1,position.y)) {
-                                setPosition(new Position(position.x-1, position.y));
-                                waitABit();
-                                speed--;
-                                continue;
-                            } else {
-                                if(tryOut && board.isSquareEmpty(position.x, position.y+1)) { //try up
-                                    setPosition(new Position(position.x, position.y+1));
+                        } else { //move up
+                            if (heroPos.y > position.y) {
+                                if (board.isSquareEmpty(position.x, position.y + 1)) {
+                                    setPosition(new Position(position.x, position.y + 1));
                                     waitABit();
                                     speed--;
                                     continue;
+                                } else {
+                                    if (tryOut && board.isSquareEmpty(position.x + 1, position.y)) { //try right
+                                        setPosition(new Position(position.x + 1, position.y));
+                                        waitABit();
+                                        speed--;
+                                        continue;
+                                    }
+                                    if (board.isSquareEmpty(position.x - 1, position.y)) { //try left
+                                        setPosition(new Position(position.x - 1, position.y));
+                                        waitABit();
+                                        speed--;
+                                        continue;
+                                    }
                                 }
-                                if(board.isSquareEmpty(position.x, position.y-1)) { //try down
-                                    setPosition(new Position(position.x, position.y-1));
+                            } else { //move down
+                                if (board.isSquareEmpty(position.x, position.y - 1)) {
+                                    setPosition(new Position(position.x, position.y - 1));
                                     waitABit();
                                     speed--;
                                     continue;
+                                } else {
+                                    if (tryOut && board.isSquareEmpty(position.x + 1, position.y)) { //try right
+                                        setPosition(new Position(position.x + 1, position.y));
+                                        waitABit();
+                                        speed--;
+                                        continue;
+                                    }
+                                    if (board.isSquareEmpty(position.x - 1, position.y)) { //try left
+                                        setPosition(new Position(position.x - 1, position.y));
+                                        waitABit();
+                                        speed--;
+                                        continue;
+                                    }
                                 }
                             }
                         }
-                    } else { //move up
-                        if(heroPos.y > position.y) {
-                            if(board.isSquareEmpty(position.x,position.y+1)) {
-                                setPosition(new Position(position.x, position.y+1));
-                                waitABit();
-                                speed--;
-                                continue;
-                            } else {
-                                if(tryOut && board.isSquareEmpty(position.x+1, position.y)) { //try right
-                                    setPosition(new Position(position.x+1, position.y));
-                                    waitABit();
-                                    speed--;
-                                    continue;
-                                }
-                                if(board.isSquareEmpty(position.x-1, position.y)) { //try left
-                                    setPosition(new Position(position.x-1, position.y));
-                                    waitABit();
-                                    speed--;
-                                    continue;
-                                }
-                            }
-                        } else { //move down
-                            if(board.isSquareEmpty(position.x,position.y-1)) {
-                                setPosition(new Position(position.x, position.y-1));
-                                waitABit();
-                                speed--;
-                                continue;
-                            } else {
-                                if(tryOut && board.isSquareEmpty(position.x+1, position.y)) { //try right
-                                    setPosition(new Position(position.x+1, position.y));
-                                    waitABit();
-                                    speed--;
-                                    continue;
-                                }
-                                if(board.isSquareEmpty(position.x-1, position.y)) { //try left
-                                    setPosition(new Position(position.x-1, position.y));
-                                    waitABit();
-                                    speed--;
-                                    continue;
-                                }
-                            }
-                        }
-                    }
 
 //                    waitABit();
 //                    speed--;
+                    }
+
+                    attackHero(hero);
+                    endTurn();
+                    board.endMonsterTurn();
                 }
-
-                attackHero(hero);
-                endTurn();
-                board.endMonsterTurn();
-
             }
         }).start();
 
@@ -201,6 +205,6 @@ public class Monster extends Creature {
     }
 
     public int attack() {
-        return new Random().nextInt(1);
+        return new Random().nextInt(damage);
     }
 }

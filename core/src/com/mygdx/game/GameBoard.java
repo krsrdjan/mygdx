@@ -11,24 +11,30 @@ public class GameBoard {
 
     private Texture[][] board;
     private Hero hero;
-    private List<Monster> monster = new ArrayList<>();
+    private List<Monster> monsters = new ArrayList<>();
     public static final int SQUARE_SIZE = 128;
     public static final int BOARD_SQUARE_LENGTH = 6;
+
+    private static final Object lock = new Object();
+
+    public static synchronized Object getLockObject(){
+        return lock;
+    }
 
     public GameBoard() {
         board = new Texture[BOARD_SQUARE_LENGTH][BOARD_SQUARE_LENGTH];
 
-        hero = new Hero("hero.png", 10, this);
+        hero = new Hero("hero.png", 20, this);
         hero.setPosition(new Position(0,0));
 
         Random random = new Random();
-        monster.add(new Monster("monster.png", 8, this));
-        monster.add(new Monster("monster.png", 8, this));
-        monster.add(new Monster("monster.png", 8, this));
+        monsters.add(new Monster("orc.png", 8, this));
+        monsters.add(new Monster("werewolf.png", 6, this));
+        monsters.add(new Monster("monster.png", 6, this));
 
-        monster.get(0).setPosition(new Position(5,5));
-        monster.get(1).setPosition(new Position(5,3));
-        monster.get(2).setPosition(new Position(5,0));
+        monsters.get(0).setPosition(new Position(5,5));
+        monsters.get(1).setPosition(new Position(5,3));
+        monsters.get(2).setPosition(new Position(5,0));
 //        monster.setPosition(new Position(
 //                random.nextInt(1,4),
 //                random.nextInt(1,4))
@@ -90,7 +96,7 @@ public class GameBoard {
         int distance = BOARD_SQUARE_LENGTH + BOARD_SQUARE_LENGTH;
         Monster nearest = null;
 
-       for(Monster m : monster) {
+       for(Monster m : monsters) {
            int current = Position.calculateDistance(hero.getPosition(), m.getPosition());
            if(current <= distance) {
                nearest = m;
@@ -104,7 +110,7 @@ public class GameBoard {
     public void endHeroTurn() {
         hero.endTurn();
 
-        for(Monster m : monster) {
+        for(Monster m : monsters) {
             m.startTurn();
         }
     }
@@ -126,8 +132,14 @@ public class GameBoard {
             return false;
         }
 
+        if(x < 0 || y < 0) {
+            return false;
+        }
+
         return board[x][y] == null;
     }
 
-
+    public void removeMonster(Monster monster) {
+        monsters.remove(monster);
+    }
 }

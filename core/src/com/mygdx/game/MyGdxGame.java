@@ -23,7 +23,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		tile = new Texture("tile.jpeg");
 		Gdx.input.setInputProcessor(new MyInputAdapter(gameBoard));
 		music = Gdx.audio.newSound(Gdx.files.internal("music.mp3"));
-		//music.play(0.5f);
+		music.play(0.5f);
 	}
 
 	@Override
