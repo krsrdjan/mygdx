@@ -14,6 +14,7 @@ public class Monster extends Creature {
     private int speed = MAX_SPEED;
     private int damage = 2;
     private Sound weaponHit;
+    private boolean active = false;
 
     public Monster(String image, int health, GameBoard board) {
         super(image, health);
@@ -56,6 +57,11 @@ public class Monster extends Creature {
 
         speed = MAX_SPEED;
         moveToHeroAndAttack(board.getHero());
+
+    }
+
+    private boolean isHeroNear() {
+        return true;
     }
 
     public void endTurn() {
@@ -68,7 +74,7 @@ public class Monster extends Creature {
             @Override
             public void run() {
                 synchronized (GameBoard.getLockObject()) {
-                    while (speed > 0) {
+                    while (speed > 0 && active) {
                         Position heroPos = hero.getPosition();
 
                         // chase the hero until very near, same x or y position, no diagonal
@@ -206,5 +212,9 @@ public class Monster extends Creature {
 
     public int attack() {
         return new Random().nextInt(damage);
+    }
+
+    public void activate() {
+        active = true;
     }
 }

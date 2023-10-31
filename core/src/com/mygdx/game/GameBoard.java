@@ -16,7 +16,7 @@ public class GameBoard {
     private List<Monster> monsters = new ArrayList<>();
     public static final int SQUARE_SIZE = 64;
     public static final int BOARD_SQUARE_LENGTH = 12;
-
+    public boolean exploredAll = false;
     private static final Object lock = new Object();
 
     public static synchronized Object getLockObject(){
@@ -25,18 +25,23 @@ public class GameBoard {
 
     public GameBoard() {
         textures = new Texture[BOARD_SQUARE_LENGTH][BOARD_SQUARE_LENGTH];
+        Random random = new Random();
+        textures[random.nextInt(BOARD_SQUARE_LENGTH - 1)][random.nextInt(BOARD_SQUARE_LENGTH - 1)] = new Texture("rock.png");
+        textures[random.nextInt(BOARD_SQUARE_LENGTH - 1)][random.nextInt(BOARD_SQUARE_LENGTH - 1)] = new Texture("rock.png");
+        textures[random.nextInt(BOARD_SQUARE_LENGTH - 1)][random.nextInt(BOARD_SQUARE_LENGTH - 1)] = new Texture("rock.png");
+        textures[random.nextInt(BOARD_SQUARE_LENGTH - 1)][random.nextInt(BOARD_SQUARE_LENGTH - 1)] = new Texture("rock.png");
+        textures[random.nextInt(BOARD_SQUARE_LENGTH - 1)][random.nextInt(BOARD_SQUARE_LENGTH - 1)] = new Texture("rock.png");
 
         hero = new Hero("hero.png", 20, this);
         hero.setPosition(new Position(0,0));
 
-        Random random = new Random();
         monsters.add(new Monster("orc.png", 8, this));
-        //monsters.add(new Monster("werewolf.png", 6, this));
-        //monsters.add(new Monster("monster.png", 6, this));
+        monsters.add(new Monster("werewolf.png", 6, this));
+        monsters.add(new Monster("monster.png", 6, this));
 
-        monsters.get(0).setPosition(new Position(5,5));
-        //monsters.get(1).setPosition(new Position(5,3));
-        //monsters.get(2).setPosition(new Position(5,0));
+        monsters.get(0).setPosition(new Position(BOARD_SQUARE_LENGTH / 2, BOARD_SQUARE_LENGTH / 3));
+        monsters.get(1).setPosition(new Position(0, BOARD_SQUARE_LENGTH / 3));
+        monsters.get(2).setPosition(new Position(BOARD_SQUARE_LENGTH / 2, 1));
 
     }
 
@@ -45,7 +50,7 @@ public class GameBoard {
     }
 
     public Texture getTexture(int x, int y) {
-        if(explored[x][y]) {
+        if(explored[x][y] || exploredAll) {
             return textures[x][y];
         } else {
             return createUnexploredTexture();
@@ -58,6 +63,14 @@ public class GameBoard {
         }
     }
 
+    public void activateNearMonsters(Position position) {
+        for(Monster m : monsters) {
+            if(Position.isNear(m.getPosition(), position)) {
+                m.activate();
+            }
+        }
+    }
+
     private Texture createUnexploredTexture() {
         Pixmap pixmap = new Pixmap(SQUARE_SIZE, SQUARE_SIZE, Pixmap.Format.RGBA8888);
         pixmap.setColor(0.2f, 0.2f, 0.2f, 1.0f); // Dark grey color
@@ -65,32 +78,6 @@ public class GameBoard {
 
         // Create a Texture from the Pixmap
         return new Texture(pixmap);
-    }
-
-    public int getTexturePositionX(Texture texture) {
-        for (int i = 0; i < textures.length; i++) {
-            for (int j = 0; j < textures[i].length; j++) {
-                Texture tex = textures[i][j];
-                if (tex == texture) {
-                    return i * SQUARE_SIZE;
-                }
-            }
-        }
-
-        return 0;
-    }
-
-    public int getTexturePositionY(Texture texture) {
-        for (int i = 0; i < textures.length; i++) {
-            for (int j = 0; j < textures[i].length; j++) {
-                Texture tex = textures[i][j];
-                if (tex == texture) {
-                    return j * SQUARE_SIZE;
-                }
-            }
-        }
-
-        return 0;
     }
 
     public void moveHeroUp(){

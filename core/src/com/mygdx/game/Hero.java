@@ -12,6 +12,7 @@ public class Hero extends Creature {
     private int speed = MAX_SPEED;
     private int attack = 1;
     private int damage = 10;
+    private int sight = 1;
     private Position position;
     private GameBoard board;
     private Sound deathSound;
@@ -31,14 +32,18 @@ public class Hero extends Creature {
         this.board.getTextures()[newPosition.x][newPosition.y] = getTexture();
         this.position = newPosition;
 
+        exploreAroundHero(newPosition);
+
+        this.board.activateNearMonsters(newPosition);
+    }
+
+    private void exploreAroundHero(Position newPosition) {
         this.board.explore(newPosition.x, newPosition.y);
-        for(int i = newPosition.x - 1; i <= newPosition.x + 1; i++) {
-            for(int j = newPosition.y - 1; j <= newPosition.y + 1; j++) {
+        for(int i = newPosition.x - sight; i <= newPosition.x + sight; i++) {
+            for(int j = newPosition.y - sight; j <= newPosition.y + sight; j++) {
                 this.board.explore(i, j);
             }
         }
-
-
     }
 
     public Position getPosition() {
