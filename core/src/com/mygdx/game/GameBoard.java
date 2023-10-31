@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 
 import java.util.ArrayList;
@@ -9,11 +10,12 @@ import java.util.Random;
 
 public class GameBoard {
 
-    private Texture[][] board;
+    private Texture[][] textures;
+    private boolean[][] explored = new boolean[BOARD_SQUARE_LENGTH][BOARD_SQUARE_LENGTH];
     private Hero hero;
     private List<Monster> monsters = new ArrayList<>();
-    public static final int SQUARE_SIZE = 128;
-    public static final int BOARD_SQUARE_LENGTH = 6;
+    public static final int SQUARE_SIZE = 64;
+    public static final int BOARD_SQUARE_LENGTH = 12;
 
     private static final Object lock = new Object();
 
@@ -22,33 +24,53 @@ public class GameBoard {
     }
 
     public GameBoard() {
-        board = new Texture[BOARD_SQUARE_LENGTH][BOARD_SQUARE_LENGTH];
+        textures = new Texture[BOARD_SQUARE_LENGTH][BOARD_SQUARE_LENGTH];
 
         hero = new Hero("hero.png", 20, this);
         hero.setPosition(new Position(0,0));
 
         Random random = new Random();
         monsters.add(new Monster("orc.png", 8, this));
-        monsters.add(new Monster("werewolf.png", 6, this));
-        monsters.add(new Monster("monster.png", 6, this));
+        //monsters.add(new Monster("werewolf.png", 6, this));
+        //monsters.add(new Monster("monster.png", 6, this));
 
         monsters.get(0).setPosition(new Position(5,5));
-        monsters.get(1).setPosition(new Position(5,3));
-        monsters.get(2).setPosition(new Position(5,0));
-//        monster.setPosition(new Position(
-//                random.nextInt(1,4),
-//                random.nextInt(1,4))
-//        );
+        //monsters.get(1).setPosition(new Position(5,3));
+        //monsters.get(2).setPosition(new Position(5,0));
+
     }
 
-    public Texture[][] getBoard() {
-        return board;
+    public Texture[][] getTextures() {
+        return textures;
+    }
+
+    public Texture getTexture(int x, int y) {
+        if(explored[x][y]) {
+            return textures[x][y];
+        } else {
+            return createUnexploredTexture();
+        }
+    }
+
+    public void explore(int x, int y) {
+        if(x >= 0 && x < explored.length && y >= 0 && y < explored.length) {
+            explored[x][y] = true;
+        }
+    }
+
+    private Texture createUnexploredTexture() {
+        Pixmap pixmap = new Pixmap(SQUARE_SIZE, SQUARE_SIZE, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0.2f, 0.2f, 0.2f, 1.0f); // Dark grey color
+        pixmap.fill();
+
+        // Create a Texture from the Pixmap
+        return new Texture(pixmap);
     }
 
     public int getTexturePositionX(Texture texture) {
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
-                Texture tex = board[i][j];
+        for (int i = 0; i < textures.length; i++) {
+            for (int j = 0; j < textures[i].length; j++) {
+                Texture tex = textures[i][j];
                 if (tex == texture) {
                     return i * SQUARE_SIZE;
                 }
@@ -59,9 +81,9 @@ public class GameBoard {
     }
 
     public int getTexturePositionY(Texture texture) {
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
-                Texture tex = board[i][j];
+        for (int i = 0; i < textures.length; i++) {
+            for (int j = 0; j < textures[i].length; j++) {
+                Texture tex = textures[i][j];
                 if (tex == texture) {
                     return j * SQUARE_SIZE;
                 }
@@ -136,7 +158,7 @@ public class GameBoard {
             return false;
         }
 
-        return board[x][y] == null;
+        return textures[x][y] == null;
     }
 
     public void removeMonster(Monster monster) {

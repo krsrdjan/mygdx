@@ -19,8 +19,8 @@ public class MyGdxGame extends ApplicationAdapter {
 	public void create () {	// this is done once
 		gameBoard = new GameBoard();
 		batch = new SpriteBatch();
-		//tile = new Texture("tile-small.jpeg");
-		tile = new Texture("tile.jpeg");
+		tile = new Texture("tile-small.jpeg");
+		//tile = new Texture("tile.jpeg");
 		Gdx.input.setInputProcessor(new MyInputAdapter(gameBoard));
 		music = Gdx.audio.newSound(Gdx.files.internal("music.mp3"));
 		music.play(0.5f);
@@ -40,14 +40,13 @@ public class MyGdxGame extends ApplicationAdapter {
 		tiledDrawable.draw(batch, 0, 0, width, height);
 
 		//draw each texture from the board
-		Texture[][] board = gameBoard.getBoard();
-		for (int i = 0; i < board.length; i++) {
-			for (int j = 0; j < board[i].length; j++) {
-				Texture tex = board[i][j];
+		for (int i = 0; i < GameBoard.BOARD_SQUARE_LENGTH; i++) {
+			for (int j = 0; j < GameBoard.BOARD_SQUARE_LENGTH; j++) {
+				Texture tex = gameBoard.getTexture(i,j);
 				if (tex != null) {
 					batch.draw(tex,
-							gameBoard.getTexturePositionX(tex),
-							gameBoard.getTexturePositionY(tex),
+							i * GameBoard.SQUARE_SIZE,
+							j * GameBoard.SQUARE_SIZE,
 							GameBoard.SQUARE_SIZE,
 							GameBoard.SQUARE_SIZE);
 				}

@@ -8,7 +8,7 @@ import java.util.Random;
 public class Hero extends Creature {
 
     private Sound weaponHit;
-    private int MAX_SPEED = 5;
+    private int MAX_SPEED = 100;
     private int speed = MAX_SPEED;
     private int attack = 1;
     private int damage = 10;
@@ -25,11 +25,20 @@ public class Hero extends Creature {
 
     public void setPosition(Position newPosition) {
         if(position != null) {
-            board.getBoard()[position.x][position.y] = null;
+            board.getTextures()[position.x][position.y] = null;
         }
 
-        this.board.getBoard()[newPosition.x][newPosition.y] = getTexture();
+        this.board.getTextures()[newPosition.x][newPosition.y] = getTexture();
         this.position = newPosition;
+
+        this.board.explore(newPosition.x, newPosition.y);
+        for(int i = newPosition.x - 1; i <= newPosition.x + 1; i++) {
+            for(int j = newPosition.y - 1; j <= newPosition.y + 1; j++) {
+                this.board.explore(i, j);
+            }
+        }
+
+
     }
 
     public Position getPosition() {
@@ -56,14 +65,14 @@ public class Hero extends Creature {
         health = health - damage;
         if(health <= 0) {
             deathSound.play();
-            board.getBoard()[position.x][position.y] = null;
+            board.getTextures()[position.x][position.y] = null;
         }
     }
 
     public void moveUp() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.y < board.getBoard().length - 1 && board.getBoard()[pos.x][pos.y+1] == null) {
+            if(pos.y < board.getTextures().length - 1 && board.getTextures()[pos.x][pos.y+1] == null) {
                 setPosition(new Position(pos.x, pos.y+1));
                 speed--;
             }
@@ -73,7 +82,7 @@ public class Hero extends Creature {
     public void moveRight() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.x < board.getBoard().length - 1 && board.getBoard()[pos.x+1][pos.y] == null) {
+            if(pos.x < board.getTextures().length - 1 && board.getTextures()[pos.x+1][pos.y] == null) {
                 setPosition(new Position(pos.x+1, pos.y));
                 speed--;
             }
@@ -83,7 +92,7 @@ public class Hero extends Creature {
     public void moveDown() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.y > 0 && board.getBoard()[pos.x][pos.y-1] == null) {
+            if(pos.y > 0 && board.getTextures()[pos.x][pos.y-1] == null) {
                 setPosition(new Position(pos.x, pos.y-1));
                 speed--;
             }
@@ -93,7 +102,7 @@ public class Hero extends Creature {
     public void moveLeft() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.x > 0 && board.getBoard()[pos.x-1][pos.y] == null) {
+            if(pos.x > 0 && board.getTextures()[pos.x-1][pos.y] == null) {
                 setPosition(new Position(pos.x-1, pos.y));
                 speed--;
             }
