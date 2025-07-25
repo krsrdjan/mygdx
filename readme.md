@@ -26,3 +26,5 @@ To run the game run gradle run.
 ./gradlew run
 ```
 Have fun! :)
+
+![Clipboard Image](assets/clipboard-image.png)
