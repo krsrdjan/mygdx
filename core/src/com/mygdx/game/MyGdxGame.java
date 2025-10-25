@@ -3,6 +3,7 @@ package com.mygdx.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -16,6 +17,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	TiledDrawable tiledDrawable;
 	TextureRegion textureRegion;
 	Sound music;
+	OrthographicCamera camera;
 	
 	@Override
 	public void create () {	// this is done once
@@ -26,6 +28,10 @@ public class MyGdxGame extends ApplicationAdapter {
 		textureRegion = new TextureRegion(tile);
 		tiledDrawable = new TiledDrawable(textureRegion);
 		
+		// Setup camera
+		camera = new OrthographicCamera();
+		camera.setToOrtho(false, 800, 600); // Show 12-13 squares horizontally, 9-10 vertically
+		
 		Gdx.input.setInputProcessor(new MyInputAdapter(gameBoard));
 
 		music = Gdx.audio.newSound(Gdx.files.internal("music.mp3"));
@@ -35,12 +41,18 @@ public class MyGdxGame extends ApplicationAdapter {
 	@Override
 	public void render () { // this is loop rendered 60 FPS
 		ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
+		
+		// Update camera to follow hero
+		updateCamera();
+		camera.update();
+		batch.setProjectionMatrix(camera.combined);
+		
 		batch.begin();
 
-		//draw tiles with repeat
-		float width = Gdx.graphics.getWidth();
-		float height = Gdx.graphics.getHeight();
-		tiledDrawable.draw(batch, 0, 0, width, height);
+		//draw tiles with repeat - use world coordinates
+		float worldWidth = GameBoard.BOARD_SQUARE_WIDTH * GameBoard.SQUARE_SIZE;
+		float worldHeight = GameBoard.BOARD_SQUARE_HEIGHT * GameBoard.SQUARE_SIZE;
+		tiledDrawable.draw(batch, 0, 0, worldWidth, worldHeight);
 
 		//draw each texture from the board
 		for (int i = 0; i < GameBoard.BOARD_SQUARE_WIDTH; i++) {
@@ -71,6 +83,26 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 
 		batch.end();
+	}
+	
+	private void updateCamera() {
+		// Get hero position
+		Position heroPos = gameBoard.getHero().getPosition();
+		
+		// Calculate hero's world position (center of the square)
+		float heroWorldX = heroPos.x * GameBoard.SQUARE_SIZE + GameBoard.SQUARE_SIZE / 2f;
+		float heroWorldY = heroPos.y * GameBoard.SQUARE_SIZE + GameBoard.SQUARE_SIZE / 2f;
+		
+		// Set camera position to follow hero
+		camera.position.set(heroWorldX, heroWorldY, 0);
+	}
+	
+	@Override
+	public void resize(int width, int height) {
+		// Update camera viewport when window is resized
+		camera.viewportWidth = 800;
+		camera.viewportHeight = 600;
+		camera.update();
 	}
 	
 	@Override

@@ -13,8 +13,8 @@ public class GameBoard {
     private Hero hero;
     private List<Monster> monsters = new ArrayList<>();
     public static final int SQUARE_SIZE = 64;
-    public static final int BOARD_SQUARE_HEIGHT = 12;
-    public static final int BOARD_SQUARE_WIDTH = 16;
+    public static final int BOARD_SQUARE_HEIGHT = 32;
+    public static final int BOARD_SQUARE_WIDTH = 32;
     public boolean exploredAll = false;
     private static final Object lock = new Object();
 
@@ -33,7 +33,7 @@ public class GameBoard {
         }
        
         hero = new Hero("hero.png", 8, this);
-        hero.setPosition(new Position(0,0));
+        hero.setPosition(new Position(16,16));
        
     }
 
