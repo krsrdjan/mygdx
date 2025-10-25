@@ -24,6 +24,6 @@ public class Position {
 
     @Override
     public String toString() {
-        return "Tile position: [x=" + x + ", y=" + y + "]";
+        return "Position: [x=" + x + ", y=" + y + "]";
     }   
 }

@@ -43,10 +43,12 @@ public class Hero extends Creature {
     }
 
     private void exploreAroundHero(Position newPosition) {
-        this.board.explore(newPosition.x, newPosition.y);
-        for(int i = newPosition.x - sight; i <= newPosition.x + sight; i++) {
-            for(int j = newPosition.y - sight; j <= newPosition.y + sight; j++) {
-                this.board.explore(i, j);
+        Position tilePosition = board.getHeroTilePosition();
+
+        //for tile 0,0 explore each square in the tile 0,0 to 3,3 etc
+        for(int i = 0; i < 4; i++) {
+            for(int j = 0; j < 4; j++) {
+                board.explore(tilePosition.x * 4 + i, tilePosition.y * 4 + j);
             }
         }
     }
