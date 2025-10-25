@@ -35,7 +35,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		Gdx.input.setInputProcessor(new MyInputAdapter(gameBoard));
 
 		music = Gdx.audio.newSound(Gdx.files.internal("music.mp3"));
-		music.play(0.1f);
+		music.play(0.05f);
 	}
 
 	@Override

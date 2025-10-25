@@ -21,4 +21,9 @@ public class Position {
     public static int calculateDistance(Position pos1, Position pos2) {
         return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y);
     }
+
+    @Override
+    public String toString() {
+        return "Tile position: [x=" + x + ", y=" + y + "]";
+    }   
 }

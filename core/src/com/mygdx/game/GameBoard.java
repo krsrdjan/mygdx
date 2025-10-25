@@ -37,6 +37,10 @@ public class GameBoard {
        
     }
 
+    public Position getHeroTilePosition() {
+        return new Position(hero.getPosition().x / 4, hero.getPosition().y / 4);
+    }
+
     public Square getSquare(int x, int y) {
         if(x >= 0 && x < BOARD_SQUARE_WIDTH && y >= 0 && y < BOARD_SQUARE_HEIGHT) {
             return board[x][y];
@@ -82,18 +86,22 @@ public class GameBoard {
 
     public void moveHeroUp(){
         hero.moveUp();
+        System.out.println("moveHeroUp called, tile position: " + getHeroTilePosition());
     }
 
     public void moveHeroRight(){
         hero.moveRight();
+        System.out.println("moveHeroRight called, tile position: " + getHeroTilePosition());
     }
 
     public void moveHeroDown(){
         hero.moveDown();
+        System.out.println("moveHeroDown called, tile position: " + getHeroTilePosition());
     }
 
     public void moveHeroLeft(){
         hero.moveLeft();
+        System.out.println("moveHeroLeft called, tile position: " + getHeroTilePosition());
     }
 
     public void heroAttack() {
