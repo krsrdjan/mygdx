@@ -7,12 +7,11 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 public class DesktopLauncher {
 	public static void main (String[] arg) {
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
-		config.setForegroundFPS(24);
-		config.setTitle("My GDX Game");
-		config.setWindowedMode(
-				GameBoard.BOARD_SQUARE_LENGTH * GameBoard.SQUARE_SIZE,
-				GameBoard.BOARD_SQUARE_LENGTH * GameBoard.SQUARE_SIZE
-				);
+		config.setForegroundFPS(60);
+		config.setTitle("My GDX Game - Turn-Based Adventure");
+		config.setWindowedMode(1024, 768);
+		config.setResizable(true);
+		config.setWindowIcon("hero.png");
 		new Lwjgl3Application(new MyGdxGame(), config);
 	}
 }

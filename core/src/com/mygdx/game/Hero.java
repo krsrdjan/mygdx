@@ -77,7 +77,7 @@ public class Hero extends Creature {
     public void moveUp() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.y < board.getTextures().length - 1 && board.getTextures()[pos.x][pos.y+1] == null) {
+            if(pos.y < GameBoard.BOARD_SQUARE_HEIGHT - 1 && board.getTextures()[pos.x][pos.y+1] == null) {
                 setPosition(new Position(pos.x, pos.y+1));
                 speed--;
             }
@@ -87,7 +87,7 @@ public class Hero extends Creature {
     public void moveRight() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.x < board.getTextures().length - 1 && board.getTextures()[pos.x+1][pos.y] == null) {
+            if(pos.x < GameBoard.BOARD_SQUARE_WIDTH - 1 && board.getTextures()[pos.x+1][pos.y] == null) {
                 setPosition(new Position(pos.x+1, pos.y));
                 speed--;
             }

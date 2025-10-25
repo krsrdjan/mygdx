@@ -11,11 +11,12 @@ import java.util.Random;
 public class GameBoard {
 
     private Texture[][] textures;
-    private boolean[][] explored = new boolean[BOARD_SQUARE_LENGTH][BOARD_SQUARE_LENGTH];
+    private boolean[][] explored = new boolean[BOARD_SQUARE_WIDTH][BOARD_SQUARE_HEIGHT];
     private Hero hero;
     private List<Monster> monsters = new ArrayList<>();
     public static final int SQUARE_SIZE = 64;
-    public static final int BOARD_SQUARE_LENGTH = 12;
+    public static final int BOARD_SQUARE_HEIGHT = 12;
+    public static final int BOARD_SQUARE_WIDTH = 16;
     public boolean exploredAll = false;
     private static final Object lock = new Object();
 
@@ -24,24 +25,25 @@ public class GameBoard {
     }
 
     public GameBoard() {
-        textures = new Texture[BOARD_SQUARE_LENGTH][BOARD_SQUARE_LENGTH];
-        Random random = new Random();
-        textures[random.nextInt(BOARD_SQUARE_LENGTH - 1)][random.nextInt(BOARD_SQUARE_LENGTH - 1)] = new Texture("rock.png");
-        textures[random.nextInt(BOARD_SQUARE_LENGTH - 1)][random.nextInt(BOARD_SQUARE_LENGTH - 1)] = new Texture("rock.png");
-        textures[random.nextInt(BOARD_SQUARE_LENGTH - 1)][random.nextInt(BOARD_SQUARE_LENGTH - 1)] = new Texture("rock.png");
-        textures[random.nextInt(BOARD_SQUARE_LENGTH - 1)][random.nextInt(BOARD_SQUARE_LENGTH - 1)] = new Texture("rock.png");
-        textures[random.nextInt(BOARD_SQUARE_LENGTH - 1)][random.nextInt(BOARD_SQUARE_LENGTH - 1)] = new Texture("rock.png");
+        textures = new Texture[BOARD_SQUARE_WIDTH][BOARD_SQUARE_HEIGHT];
+
+        // Random random = new Random();
+        // textures[random.nextInt(BOARD_SQUARE_HEIGHT - 1)][random.nextInt(BOARD_SQUARE_HEIGHT - 1)] = new Texture("rock.png");
+        // textures[random.nextInt(BOARD_SQUARE_HEIGHT - 1)][random.nextInt(BOARD_SQUARE_HEIGHT - 1)] = new Texture("rock.png");
+        // textures[random.nextInt(BOARD_SQUARE_HEIGHT - 1)][random.nextInt(BOARD_SQUARE_HEIGHT - 1)] = new Texture("rock.png");
+        // textures[random.nextInt(BOARD_SQUARE_HEIGHT - 1)][random.nextInt(BOARD_SQUARE_HEIGHT - 1)] = new Texture("rock.png");
+        // textures[random.nextInt(BOARD_SQUARE_HEIGHT - 1)][random.nextInt(BOARD_SQUARE_HEIGHT - 1)] = new Texture("rock.png");
 
         hero = new Hero("hero.png", 20, this);
         hero.setPosition(new Position(0,0));
 
-        monsters.add(new Monster("orc.png", 8, this));
-        monsters.add(new Monster("werewolf.png", 6, this));
-        monsters.add(new Monster("monster.png", 6, this));
+        // monsters.add(new Monster("orc.png", 8, this));
+        // monsters.add(new Monster("werewolf.png", 6, this));
+        // monsters.add(new Monster("monster.png", 6, this));
 
-        monsters.get(0).setPosition(new Position(BOARD_SQUARE_LENGTH / 2, BOARD_SQUARE_LENGTH / 3));
-        monsters.get(1).setPosition(new Position(0, BOARD_SQUARE_LENGTH / 3));
-        monsters.get(2).setPosition(new Position(BOARD_SQUARE_LENGTH / 2, 1));
+        // monsters.get(0).setPosition(new Position(BOARD_SQUARE_WIDTH / 2, BOARD_SQUARE_HEIGHT / 3));
+        // monsters.get(1).setPosition(new Position(0, BOARD_SQUARE_HEIGHT / 3));
+        // monsters.get(2).setPosition(new Position(BOARD_SQUARE_WIDTH / 2, 1));
 
     }
 
@@ -50,15 +52,19 @@ public class GameBoard {
     }
 
     public Texture getTexture(int x, int y) {
-        if(explored[x][y] || exploredAll) {
-            return textures[x][y];
+        if(x >= 0 && x < BOARD_SQUARE_WIDTH && y >= 0 && y < BOARD_SQUARE_HEIGHT) {
+            if(explored[x][y] || exploredAll) {
+                return textures[x][y];
+            } else {
+                return createUnexploredTexture();
+            }
         } else {
             return createUnexploredTexture();
         }
     }
 
     public void explore(int x, int y) {
-        if(x >= 0 && x < explored.length && y >= 0 && y < explored.length) {
+        if(x >= 0 && x < BOARD_SQUARE_WIDTH && y >= 0 && y < BOARD_SQUARE_HEIGHT) {
             explored[x][y] = true;
         }
     }
@@ -102,7 +108,7 @@ public class GameBoard {
     }
 
     private Monster getNearestMonster(Hero hero) {
-        int distance = BOARD_SQUARE_LENGTH + BOARD_SQUARE_LENGTH;
+        int distance = BOARD_SQUARE_WIDTH + BOARD_SQUARE_HEIGHT;
         Monster nearest = null;
 
        for(Monster m : monsters) {
@@ -133,11 +139,11 @@ public class GameBoard {
     }
 
     public boolean isSquareEmpty(int x, int y) {
-        if(x >= BOARD_SQUARE_LENGTH) {
+        if(x >= BOARD_SQUARE_WIDTH) {
             return false;
         }
 
-        if(y >= BOARD_SQUARE_LENGTH) {
+        if(y >= BOARD_SQUARE_HEIGHT) {
             return false;
         }
 

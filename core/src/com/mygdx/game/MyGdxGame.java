@@ -13,35 +13,38 @@ public class MyGdxGame extends ApplicationAdapter {
 	GameBoard gameBoard;
 	SpriteBatch batch;
 	Texture tile;
+	TiledDrawable tiledDrawable;
+	TextureRegion textureRegion;
 	Sound music;
 	
 	@Override
 	public void create () {	// this is done once
 		gameBoard = new GameBoard();
 		batch = new SpriteBatch();
+
 		tile = new Texture("tile-small.jpeg");
-		//tile = new Texture("tile.jpeg");
+		textureRegion = new TextureRegion(tile);
+		tiledDrawable = new TiledDrawable(textureRegion);
+		
 		Gdx.input.setInputProcessor(new MyInputAdapter(gameBoard));
+
 		music = Gdx.audio.newSound(Gdx.files.internal("music.mp3"));
-		music.play(0.5f);
+		music.play(0.1f);
 	}
 
 	@Override
-	public void render () {	// this is loop rendered 24 FPS
-		//System.out.println("Rendering");
+	public void render () { // this is loop rendered 60 FPS
 		ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
 		batch.begin();
 
 		//draw tiles with repeat
-		TextureRegion textureRegion = new TextureRegion(tile);
-		TiledDrawable tiledDrawable = new TiledDrawable(textureRegion);
 		float width = Gdx.graphics.getWidth();
 		float height = Gdx.graphics.getHeight();
 		tiledDrawable.draw(batch, 0, 0, width, height);
 
 		//draw each texture from the board
-		for (int i = 0; i < GameBoard.BOARD_SQUARE_LENGTH; i++) {
-			for (int j = 0; j < GameBoard.BOARD_SQUARE_LENGTH; j++) {
+		for (int i = 0; i < GameBoard.BOARD_SQUARE_WIDTH; i++) {
+			for (int j = 0; j < GameBoard.BOARD_SQUARE_HEIGHT; j++) {
 				Texture tex = gameBoard.getTexture(i,j);
 				if (tex != null) {
 					batch.draw(tex,
