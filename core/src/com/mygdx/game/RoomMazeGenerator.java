@@ -23,7 +23,32 @@ public class RoomMazeGenerator {
         int[][] maze = new int[h][w];
         boolean[][] visited = new boolean[h][w];
         dfs(0, 0, maze, visited, w, h);
+        
+        // Add more connections to create junction-like rooms
+        addJunctionConnections(maze, w, h);
+        
         return maze;
+    }
+    
+    // Add additional connections to create more 3-way and 4-way junctions
+    private void addJunctionConnections(int[][] maze, int w, int h) {
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                // For each room, try to add more connections
+                List<Integer> availableDirs = new ArrayList<>();
+                for (int d = 0; d < 4; d++) {
+                    int nx = x + DIRS[d][0];
+                    int ny = y + DIRS[d][1];
+                    if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                        // Add connection with 6% chance if not already connected
+                        if ((maze[y][x] & (1 << d)) == 0 && random.nextDouble() < 0.06) {
+                            maze[y][x] |= (1 << d);
+                            maze[ny][nx] |= (1 << OPPOSITE[d]);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void dfs(int x, int y, int[][] maze, boolean[][] visited, int w, int h) {
@@ -40,6 +65,19 @@ public class RoomMazeGenerator {
                 maze[y][x] |= (1 << d);
                 maze[ny][nx] |= (1 << OPPOSITE[d]);
                 dfs(nx, ny, maze, visited, w, h);
+            }
+        }
+        
+        // Add extra connections to create more junctions (9% chance)
+        for (int d : dirs) {
+            int nx = x + DIRS[d][0];
+            int ny = y + DIRS[d][1];
+            if (nx >= 0 && nx < w && ny >= 0 && ny < h && random.nextDouble() < 0.09) {
+                // Add extra connection if not already connected
+                if ((maze[y][x] & (1 << d)) == 0) {
+                    maze[y][x] |= (1 << d);
+                    maze[ny][nx] |= (1 << OPPOSITE[d]);
+                }
             }
         }
     }
@@ -74,12 +112,6 @@ public class RoomMazeGenerator {
             room[1][0] = room[2][0] = 0;
         }
 
-        // optional: random small obstacle
-        if (random.nextDouble() < 0.3) {
-            int ox = 1 + random.nextInt(2);
-            int oy = 1 + random.nextInt(2);
-            room[oy][ox] = 1;
-        }
 
         return room;
     }
