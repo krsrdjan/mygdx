@@ -45,6 +45,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		//draw each texture from the board
 		for (int i = 0; i < GameBoard.BOARD_SQUARE_WIDTH; i++) {
 			for (int j = 0; j < GameBoard.BOARD_SQUARE_HEIGHT; j++) {
+				// Draw square texture (walls, floors, etc.)
 				Texture tex = gameBoard.getTexture(i,j);
 				if (tex != null) {
 					batch.draw(tex,
@@ -52,6 +53,19 @@ public class MyGdxGame extends ApplicationAdapter {
 							j * GameBoard.SQUARE_SIZE,
 							GameBoard.SQUARE_SIZE,
 							GameBoard.SQUARE_SIZE);
+				}
+				
+				// Draw creature on this square (hero, monsters, etc.)
+				Square square = gameBoard.getSquare(i, j);
+				if (square != null && square.getCreature() != null) {
+					Texture creatureTex = square.getCreature().getTexture();
+					if (creatureTex != null) {
+						batch.draw(creatureTex,
+								i * GameBoard.SQUARE_SIZE,
+								j * GameBoard.SQUARE_SIZE,
+								GameBoard.SQUARE_SIZE,
+								GameBoard.SQUARE_SIZE);
+					}
 				}
 			}
 		}

@@ -26,14 +26,19 @@ public class Hero extends Creature {
 
     public void setPosition(Position newPosition) {
         if(position != null) {
-            board.getTextures()[position.x][position.y] = null;
+            Square oldSquare = board.getSquare(position.x, position.y);
+            if(oldSquare != null) {
+                oldSquare.setCreature(null);
+            }
         }
 
-        this.board.getTextures()[newPosition.x][newPosition.y] = getTexture();
+        Square newSquare = board.getSquare(newPosition.x, newPosition.y);
+        if(newSquare != null) {
+            newSquare.setCreature(this);
+        }
         this.position = newPosition;
 
         exploreAroundHero(newPosition);
-
         this.board.activateNearMonsters(newPosition);
     }
 
@@ -70,14 +75,17 @@ public class Hero extends Creature {
         health = health - damage;
         if(health <= 0) {
             deathSound.play();
-            board.getTextures()[position.x][position.y] = null;
+            Square square = board.getSquare(position.x, position.y);
+            if(square != null) {
+                square.setCreature(null);
+            }
         }
     }
 
     public void moveUp() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.y < GameBoard.BOARD_SQUARE_HEIGHT - 1 && board.getTextures()[pos.x][pos.y+1] == null) {
+            if(pos.y < GameBoard.BOARD_SQUARE_HEIGHT - 1 && board.isSquareEmpty(pos.x, pos.y+1)) {
                 setPosition(new Position(pos.x, pos.y+1));
                 speed--;
             }
@@ -87,7 +95,7 @@ public class Hero extends Creature {
     public void moveRight() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.x < GameBoard.BOARD_SQUARE_WIDTH - 1 && board.getTextures()[pos.x+1][pos.y] == null) {
+            if(pos.x < GameBoard.BOARD_SQUARE_WIDTH - 1 && board.isSquareEmpty(pos.x+1, pos.y)) {
                 setPosition(new Position(pos.x+1, pos.y));
                 speed--;
             }
@@ -97,7 +105,7 @@ public class Hero extends Creature {
     public void moveDown() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.y > 0 && board.getTextures()[pos.x][pos.y-1] == null) {
+            if(pos.y > 0 && board.isSquareEmpty(pos.x, pos.y-1)) {
                 setPosition(new Position(pos.x, pos.y-1));
                 speed--;
             }
@@ -107,7 +115,7 @@ public class Hero extends Creature {
     public void moveLeft() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.x > 0 && board.getTextures()[pos.x-1][pos.y] == null) {
+            if(pos.x > 0 && board.isSquareEmpty(pos.x-1, pos.y)) {
                 setPosition(new Position(pos.x-1, pos.y));
                 speed--;
             }

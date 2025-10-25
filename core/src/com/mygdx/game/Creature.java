@@ -2,8 +2,6 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.graphics.Texture;
 
-import java.util.Random;
-
 public class Creature {
     protected final Texture texture;
     protected int health;

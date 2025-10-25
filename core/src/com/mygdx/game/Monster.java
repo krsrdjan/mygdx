@@ -29,17 +29,26 @@ public class Monster extends Creature {
         health = health - damage;
         if(health <= 0) {
             deathSound.play();
-            board.getTextures()[position.x][position.y] = null;
+            Square square = board.getSquare(position.x, position.y);
+            if(square != null) {
+                square.setCreature(null);
+            }
             board.removeMonster(this);
         }
     }
 
     public void setPosition(Position newPosition) {
         if(position != null) {
-            board.getTextures()[position.x][position.y] = null;
+            Square oldSquare = board.getSquare(position.x, position.y);
+            if(oldSquare != null) {
+                oldSquare.setCreature(null);
+            }
         }
 
-        this.board.getTextures()[newPosition.x][newPosition.y] = getTexture();
+        Square newSquare = board.getSquare(newPosition.x, newPosition.y);
+        if(newSquare != null) {
+            newSquare.setCreature(this);
+        }
         this.position = newPosition;
     }
 
