@@ -8,7 +8,7 @@ import java.util.Random;
 public class Hero extends Creature {
 
     private Sound weaponHit;
-    private int MAX_SPEED = 100;
+    private int MAX_SPEED = Integer.MAX_VALUE;
     private int speed = MAX_SPEED;
     private int attack = 1;
     private int damage = 10;
