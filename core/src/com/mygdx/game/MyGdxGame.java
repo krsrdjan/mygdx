@@ -93,8 +93,18 @@ public class MyGdxGame extends ApplicationAdapter {
 		float heroWorldX = heroPos.x * GameBoard.SQUARE_SIZE + GameBoard.SQUARE_SIZE / 2f;
 		float heroWorldY = heroPos.y * GameBoard.SQUARE_SIZE + GameBoard.SQUARE_SIZE / 2f;
 		
-		// Set camera position to follow hero
-		camera.position.set(heroWorldX, heroWorldY, 0);
+		// Calculate world bounds
+		float worldWidth = GameBoard.BOARD_SQUARE_WIDTH * GameBoard.SQUARE_SIZE;
+		float worldHeight = GameBoard.BOARD_SQUARE_HEIGHT * GameBoard.SQUARE_SIZE;
+		float halfViewportWidth = camera.viewportWidth / 2f;
+		float halfViewportHeight = camera.viewportHeight / 2f;
+		
+		// Clamp camera position to world bounds
+		float clampedX = Math.max(halfViewportWidth, Math.min(heroWorldX, worldWidth - halfViewportWidth));
+		float clampedY = Math.max(halfViewportHeight, Math.min(heroWorldY, worldHeight - halfViewportHeight));
+		
+		// Set camera position with bounds
+		camera.position.set(clampedX, clampedY, 0);
 	}
 	
 	@Override
