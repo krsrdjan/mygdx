@@ -1,0 +1,28 @@
+{
+  // VS Code / Cursor launch configurations for libGDX Desktop
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Desktop (libGDX)",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "com.mygdx.game.DesktopLauncher",
+      "projectName": "desktop",
+      "cwd": "${workspaceFolder}/assets",
+      "vmArgs": "-XstartOnFirstThread"
+    },
+    {
+      "name": "Debug Desktop (libGDX)",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "com.mygdx.game.DesktopLauncher",
+      "projectName": "desktop",
+      "cwd": "${workspaceFolder}/assets",
+      "vmArgs": "-XstartOnFirstThread",
+      "console": "integratedTerminal",
+      "stopOnEntry": false
+    }
+  ]
+}
+
+
