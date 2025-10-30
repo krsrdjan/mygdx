@@ -24,6 +24,17 @@ public class Monster extends Creature {
         this.board = board;
     }
 
+    public Monster(String image, int health, int damage, int maxSpeed, GameBoard board) {
+        super(image, health);
+        deathSound = Gdx.audio.newSound(Gdx.files.internal("death.mp3"));
+        weaponHit = Gdx.audio.newSound(Gdx.files.internal("sword.wav"));
+
+        this.board = board;
+        this.damage = damage;
+        this.MAX_SPEED = maxSpeed;
+        this.speed = MAX_SPEED;
+    }
+
     public void takeDamage(int damage) {
         health = health - damage;
         if(health <= 0) {

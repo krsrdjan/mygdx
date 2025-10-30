@@ -11,6 +11,10 @@ public class GameBoard {
     private Square[][] board;
     private Hero hero;
     private List<Monster> monsters = new ArrayList<>();
+    private boolean spawnOnExplore = false;
+    private final boolean[][] roomSpawnAttempted = new boolean[BOARD_SQUARE_WIDTH / 4][BOARD_SQUARE_HEIGHT / 4];
+    private final RandomMonsterFactory monsterFactory = new RandomMonsterFactory();
+    private final java.util.Random random = new java.util.Random();
     public static final int SQUARE_SIZE = 64;
     public static final int BOARD_SQUARE_HEIGHT = 32;
     public static final int BOARD_SQUARE_WIDTH = 32;
@@ -56,7 +60,9 @@ public class GameBoard {
 		if (spawn == null) {
 			spawn = new Position(0, 0);
 		}
-		hero.setPosition(spawn);
+        hero.setPosition(spawn);
+        // Enable spawning only after initial placement to avoid flooding the start room
+        spawnOnExplore = true;
 
     }
 
@@ -207,7 +213,45 @@ public class GameBoard {
 
     public void explore(int x, int y) {
         if (x >= 0 && x < BOARD_SQUARE_WIDTH && y >= 0 && y < BOARD_SQUARE_HEIGHT) {
-            board[x][y].setExplored(true);
+            Square square = board[x][y];
+            boolean newlyExplored = !square.isExplored();
+            square.setExplored(true);
+
+            if (spawnOnExplore && newlyExplored) {
+                int roomX = x / 4;
+                int roomY = y / 4;
+                if (roomX >= 0 && roomX < roomSpawnAttempted.length && roomY >= 0 && roomY < roomSpawnAttempted[0].length) {
+                    if (!roomSpawnAttempted[roomX][roomY]) {
+                        roomSpawnAttempted[roomX][roomY] = true;
+                        if (random.nextFloat() < 0.5f) {
+                            trySpawnMonsterInRoom(roomX, roomY);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void trySpawnMonsterInRoom(int roomX, int roomY) {
+        int startX = roomX * 4;
+        int startY = roomY * 4;
+        java.util.List<Position> candidates = new java.util.ArrayList<>();
+        for (int dx = 0; dx < 4; dx++) {
+            for (int dy = 0; dy < 4; dy++) {
+                int sx = startX + dx;
+                int sy = startY + dy;
+                if (sx >= 0 && sx < BOARD_SQUARE_WIDTH && sy >= 0 && sy < BOARD_SQUARE_HEIGHT) {
+                    if (isSquareEmpty(sx, sy)) {
+                        candidates.add(new Position(sx, sy));
+                    }
+                }
+            }
+        }
+        if (!candidates.isEmpty()) {
+            Position p = candidates.get(random.nextInt(candidates.size()));
+            Monster m = monsterFactory.createRandomMonster(this);
+            m.setPosition(p);
+            monsters.add(m);
         }
     }
 
