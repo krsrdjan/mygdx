@@ -50,10 +50,56 @@ public class GameBoard {
             }
         }
 
-        hero = new Hero("hero.png", 8, this);
-        hero.setPosition(new Position(16, 16));
+		hero = new Hero("hero.png", 8, this);
+		Position spawn = findNearestEmpty(new Position(16, 16));
+		spawn = fallbackFindAnyEmpty(spawn);
+		if (spawn == null) {
+			spawn = new Position(0, 0);
+		}
+		hero.setPosition(spawn);
 
     }
+
+	private Position findNearestEmpty(Position start) {
+		boolean[][] visited = new boolean[BOARD_SQUARE_WIDTH][BOARD_SQUARE_HEIGHT];
+		int[][] dirs = new int[][] { { 0, -1 }, { 1, 0 }, { 0, 1 }, { -1, 0 } };
+		java.util.ArrayDeque<Position> queue = new java.util.ArrayDeque<>();
+		// Clamp start inside bounds
+		int sx = Math.max(0, Math.min(BOARD_SQUARE_WIDTH - 1, start.x));
+		int sy = Math.max(0, Math.min(BOARD_SQUARE_HEIGHT - 1, start.y));
+		queue.add(new Position(sx, sy));
+		visited[sx][sy] = true;
+
+		while (!queue.isEmpty()) {
+			Position p = queue.poll();
+			if (isSquareEmpty(p.x, p.y)) {
+				return p;
+			}
+			for (int[] d : dirs) {
+				int nx = p.x + d[0];
+				int ny = p.y + d[1];
+				if (nx >= 0 && nx < BOARD_SQUARE_WIDTH && ny >= 0 && ny < BOARD_SQUARE_HEIGHT && !visited[nx][ny]) {
+					visited[nx][ny] = true;
+					queue.add(new Position(nx, ny));
+				}
+			}
+		}
+		return null;
+	}
+
+	private Position fallbackFindAnyEmpty(Position current) {
+		if (current != null) {
+			return current;
+		}
+		for (int sx = 0; sx < BOARD_SQUARE_WIDTH; sx++) {
+			for (int sy = 0; sy < BOARD_SQUARE_HEIGHT; sy++) {
+				if (isSquareEmpty(sx, sy)) {
+					return new Position(sx, sy);
+				}
+			}
+		}
+		return null;
+	}
 
     private Texture createWallTexture() {
         Pixmap pixmap = new Pixmap(SQUARE_SIZE, SQUARE_SIZE, Pixmap.Format.RGBA8888);
