@@ -266,7 +266,11 @@ public class GameBoard {
 
     public void endHeroTurn() {
         hero.endTurn();
-
+        if (monsters.isEmpty()) {
+            // No monsters to act; immediately start hero's next turn
+            endMonsterTurn();
+            return;
+        }
         for (Monster m : monsters) {
             m.startTurn();
         }
