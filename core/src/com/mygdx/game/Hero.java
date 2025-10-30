@@ -8,11 +8,10 @@ import java.util.Random;
 public class Hero extends Creature {
 
     private Sound weaponHit;
-    private int MAX_SPEED = Integer.MAX_VALUE;
+    private int MAX_SPEED = 8;
     private int speed = MAX_SPEED;
     private int attack = 1;
-    private int damage = 10;
-    private int sight = 1;
+    private int damage = 1;
     private Position position;
     private GameBoard board;
     private Sound deathSound;
@@ -131,6 +130,10 @@ public class Hero extends Creature {
                 attack--;
             }
         }
+    }
+
+    public int getSpeed() {
+        return speed;
     }
 
 }

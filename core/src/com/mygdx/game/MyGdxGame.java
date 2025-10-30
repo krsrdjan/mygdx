@@ -6,6 +6,9 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -18,6 +21,9 @@ public class MyGdxGame extends ApplicationAdapter {
 	TextureRegion textureRegion;
 	Sound music;
 	OrthographicCamera camera;
+	OrthographicCamera hudCamera;
+	BitmapFont font;
+	ShapeRenderer shapeRenderer;
 	
 	@Override
 	public void create () {	// this is done once
@@ -31,6 +37,11 @@ public class MyGdxGame extends ApplicationAdapter {
 		// Setup camera
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 800, 600); // Show 12-13 squares horizontally, 9-10 vertically
+		hudCamera = new OrthographicCamera();
+		hudCamera.setToOrtho(false, 800, 600);
+
+		font = new BitmapFont();
+		shapeRenderer = new ShapeRenderer();
 		
 		Gdx.input.setInputProcessor(new MyInputAdapter(gameBoard));
 
@@ -83,6 +94,22 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 
 		batch.end();
+
+		// HUD rendering (screen space)
+		hudCamera.update();
+		shapeRenderer.setProjectionMatrix(hudCamera.combined);
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		shapeRenderer.setColor(new Color(0, 0, 0, 0.6f));
+		shapeRenderer.rect(0, 0, hudCamera.viewportWidth, 40);
+		shapeRenderer.end();
+
+		batch.setProjectionMatrix(hudCamera.combined);
+		batch.begin();
+		Hero hero = gameBoard.getHero();
+		String hudText = "HP: " + hero.getHealth() + "    Moves: " + hero.getSpeed();
+		font.setColor(Color.WHITE);
+		font.draw(batch, hudText, 10, 25);
+		batch.end();
 	}
 	
 	private void updateCamera() {
@@ -119,6 +146,8 @@ public class MyGdxGame extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		tile.dispose();
+		font.dispose();
+		shapeRenderer.dispose();
 		gameBoard = null;
 	}
 }
