@@ -230,22 +230,18 @@ public class GameBoard {
 
     public void moveHeroUp() {
         hero.moveUp();
-        System.out.println("moveHeroUp called, tile position: " + getHeroTilePosition());
     }
 
     public void moveHeroRight() {
         hero.moveRight();
-        System.out.println("moveHeroRight called, tile position: " + getHeroTilePosition());
     }
 
     public void moveHeroDown() {
         hero.moveDown();
-        System.out.println("moveHeroDown called, tile position: " + getHeroTilePosition());
     }
 
     public void moveHeroLeft() {
         hero.moveLeft();
-        System.out.println("moveHeroLeft called, tile position: " + getHeroTilePosition());
     }
 
     public void heroAttack() {

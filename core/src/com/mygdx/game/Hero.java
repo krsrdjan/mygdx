@@ -73,7 +73,6 @@ public class Hero extends Creature {
     }
 
     public void takeDamage(int damage) {
-        System.out.println("Damage taken: " + damage);
         health = health - damage;
         if(health <= 0) {
             deathSound.play();

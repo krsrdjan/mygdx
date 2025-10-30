@@ -12,7 +12,6 @@ public class MyInputAdapter extends InputAdapter {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        System.out.println("touchDown called");
         return super.touchDown(screenX, screenY, pointer, button);
     }
 

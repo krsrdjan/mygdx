@@ -25,7 +25,6 @@ public class Monster extends Creature {
     }
 
     public void takeDamage(int damage) {
-        System.out.println("Damage taken: " + damage);
         health = health - damage;
         if(health <= 0) {
             deathSound.play();
@@ -88,7 +87,6 @@ public class Monster extends Creature {
 
                         // chase the hero until very near, same x or y position, no diagonal
                         if (Position.isVeryNear(heroPos, position)) {
-                            System.out.println("Already very near hero");
                             speed--;
                             continue;
                         }
