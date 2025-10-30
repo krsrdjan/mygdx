@@ -58,7 +58,9 @@ public class Hero extends Creature {
 
     public int attack() {
         weaponHit.play(AudioConfig.VOLUME);
-        return new Random().nextInt(damage);
+        // Ensure at least 1 damage; Random#nextInt is exclusive upper bound
+        int bound = Math.max(1, damage);
+        return 1 + new Random().nextInt(bound);
     }
 
     public void startTurn() {
