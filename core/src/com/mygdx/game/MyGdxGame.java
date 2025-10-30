@@ -45,8 +45,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		
 		Gdx.input.setInputProcessor(new MyInputAdapter(gameBoard));
 
-		music = Gdx.audio.newSound(Gdx.files.internal("music.mp3"));
-		music.play(0.05f);
+        music = Gdx.audio.newSound(Gdx.files.internal("music.mp3"));
+        music.play(AudioConfig.VOLUME);
 	}
 
 	@Override
@@ -109,6 +109,13 @@ public class MyGdxGame extends ApplicationAdapter {
 		String hudText = "HP: " + hero.getHealth() + "    Moves: " + hero.getSpeed();
 		font.setColor(Color.WHITE);
 		font.draw(batch, hudText, 10, 25);
+
+		// Show adjacent monster info (name and HP) if any
+		Monster adjacent = gameBoard.getAdjacentMonsterToHero();
+		if (adjacent != null) {
+			String monsterHud = "Monster: " + adjacent.getName() + "    HP: " + adjacent.getHealth();
+			font.draw(batch, monsterHud, 300, 25);
+		}
 		batch.end();
 	}
 	

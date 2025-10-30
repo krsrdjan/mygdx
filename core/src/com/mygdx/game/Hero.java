@@ -57,7 +57,7 @@ public class Hero extends Creature {
     }
 
     public int attack() {
-        weaponHit.play();
+        weaponHit.play(AudioConfig.VOLUME);
         return new Random().nextInt(damage);
     }
 
@@ -74,7 +74,7 @@ public class Hero extends Creature {
     public void takeDamage(int damage) {
         health = health - damage;
         if(health <= 0) {
-            deathSound.play();
+            deathSound.play(AudioConfig.VOLUME);
             Square square = board.getSquare(position.x, position.y);
             if(square != null) {
                 square.setCreature(null);

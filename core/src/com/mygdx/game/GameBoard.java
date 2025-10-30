@@ -198,6 +198,15 @@ public class GameBoard {
         return null;
     }
 
+    public boolean isWalkable(int x, int y) {
+        if (x < 0 || y < 0 || x >= BOARD_SQUARE_WIDTH || y >= BOARD_SQUARE_HEIGHT) {
+            return false;
+        }
+        Square s = board[x][y];
+        // Walkable only if explored, no wall texture and no creature on it
+        return s.isExplored() && s.getTexture() == null && s.getCreature() == null;
+    }
+
     public Texture getTexture(int x, int y) {
         if (x >= 0 && x < BOARD_SQUARE_WIDTH && y >= 0 && y < BOARD_SQUARE_HEIGHT) {
             Square square = board[x][y];
@@ -306,6 +315,14 @@ public class GameBoard {
         }
 
         return nearest;
+    }
+
+    public Monster getAdjacentMonsterToHero() {
+        Monster nearest = getNearestMonster(hero);
+        if (nearest != null && Position.isNear(hero.getPosition(), nearest.getPosition())) {
+            return nearest;
+        }
+        return null;
     }
 
     public void endHeroTurn() {
