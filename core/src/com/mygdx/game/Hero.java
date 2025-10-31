@@ -2,8 +2,10 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
+
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class Hero extends Creature {
 
@@ -14,7 +16,7 @@ public class Hero extends Creature {
     private Position position;
     private GameBoard board;
     private Sound deathSound;
-    private Collection<Weapon> inventory = new ArrayList<>();
+    private List<Weapon> inventory = new ArrayList<>();
     private Weapon currentWeapon;
     private int MAX_HEALTH;
 
@@ -24,10 +26,12 @@ public class Hero extends Creature {
         weaponHit = Gdx.audio.newSound(Gdx.files.internal("sword.wav"));
         deathSound = Gdx.audio.newSound(Gdx.files.internal("death.mp3"));
         this.board = board;
-        // Add Sword to inventory
+        // Add Sword and Axe to inventory
         Sword sword = new Sword();
+        Axe axe = new Axe();
         inventory.add(sword);
-        currentWeapon = sword;
+        inventory.add(axe);
+        currentWeapon = sword; // Start with Sword
     }
     
     public int getMaxHealth() {
@@ -167,6 +171,12 @@ public class Hero extends Creature {
         if (inventory.contains(weapon)) {
             this.currentWeapon = weapon;
         }
+    }
+
+    public void switchWeapon() {
+        int currentIndex = inventory.indexOf(currentWeapon);
+        int nextIndex = (currentIndex + 1) % inventory.size();
+        currentWeapon = inventory.get(nextIndex);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 
 public class MyInputAdapter extends InputAdapter {
@@ -22,31 +23,29 @@ public class MyInputAdapter extends InputAdapter {
             return true; // swallow input during monster turn
         }
         switch (keycode) {
-            case 51:
-                //move up
+            case Input.Keys.W:
                 gameBoard.moveHeroUp();
                 break;
-            case 32:
-                //move right
+            case Input.Keys.D:
                 gameBoard.moveHeroRight();
                 break;
-            case 47:
-                //move down
+            case Input.Keys.S:
                 gameBoard.moveHeroDown();
                 break;
-            case 29:
-                //move left
+            case Input.Keys.A:
                 gameBoard.moveHeroLeft();
                 break;
-            case 43:
-                //attack
+            case Input.Keys.U:
                 gameBoard.heroAttack();
                 break;
-            case 62:
-                //attack
+            case Input.Keys.SPACE:
                 gameBoard.endHeroTurn();
                 break;
+            case Input.Keys.I:
+                gameBoard.getHero().switchWeapon();
+                break;
         }
+        
         return true;
     }
 }
