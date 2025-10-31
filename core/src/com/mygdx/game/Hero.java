@@ -16,9 +16,11 @@ public class Hero extends Creature {
     private Sound deathSound;
     private Collection<Weapon> inventory = new ArrayList<>();
     private Weapon currentWeapon;
+    private int MAX_HEALTH;
 
     public Hero(String image, int health, GameBoard board) {
         super(image, health);
+        this.MAX_HEALTH = health;
         weaponHit = Gdx.audio.newSound(Gdx.files.internal("sword.wav"));
         deathSound = Gdx.audio.newSound(Gdx.files.internal("death.mp3"));
         this.board = board;
@@ -26,6 +28,14 @@ public class Hero extends Creature {
         Sword sword = new Sword();
         inventory.add(sword);
         currentWeapon = sword;
+    }
+    
+    public int getMaxHealth() {
+        return MAX_HEALTH;
+    }
+    
+    public void heal(int amount) {
+        health = Math.min(MAX_HEALTH, health + amount);
     }
 
     public void setPosition(Position newPosition) {
@@ -44,6 +54,7 @@ public class Hero extends Creature {
 
         exploreAroundHero(newPosition);
         this.board.activateNearMonsters(newPosition);
+        this.board.collectNearbyItems(this);
     }
 
     private void exploreAroundHero(Position newPosition) {

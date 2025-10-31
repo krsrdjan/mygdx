@@ -11,6 +11,7 @@ public class GameBoard {
     private Square[][] board;
     private Hero hero;
     private List<Monster> monsters = new ArrayList<>();
+    private List<Item> items = new ArrayList<>();
     private boolean spawnOnExplore = false;
     private boolean heroTurn = true;
     private final boolean[][] roomSpawnAttempted = new boolean[BOARD_SQUARE_WIDTH / 4][BOARD_SQUARE_HEIGHT / 4];
@@ -235,6 +236,9 @@ public class GameBoard {
                         roomSpawnAttempted[roomX][roomY] = true;
                         if (random.nextFloat() < 0.5f) {
                             trySpawnMonsterInRoom(roomX, roomY);
+                        } else {
+                            // Spawn potion if no monster
+                            trySpawnPotionInRoom(roomX, roomY);
                         }
                     }
                 }
@@ -262,6 +266,29 @@ public class GameBoard {
             Monster m = monsterFactory.createRandomMonster(this);
             m.setPosition(p);
             monsters.add(m);
+        }
+    }
+
+    private void trySpawnPotionInRoom(int roomX, int roomY) {
+        int startX = roomX * 4;
+        int startY = roomY * 4;
+        java.util.List<Position> candidates = new java.util.ArrayList<>();
+        for (int dx = 0; dx < 4; dx++) {
+            for (int dy = 0; dy < 4; dy++) {
+                int sx = startX + dx;
+                int sy = startY + dy;
+                if (sx >= 0 && sx < BOARD_SQUARE_WIDTH && sy >= 0 && sy < BOARD_SQUARE_HEIGHT) {
+                    if (isSquareEmpty(sx, sy)) {
+                        candidates.add(new Position(sx, sy));
+                    }
+                }
+            }
+        }
+        if (!candidates.isEmpty()) {
+            Position p = candidates.get(random.nextInt(candidates.size()));
+            Potion potion = new Potion(this);
+            potion.setPosition(p);
+            items.add(potion);
         }
     }
 
@@ -365,5 +392,22 @@ public class GameBoard {
 
     public void removeMonster(Monster monster) {
         monsters.remove(monster);
+    }
+
+    public void removeItem(Item item) {
+        items.remove(item);
+    }
+
+    public void collectNearbyItems(Hero hero) {
+        Position heroPos = hero.getPosition();
+        java.util.List<Item> itemsToCollect = new java.util.ArrayList<>();
+        for (Item item : items) {
+            if (Position.isNear(heroPos, item.getPosition())) {
+                itemsToCollect.add(item);
+            }
+        }
+        for (Item item : itemsToCollect) {
+            item.use(hero);
+        }
     }
 }
