@@ -100,7 +100,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		shapeRenderer.setProjectionMatrix(hudCamera.combined);
 		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 		shapeRenderer.setColor(new Color(0, 0, 0, 0.6f));
-		shapeRenderer.rect(0, 0, hudCamera.viewportWidth, 40);
+		shapeRenderer.rect(0, 0, hudCamera.viewportWidth, 60);
 		shapeRenderer.end();
 
 		batch.setProjectionMatrix(hudCamera.combined);
@@ -108,13 +108,21 @@ public class MyGdxGame extends ApplicationAdapter {
 		Hero hero = gameBoard.getHero();
 		String hudText = "HP: " + hero.getHealth() + "    Moves: " + hero.getSpeed();
 		font.setColor(Color.WHITE);
-		font.draw(batch, hudText, 10, 25);
+		font.draw(batch, hudText, 10, 45);
+
+		// Show weapon info
+		Weapon weapon = hero.getCurrentWeapon();
+		if (weapon != null) {
+			int hitChancePercent = Math.round(weapon.getChanceToHit() * 100);
+			String weaponHud = "Weapon: " + weapon.getClass().getSimpleName() + "    Hit: " + hitChancePercent + "%    Dmg: " + weapon.getDamage();
+			font.draw(batch, weaponHud, 10, 25);
+		}
 
 		// Show adjacent monster info (name and HP) if any
 		Monster adjacent = gameBoard.getAdjacentMonsterToHero();
 		if (adjacent != null) {
 			String monsterHud = "Monster: " + adjacent.getName() + "    HP: " + adjacent.getHealth();
-			font.draw(batch, monsterHud, 300, 25);
+			font.draw(batch, monsterHud, 300, 45);
 		}
 		batch.end();
 	}

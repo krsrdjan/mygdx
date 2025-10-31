@@ -2,6 +2,8 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class Hero extends Creature {
 
@@ -12,12 +14,18 @@ public class Hero extends Creature {
     private Position position;
     private GameBoard board;
     private Sound deathSound;
+    private Collection<Weapon> inventory = new ArrayList<>();
+    private Weapon currentWeapon;
 
     public Hero(String image, int health, GameBoard board) {
         super(image, health);
         weaponHit = Gdx.audio.newSound(Gdx.files.internal("sword.wav"));
         deathSound = Gdx.audio.newSound(Gdx.files.internal("death.mp3"));
         this.board = board;
+        // Add Sword to inventory
+        Sword sword = new Sword();
+        inventory.add(sword);
+        currentWeapon = sword;
     }
 
     public void setPosition(Position newPosition) {
@@ -55,7 +63,10 @@ public class Hero extends Creature {
 
     public int attack() {
         weaponHit.play(AudioConfig.VOLUME);
-        return 1; // Fixed 1 damage
+        if (currentWeapon != null) {
+            return currentWeapon.attack();
+        }
+        return 0; // No weapon equipped
     }
 
     public void startTurn() {
@@ -131,6 +142,20 @@ public class Hero extends Creature {
 
     public int getSpeed() {
         return speed;
+    }
+
+    public Collection<Weapon> getInventory() {
+        return inventory;
+    }
+
+    public Weapon getCurrentWeapon() {
+        return currentWeapon;
+    }
+
+    public void setCurrentWeapon(Weapon weapon) {
+        if (inventory.contains(weapon)) {
+            this.currentWeapon = weapon;
+        }
     }
 
 }
