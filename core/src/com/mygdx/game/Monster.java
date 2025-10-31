@@ -75,7 +75,7 @@ public class Monster extends Creature {
             return;
         }
 
-        //waitABitLess();
+        waitABitLess();
 
         speed = MAX_SPEED;
         moveToHeroAndAttack(board.getHero());
@@ -91,7 +91,8 @@ public class Monster extends Creature {
     }
 
     private void moveToHeroAndAttack(final Hero hero) {
-
+        // thred is needed to make visual movement square by square
+        // if not, monster will move to hero in one go
         new Thread(new Runnable() {
             @Override
             public void run() {

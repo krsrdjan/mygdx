@@ -12,6 +12,7 @@ public class GameBoard {
     private Hero hero;
     private List<Monster> monsters = new ArrayList<>();
     private boolean spawnOnExplore = false;
+    private boolean heroTurn = true;
     private final boolean[][] roomSpawnAttempted = new boolean[BOARD_SQUARE_WIDTH / 4][BOARD_SQUARE_HEIGHT / 4];
     private final RandomMonsterFactory monsterFactory = new RandomMonsterFactory();
     private final java.util.Random random = new java.util.Random();
@@ -326,6 +327,10 @@ public class GameBoard {
     }
 
     public void endHeroTurn() {
+        if (!heroTurn) {
+            return;
+        }
+        heroTurn = false;
         hero.endTurn();
         if (monsters.isEmpty()) {
             // No monsters to act; immediately start hero's next turn
@@ -338,11 +343,16 @@ public class GameBoard {
     }
 
     public void endMonsterTurn() {
+        heroTurn = true;
         hero.startTurn();
     }
 
     public Hero getHero() {
         return hero;
+    }
+
+    public boolean isHeroTurn() {
+        return heroTurn;
     }
 
     public boolean isSquareEmpty(int x, int y) {
