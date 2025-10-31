@@ -3,15 +3,12 @@ package com.mygdx.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 
-import java.util.Random;
-
 public class Hero extends Creature {
 
     private Sound weaponHit;
     private int MAX_SPEED = 8;
     private int speed = MAX_SPEED;
     private int attack = 1;
-    private int damage = 1;
     private Position position;
     private GameBoard board;
     private Sound deathSound;
@@ -58,9 +55,7 @@ public class Hero extends Creature {
 
     public int attack() {
         weaponHit.play(AudioConfig.VOLUME);
-        // Ensure at least 1 damage; Random#nextInt is exclusive upper bound
-        int bound = Math.max(1, damage);
-        return 1 + new Random().nextInt(bound);
+        return 1; // Fixed 1 damage
     }
 
     public void startTurn() {
