@@ -123,6 +123,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (adjacent != null) {
 			String monsterHud = "Monster: " + adjacent.getName() + "    HP: " + adjacent.getHealth();
 			font.draw(batch, monsterHud, 300, 45);
+			
+			// Show monster weapon info
+			Weapon monsterWeapon = adjacent.getWeapon();
+			if (monsterWeapon != null) {
+				int hitChancePercent = Math.round(monsterWeapon.getChanceToHit() * 100);
+				String monsterWeaponHud = "Weapon: " + monsterWeapon.getClass().getSimpleName() + "    Hit: " + hitChancePercent + "%    Dmg: " + monsterWeapon.getDamage();
+				font.draw(batch, monsterWeaponHud, 300, 25);
+			}
 		}
 		batch.end();
 	}

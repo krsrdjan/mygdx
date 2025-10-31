@@ -16,15 +16,21 @@ public class RandomMonsterFactory {
     }
 
     public Monster createTroll(GameBoard board) {
-        return new Monster("troll.png", 2, 2, 4, board); // tough, slow
+        Monster monster = new Monster("troll.png", 2, 2, 4, board); // tough, slow
+        monster.setWeapon(new BigClub());
+        return monster;
     }
 
     public Monster createOrc(GameBoard board) {
-        return new Monster("orc.png", 2, 1, 5, board);   // balanced
+        Monster monster = new Monster("orc.png", 2, 1, 5, board);   // balanced
+        monster.setWeapon(new Mace());
+        return monster;
     }
 
     public Monster createWerewolf(GameBoard board) {
-        return new Monster("werewolf.png", 1, 1, 6, board); // fast, fragile
+        Monster monster = new Monster("werewolf.png", 1, 1, 6, board); // fast, fragile
+        monster.setWeapon(new Bite());
+        return monster;
     }
 
     private Monster createForImage(String image, GameBoard board) {

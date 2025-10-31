@@ -16,6 +16,7 @@ public class Monster extends Creature {
     private Sound weaponHit;
     private boolean active = false;
     private final String name;
+    private Weapon weapon;
 
     public Monster(String image, int health, GameBoard board) {
         super(image, health);
@@ -36,6 +37,11 @@ public class Monster extends Creature {
         this.MAX_SPEED = maxSpeed;
         this.speed = MAX_SPEED;
         this.name = inferNameFromImage(image);
+        // Weapon will be set by factory
+    }
+    
+    public void setWeapon(Weapon weapon) {
+        this.weapon = weapon;
     }
 
     public void takeDamage(int damage) {
@@ -197,7 +203,15 @@ public class Monster extends Creature {
     }
 
     public int attack() {
+        if (weapon != null) {
+            return weapon.attack();
+        }
+        // Fallback to old damage calculation if no weapon
         return new Random().nextInt(damage);
+    }
+    
+    public Weapon getWeapon() {
+        return weapon;
     }
 
     public void activate() {
