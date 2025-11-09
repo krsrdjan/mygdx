@@ -8,8 +8,7 @@
       "request": "launch",
       "mainClass": "com.mygdx.game.DesktopLauncher",
       "projectName": "desktop",
-      "cwd": "${workspaceFolder}/assets",
-      "vmArgs": "-XstartOnFirstThread"
+      "cwd": "${workspaceFolder}/assets"
     },
     {
       "name": "Debug Desktop (libGDX)",
@@ -18,7 +17,6 @@
       "mainClass": "com.mygdx.game.DesktopLauncher",
       "projectName": "desktop",
       "cwd": "${workspaceFolder}/assets",
-      "vmArgs": "-XstartOnFirstThread",
       "console": "integratedTerminal",
       "stopOnEntry": false
     }

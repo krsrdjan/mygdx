@@ -27,4 +27,4 @@ To run the game run gradle run.
 ```
 Have fun! :)
 
-![Clipboard Image](assets/clipboard-image.png)
+![Clipboard Image](assets/logo.png)
