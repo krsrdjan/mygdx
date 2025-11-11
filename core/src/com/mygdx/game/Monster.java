@@ -77,7 +77,12 @@ public class Monster extends Creature {
 
     public void startTurn() {
         if(health <= 0) {
-            board.endMonsterTurn();
+            // Dead monsters don't count towards active monsters taking turn
+            return;
+        }
+
+        // Only move if active, otherwise do nothing (not counted in activeMonstersTakingTurn)
+        if (!active) {
             return;
         }
 
@@ -124,7 +129,7 @@ public class Monster extends Creature {
 
                     attackHero(hero);
                     endTurn();
-                    board.endMonsterTurn();
+                    board.notifyMonsterTurnComplete();
                 }
             }
         }).start();
@@ -198,7 +203,13 @@ public class Monster extends Creature {
         Position heroPos = hero.getPosition();
         if(Position.isNear(heroPos, position)) {
             weaponHit.play(AudioConfig.VOLUME);
-            hero.takeDamage(attack());
+            int damage = attack();
+            if (damage > 0) {
+                hero.takeDamage(damage);
+                board.showToast(name + " hits you for " + damage + " damage!");
+            } else {
+                board.showToast(name + " misses!");
+            }
         }
     }
 
@@ -216,6 +227,10 @@ public class Monster extends Creature {
 
     public void activate() {
         active = true;
+    }
+
+    public boolean isActive() {
+        return active;
     }
 
     public String getName() {

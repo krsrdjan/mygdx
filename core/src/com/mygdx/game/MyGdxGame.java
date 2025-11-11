@@ -12,6 +12,9 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class MyGdxGame extends ApplicationAdapter {
 	GameBoard gameBoard;
@@ -24,6 +27,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	OrthographicCamera hudCamera;
 	BitmapFont font;
 	ShapeRenderer shapeRenderer;
+	private List<Toast> activeToasts = new ArrayList<>();
 	
 	@Override
 	public void create () {	// this is done once
@@ -44,6 +48,9 @@ public class MyGdxGame extends ApplicationAdapter {
 		shapeRenderer = new ShapeRenderer();
 		
 		Gdx.input.setInputProcessor(new MyInputAdapter(gameBoard));
+		
+		// Set toast notifier for game board
+		gameBoard.setToastNotifier(this::showToast);
 
         music = Gdx.audio.newSound(Gdx.files.internal("music.mp3"));
         music.play(AudioConfig.VOLUME);
@@ -51,6 +58,11 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	@Override
 	public void render () { // this is loop rendered 60 FPS
+		float deltaTime = Gdx.graphics.getDeltaTime();
+		
+		// Update toasts
+		updateToasts(deltaTime);
+		
 		ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
 		
 		// Update camera to follow hero
@@ -132,7 +144,11 @@ public class MyGdxGame extends ApplicationAdapter {
 				font.draw(batch, monsterWeaponHud, 300, 25);
 			}
 		}
+		
 		batch.end();
+		
+		// Render toasts above HUD
+		renderToasts();
 	}
 	
 	private void updateCamera() {
@@ -172,5 +188,58 @@ public class MyGdxGame extends ApplicationAdapter {
 		font.dispose();
 		shapeRenderer.dispose();
 		gameBoard = null;
+	}
+	
+	private void showToast(String message) {
+		activeToasts.add(new Toast(message));
+	}
+	
+	private void updateToasts(float deltaTime) {
+		Iterator<Toast> iterator = activeToasts.iterator();
+		while (iterator.hasNext()) {
+			Toast toast = iterator.next();
+			toast.update(deltaTime);
+			if (toast.isExpired()) {
+				iterator.remove();
+			}
+		}
+	}
+	
+	private void renderToasts() {
+		if (activeToasts.isEmpty()) {
+			return;
+		}
+		
+		// Get the most recent toast (or we could show multiple, but for simplicity show just one)
+		Toast currentToast = activeToasts.get(activeToasts.size() - 1);
+		
+		// Calculate position: bottom center, above HUD (which is 60px high)
+		float toastY = 80; // Above HUD
+		float padding = 10;
+		
+		// Measure text width
+		com.badlogic.gdx.graphics.g2d.GlyphLayout layout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
+		layout.setText(font, currentToast.getMessage());
+		float textWidth = layout.width;
+		float textHeight = layout.height;
+		float boxWidth = textWidth + padding * 2;
+		float boxHeight = textHeight + padding * 2;
+		float boxX = (hudCamera.viewportWidth - boxWidth) / 2;
+		float boxY = toastY;
+		
+		// Draw background (gray transparent)
+		shapeRenderer.setProjectionMatrix(hudCamera.combined);
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		float alpha = currentToast.getAlpha();
+		shapeRenderer.setColor(new Color(0.3f, 0.3f, 0.3f, 0.8f * alpha));
+		shapeRenderer.rect(boxX, boxY, boxWidth, boxHeight);
+		shapeRenderer.end();
+		
+		// Draw text
+		batch.setProjectionMatrix(hudCamera.combined);
+		batch.begin();
+		font.setColor(new Color(1, 1, 1, alpha));
+		font.draw(batch, currentToast.getMessage(), boxX + padding, boxY + padding + textHeight);
+		batch.end();
 	}
 }

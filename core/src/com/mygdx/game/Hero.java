@@ -149,7 +149,13 @@ public class Hero extends Creature {
         if(attack > 0) {
             Position monsterPos = monster.getPosition();
             if(Position.isNear(getPosition(), monsterPos)) {
-                monster.takeDamage(attack());
+                int damage = attack();
+                if (damage > 0) {
+                    monster.takeDamage(damage);
+                    board.showToast("Hit! " + damage + " damage");
+                } else {
+                    board.showToast("Miss!");
+                }
                 attack--;
             }
         }
@@ -177,6 +183,7 @@ public class Hero extends Creature {
         int currentIndex = inventory.indexOf(currentWeapon);
         int nextIndex = (currentIndex + 1) % inventory.size();
         currentWeapon = inventory.get(nextIndex);
+        board.showToast("Switched to " + currentWeapon.getClass().getSimpleName());
     }
 
 }

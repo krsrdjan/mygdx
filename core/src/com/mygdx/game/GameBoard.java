@@ -17,14 +17,26 @@ public class GameBoard {
     private final boolean[][] roomSpawnAttempted = new boolean[BOARD_SQUARE_WIDTH / 4][BOARD_SQUARE_HEIGHT / 4];
     private final RandomMonsterFactory monsterFactory = new RandomMonsterFactory();
     private final java.util.Random random = new java.util.Random();
+    private int activeMonstersTakingTurn = 0;
     public static final int SQUARE_SIZE = 64;
     public static final int BOARD_SQUARE_HEIGHT = 32;
     public static final int BOARD_SQUARE_WIDTH = 32;
     public boolean exploredAll = false;
     private static final Object lock = new Object();
+    private java.util.function.Consumer<String> toastNotifier;
 
     public static synchronized Object getLockObject() {
         return lock;
+    }
+    
+    public void setToastNotifier(java.util.function.Consumer<String> toastNotifier) {
+        this.toastNotifier = toastNotifier;
+    }
+    
+    public void showToast(String message) {
+        if (toastNotifier != null) {
+            toastNotifier.accept(message);
+        }
     }
 
     public GameBoard() {
@@ -234,12 +246,7 @@ public class GameBoard {
                 if (roomX >= 0 && roomX < roomSpawnAttempted.length && roomY >= 0 && roomY < roomSpawnAttempted[0].length) {
                     if (!roomSpawnAttempted[roomX][roomY]) {
                         roomSpawnAttempted[roomX][roomY] = true;
-                        if (random.nextFloat() < 0.5f) {
-                            trySpawnMonsterInRoom(roomX, roomY);
-                        } else {
-                            // Spawn potion if no monster
-                            trySpawnPotionInRoom(roomX, roomY);
-                        }
+                        trySpawnMonsterInRoom(roomX, roomY);
                     }
                 }
             }
@@ -266,29 +273,6 @@ public class GameBoard {
             Monster m = monsterFactory.createRandomMonster(this);
             m.setPosition(p);
             monsters.add(m);
-        }
-    }
-
-    private void trySpawnPotionInRoom(int roomX, int roomY) {
-        int startX = roomX * 4;
-        int startY = roomY * 4;
-        java.util.List<Position> candidates = new java.util.ArrayList<>();
-        for (int dx = 0; dx < 4; dx++) {
-            for (int dy = 0; dy < 4; dy++) {
-                int sx = startX + dx;
-                int sy = startY + dy;
-                if (sx >= 0 && sx < BOARD_SQUARE_WIDTH && sy >= 0 && sy < BOARD_SQUARE_HEIGHT) {
-                    if (isSquareEmpty(sx, sy)) {
-                        candidates.add(new Position(sx, sy));
-                    }
-                }
-            }
-        }
-        if (!candidates.isEmpty()) {
-            Position p = candidates.get(random.nextInt(candidates.size()));
-            Potion potion = new Potion(this);
-            potion.setPosition(p);
-            items.add(potion);
         }
     }
 
@@ -364,6 +348,19 @@ public class GameBoard {
             endMonsterTurn();
             return;
         }
+        // Count how many active monsters will take their turn
+        activeMonstersTakingTurn = 0;
+        for (Monster m : monsters) {
+            if (m.isActive()) {
+                activeMonstersTakingTurn++;
+            }
+        }
+        // If no active monsters, immediately start hero's next turn
+        if (activeMonstersTakingTurn == 0) {
+            endMonsterTurn();
+            return;
+        }
+        // Start turn for all monsters (only active ones will actually move)
         for (Monster m : monsters) {
             m.startTurn();
         }
@@ -372,6 +369,14 @@ public class GameBoard {
     public void endMonsterTurn() {
         heroTurn = true;
         hero.startTurn();
+    }
+
+    public synchronized void notifyMonsterTurnComplete() {
+        activeMonstersTakingTurn--;
+        if (activeMonstersTakingTurn <= 0) {
+            activeMonstersTakingTurn = 0;
+            endMonsterTurn();
+        }
     }
 
     public Hero getHero() {
