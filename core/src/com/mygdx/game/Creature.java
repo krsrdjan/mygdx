@@ -7,7 +7,7 @@ public class Creature {
     protected int health;
 
     public Creature(String image, int health) {
-        this.texture = new Texture(image);
+        this.texture = TextureCache.get(image);
         this.health = health;
     }
 

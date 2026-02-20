@@ -1,6 +1,5 @@
 package com.mygdx.game;
 
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 
 import java.util.ArrayList;
@@ -23,6 +22,8 @@ public class GameBoard {
     public static final int BOARD_SQUARE_WIDTH = 32;
     public boolean exploredAll = false;
     private StringCallback toastNotifier;
+    private Texture wallTexture;
+    private Texture unexploredTexture;
 
     public void setToastNotifier(StringCallback toastNotifier) {
         this.toastNotifier = toastNotifier;
@@ -36,6 +37,9 @@ public class GameBoard {
 
     public GameBoard() {
         board = new Square[BOARD_SQUARE_WIDTH][BOARD_SQUARE_HEIGHT];
+
+        wallTexture = TextureCache.getOrCreateSolid("_wall", 0.0f, 0.0f, 0.0f, 1.0f, SQUARE_SIZE);
+        unexploredTexture = TextureCache.getOrCreateSolid("_unexplored", 0.2f, 0.2f, 0.2f, 1.0f, SQUARE_SIZE);
 
         // Initialize all squares as empty floors
         for (int x = 0; x < BOARD_SQUARE_WIDTH; x++) {
@@ -54,11 +58,11 @@ public class GameBoard {
         // Ensure inner 4x4 squares of every room are empty
         int[][] roomCleanedMaze = ensureRoomInteriorsEmpty(cleanedMaze);
         
-        // Apply room-cleaned maze to board
+        // Apply room-cleaned maze to board (all walls share a single texture)
         for (int x = 0; x < BOARD_SQUARE_WIDTH; x++) {
             for (int y = 0; y < BOARD_SQUARE_HEIGHT; y++) {
-                if (roomCleanedMaze[y][x] == 1) { // 1 = wall
-                    board[x][y] = new Square(createWallTexture());
+                if (roomCleanedMaze[y][x] == 1) {
+                    board[x][y] = new Square(wallTexture);
                 }
             }
         }
@@ -116,12 +120,6 @@ public class GameBoard {
 		return null;
 	}
 
-    private Texture createWallTexture() {
-        Pixmap pixmap = new Pixmap(SQUARE_SIZE, SQUARE_SIZE, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0.0f, 0.0f, 0.0f, 1.0f); // Black color
-        pixmap.fill();
-        return new Texture(pixmap);
-    }
     
     private int[][] removeIsolatedWalls(int[][] maze) {
         int[][] cleaned = new int[maze.length][maze[0].length];
@@ -222,10 +220,10 @@ public class GameBoard {
             if (square.isExplored() || exploredAll) {
                 return square.getTexture();
             } else {
-                return createUnexploredTexture();
+                return unexploredTexture;
             }
         } else {
-            return createUnexploredTexture();
+            return unexploredTexture;
         }
     }
 
@@ -279,14 +277,6 @@ public class GameBoard {
         }
     }
 
-    private Texture createUnexploredTexture() {
-        Pixmap pixmap = new Pixmap(SQUARE_SIZE, SQUARE_SIZE, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0.2f, 0.2f, 0.2f, 1.0f); // Dark grey color
-        pixmap.fill();
-
-        // Create a Texture from the Pixmap
-        return new Texture(pixmap);
-    }
 
     public void moveHeroUp() {
         hero.moveUp();

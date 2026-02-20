@@ -2,11 +2,12 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-// import com.badlogic.gdx.audio.Sound;  // muzika uklonjena
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -22,12 +23,14 @@ public class MyGdxGame extends ApplicationAdapter {
 	Texture tile;
 	TiledDrawable tiledDrawable;
 	TextureRegion textureRegion;
-	// Sound music;  // muzika uklonjena
+	Music music;
 	OrthographicCamera camera;
 	OrthographicCamera hudCamera;
 	BitmapFont font;
 	ShapeRenderer shapeRenderer;
 	private List<Toast> activeToasts = new ArrayList<>();
+	private final Color hudBgColor = new Color(0, 0, 0, 0.6f);
+	private final GlyphLayout glyphLayout = new GlyphLayout();
 	
 	@Override
 	public void create () {	// this is done once
@@ -56,9 +59,10 @@ public class MyGdxGame extends ApplicationAdapter {
 			}
 		});
 
-        // muzika uklonjena - ne učitavamo MP3
-        // music = Gdx.audio.newSound(Gdx.files.internal("music.mp3"));
-        // music.play(AudioConfig.VOLUME);
+        music = Gdx.audio.newMusic(Gdx.files.internal("music.mp3"));
+        music.setLooping(true);
+        music.setVolume(AudioConfig.VOLUME);
+        music.play();
 	}
 
 	@Override
@@ -116,7 +120,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		hudCamera.update();
 		shapeRenderer.setProjectionMatrix(hudCamera.combined);
 		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-		shapeRenderer.setColor(new Color(0, 0, 0, 0.6f));
+		shapeRenderer.setColor(hudBgColor);
 		shapeRenderer.rect(0, 0, hudCamera.viewportWidth, 60);
 		shapeRenderer.end();
 
@@ -192,6 +196,12 @@ public class MyGdxGame extends ApplicationAdapter {
 		tile.dispose();
 		font.dispose();
 		shapeRenderer.dispose();
+		if (music != null) {
+			music.stop();
+			music.dispose();
+		}
+		SoundCache.dispose();
+		TextureCache.dispose();
 		gameBoard = null;
 	}
 	
@@ -222,11 +232,9 @@ public class MyGdxGame extends ApplicationAdapter {
 		float toastY = 80; // Above HUD
 		float padding = 10;
 		
-		// Measure text width
-		com.badlogic.gdx.graphics.g2d.GlyphLayout layout = new com.badlogic.gdx.graphics.g2d.GlyphLayout();
-		layout.setText(font, currentToast.getMessage());
-		float textWidth = layout.width;
-		float textHeight = layout.height;
+		glyphLayout.setText(font, currentToast.getMessage());
+		float textWidth = glyphLayout.width;
+		float textHeight = glyphLayout.height;
 		float boxWidth = textWidth + padding * 2;
 		float boxHeight = textHeight + padding * 2;
 		float boxX = (hudCamera.viewportWidth - boxWidth) / 2;
@@ -236,14 +244,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		shapeRenderer.setProjectionMatrix(hudCamera.combined);
 		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 		float alpha = currentToast.getAlpha();
-		shapeRenderer.setColor(new Color(0.3f, 0.3f, 0.3f, 0.8f * alpha));
+		shapeRenderer.setColor(0.3f, 0.3f, 0.3f, 0.8f * alpha);
 		shapeRenderer.rect(boxX, boxY, boxWidth, boxHeight);
 		shapeRenderer.end();
 		
 		// Draw text
 		batch.setProjectionMatrix(hudCamera.combined);
 		batch.begin();
-		font.setColor(new Color(1, 1, 1, alpha));
+		font.setColor(1, 1, 1, alpha);
 		font.draw(batch, currentToast.getMessage(), boxX + padding, boxY + padding + textHeight);
 		batch.end();
 	}
