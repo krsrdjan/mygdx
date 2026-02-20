@@ -5,6 +5,7 @@ allprojects {
     ext {
         appName = "My GDX Game"
         gdxVersion = '1.14.0'
+        gdxTeaVMVersion = '1.4.0'
         javaVersion = project.findProperty('javaVersion') ?: '17'
     }
 
@@ -15,6 +16,7 @@ allprojects {
         maven { url = "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url = "https://oss.sonatype.org/content/repositories/releases/" }
         maven { url = "https://jitpack.io" }
+        maven { url = "https://teavm.org/maven/repository/" }
     }
 }
 
@@ -33,5 +35,14 @@ project(":core") {
 
     dependencies {
         api "com.badlogicgames.gdx:gdx:$gdxVersion"
+    }
+}
+
+project(":teavm") {
+    apply plugin: "java-library"
+
+    dependencies {
+        implementation project(":core")
+        implementation "com.github.xpenatan.gdx-teavm:backend-teavm:$gdxTeaVMVersion"
     }
 }
