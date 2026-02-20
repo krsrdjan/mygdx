@@ -50,7 +50,11 @@ public class MyGdxGame extends ApplicationAdapter {
 		Gdx.input.setInputProcessor(new MyInputAdapter(gameBoard));
 		
 		// Set toast notifier for game board
-		gameBoard.setToastNotifier(this::showToast);
+		gameBoard.setToastNotifier(new StringCallback() {
+			public void call(String value) {
+				showToast(value);
+			}
+		});
 
         music = Gdx.audio.newSound(Gdx.files.internal("music.mp3"));
         music.play(AudioConfig.VOLUME);
@@ -126,7 +130,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		Weapon weapon = hero.getCurrentWeapon();
 		if (weapon != null) {
 			int hitChancePercent = Math.round(weapon.getChanceToHit() * 100);
-			String weaponHud = "Weapon: " + weapon.getClass().getSimpleName() + "    Hit: " + hitChancePercent + "%    Dmg: " + weapon.getDamage();
+			String weaponHud = "Weapon: " + weapon.getName() + "    Hit: " + hitChancePercent + "%    Dmg: " + weapon.getDamage();
 			font.draw(batch, weaponHud, 10, 25);
 		}
 
@@ -140,7 +144,7 @@ public class MyGdxGame extends ApplicationAdapter {
 			Weapon monsterWeapon = adjacent.getWeapon();
 			if (monsterWeapon != null) {
 				int hitChancePercent = Math.round(monsterWeapon.getChanceToHit() * 100);
-				String monsterWeaponHud = "Weapon: " + monsterWeapon.getClass().getSimpleName() + "    Hit: " + hitChancePercent + "%    Dmg: " + monsterWeapon.getDamage();
+				String monsterWeaponHud = "Weapon: " + monsterWeapon.getName() + "    Hit: " + hitChancePercent + "%    Dmg: " + monsterWeapon.getDamage();
 				font.draw(batch, monsterWeaponHud, 300, 25);
 			}
 		}
