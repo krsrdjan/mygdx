@@ -7,8 +7,8 @@ public class TeaVMLauncher {
 
     public static void main(String[] args) {
         TeaApplicationConfiguration config = new TeaApplicationConfiguration("canvas");
-        config.width = 0;
-        config.height = 0;
+        config.width = 800;
+        config.height = 600;
         new TeaApplication(new MyGdxGame(), config);
     }
 }

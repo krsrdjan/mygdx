@@ -10,7 +10,7 @@ import org.teavm.vm.TeaVMOptimizationLevel;
 
 public class TeaVMBuilder {
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     public static void main(String[] arguments) {
         TeaBuildConfiguration teaBuildConfiguration = new TeaBuildConfiguration();
