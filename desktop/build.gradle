@@ -1,5 +1,5 @@
-sourceCompatibility = 21
-targetCompatibility = 21
+sourceCompatibility = JavaVersion.toVersion(javaVersion)
+targetCompatibility = JavaVersion.toVersion(javaVersion)
 sourceSets.main.java.srcDirs = [ "src/" ]
 sourceSets.main.resources.srcDirs = ["../assets"]
 

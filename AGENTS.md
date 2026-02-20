@@ -4,7 +4,7 @@
 
 - **Framework**: libGDX 1.14.0
 - **Language**: Java 21
-- **Build**: Gradle multi-module (core, desktop — HTML/GWT planned)
+- **Build**: Gradle multi-module (core, desktop)
 - **Desktop backend**: LWJGL3
 - **Package**: `com.mygdx.game`
 
@@ -36,7 +36,7 @@ The game follows a turn-based board game pattern:
 ## Code Conventions
 
 - All game logic goes in `core/` module — NEVER put game logic in platform modules
-- Platform launchers (desktop, html) are thin wrappers that only configure and start the game
+- Platform launchers (desktop) are thin wrappers that only configure and start the game
 - Use libGDX APIs, not raw Java AWT/Swing/JavaFX — everything must be cross-platform
 - Textures are loaded via `new Texture("filename.png")` from the assets folder
 - Sound via `Gdx.audio.newSound(Gdx.files.internal("file.mp3"))`
@@ -54,50 +54,6 @@ The game follows a turn-based board game pattern:
 - Call `camera.update()` before setting projection matrix
 - Clear screen with `ScreenUtils.clear()` at the start of render
 - Font rendering uses `BitmapFont` — for styled text use libGDX's `Label` with `Scene2D`
-
-## HTML/GWT Compatibility
-
-This project is designed to support HTML export via GWT (or TeaVM). Follow these rules strictly:
-
-### Allowed
-- All `com.badlogic.gdx.*` APIs
-- `java.lang.*`, `java.util.*` (most of it), `java.io.Serializable`
-- Simple data classes, enums, interfaces
-- `Math`, `Random`, `StringBuilder`, `String` operations
-
-### Forbidden in core/ (breaks GWT)
-- `java.util.function.*` (Consumer, Supplier, Function) — use libGDX or custom interfaces instead
-- `java.util.stream.*` — use explicit loops
-- `java.nio.file.*`, `java.io.File` — use `Gdx.files` API
-- `java.lang.Thread`, `synchronized`, `java.util.concurrent.*` — GWT is single-threaded
-- `java.time.*` — use `TimeUtils.millis()` or `TimeUtils.nanoTime()`
-- `java.util.Optional` — use null checks
-- Reflection (`Class.forName`, `Method.invoke`) — GWT does not support runtime reflection
-- `String.format()` — not supported in GWT, use concatenation
-- Lambda expressions on functional interfaces from `java.util.function` — define custom single-method interfaces
-- `try-with-resources` on non-GWT types
-- Any JDK API added after Java 8 that isn't in the GWT JRE emulation
-
-### GWT-Safe Patterns
-```java
-// BAD — breaks GWT
-private java.util.function.Consumer<String> callback;
-monsters.stream().filter(m -> m.isAlive()).forEach(m -> m.takeTurn());
-synchronized(lock) { ... }
-
-// GOOD — GWT compatible
-public interface StringCallback { void call(String value); }
-private StringCallback callback;
-for (Monster m : monsters) { if (m.isAlive()) m.takeTurn(); }
-// No synchronization needed — single-threaded on web
-```
-
-### HTML Module Setup (when adding)
-- HTML module uses `gwt` plugin with `com.badlogicgames.gdx:gdx-backend-gwt`
-- GWT entry point extends `GwtApplication` and returns the `MyGdxGame` instance
-- A `.gwt.xml` module descriptor must list all source packages
-- Assets are served from `webapp/` via the GWT war directory
-- Use `GwtApplicationConfiguration` to set canvas size
 
 ## Game Development Best Practices
 

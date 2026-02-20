@@ -5,6 +5,7 @@ allprojects {
     ext {
         appName = "My GDX Game"
         gdxVersion = '1.14.0'
+        javaVersion = project.findProperty('javaVersion') ?: '17'
     }
 
     repositories {
@@ -32,20 +33,5 @@ project(":core") {
 
     dependencies {
         api "com.badlogicgames.gdx:gdx:$gdxVersion"
-    }
-}
-
-project(":html") {
-    apply plugin: "java-library"
-
-    dependencies {
-        implementation project(":core")
-        implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
-        implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
-        implementation "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
-
-        constraints {
-            implementation "jakarta.servlet:jakarta.servlet-api:6.1.0"
-        }
     }
 }
