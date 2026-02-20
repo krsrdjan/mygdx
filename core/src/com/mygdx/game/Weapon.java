@@ -3,13 +3,19 @@ package com.mygdx.game;
 import java.util.Random;
 
 public abstract class Weapon {
+    protected final String name;
     protected final float chanceToHit;
     protected final int damage;
     protected final Random random = new Random();
 
-    public Weapon(float chanceToHit, int damage) {
+    public Weapon(float chanceToHit, int damage, String name) {
         this.chanceToHit = chanceToHit;
         this.damage = damage;
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public float getChanceToHit() {
