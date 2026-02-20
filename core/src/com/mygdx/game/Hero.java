@@ -1,6 +1,5 @@
 package com.mygdx.game;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 
 import java.util.ArrayList;
@@ -23,15 +22,14 @@ public class Hero extends Creature {
     public Hero(String image, int health, GameBoard board) {
         super(image, health);
         this.MAX_HEALTH = health;
-        weaponHit = Gdx.audio.newSound(Gdx.files.internal("sword.wav"));
-        deathSound = Gdx.audio.newSound(Gdx.files.internal("death.mp3"));
+        weaponHit = SoundCache.get("sword.wav");
+        deathSound = SoundCache.get("death.mp3");
         this.board = board;
-        // Add Sword and Axe to inventory
         Sword sword = new Sword();
         Axe axe = new Axe();
         inventory.add(sword);
         inventory.add(axe);
-        currentWeapon = sword; // Start with Sword
+        currentWeapon = sword;
     }
     
     public int getMaxHealth() {
