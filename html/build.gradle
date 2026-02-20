@@ -28,7 +28,7 @@ gwt {
     compiler.optimize = 9
     compiler.strict = true
 
-    sourceLevel = '1.11'
+    sourceLevel = '11'
 
     devMode {
         port = 8080
