@@ -22,20 +22,15 @@ public class GameBoard {
     public static final int BOARD_SQUARE_HEIGHT = 32;
     public static final int BOARD_SQUARE_WIDTH = 32;
     public boolean exploredAll = false;
-    private static final Object lock = new Object();
-    private java.util.function.Consumer<String> toastNotifier;
+    private StringCallback toastNotifier;
 
-    public static synchronized Object getLockObject() {
-        return lock;
-    }
-    
-    public void setToastNotifier(java.util.function.Consumer<String> toastNotifier) {
+    public void setToastNotifier(StringCallback toastNotifier) {
         this.toastNotifier = toastNotifier;
     }
-    
+
     public void showToast(String message) {
         if (toastNotifier != null) {
-            toastNotifier.accept(message);
+            toastNotifier.call(message);
         }
     }
 
@@ -371,7 +366,7 @@ public class GameBoard {
         hero.startTurn();
     }
 
-    public synchronized void notifyMonsterTurnComplete() {
+    public void notifyMonsterTurnComplete() {
         activeMonstersTakingTurn--;
         if (activeMonstersTakingTurn <= 0) {
             activeMonstersTakingTurn = 0;

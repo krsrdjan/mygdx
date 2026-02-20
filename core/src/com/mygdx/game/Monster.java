@@ -2,6 +2,7 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.utils.Timer;
 
 import java.util.Random;
 
@@ -77,24 +78,15 @@ public class Monster extends Creature {
 
     public void startTurn() {
         if(health <= 0) {
-            // Dead monsters don't count towards active monsters taking turn
             return;
         }
 
-        // Only move if active, otherwise do nothing (not counted in activeMonstersTakingTurn)
         if (!active) {
             return;
         }
 
-        waitABitLess();
-
         speed = MAX_SPEED;
         moveToHeroAndAttack(board.getHero());
-
-    }
-
-    private boolean isHeroNear() {
-        return true;
     }
 
     public void endTurn() {
@@ -102,38 +94,41 @@ public class Monster extends Creature {
     }
 
     private void moveToHeroAndAttack(final Hero hero) {
-        // thred is needed to make visual movement square by square
-        // if not, monster will move to hero in one go
-        new Thread(new Runnable() {
+        Timer.schedule(new Timer.Task() {
             @Override
             public void run() {
-                synchronized (GameBoard.getLockObject()) {
-                    while (speed > 0 && active) {
-                        Position heroPos = hero.getPosition();
-                        if (Position.isNear(getPosition(), heroPos)) {
-                            // Already adjacent, don't path; proceed to attack below
-                            break;
-                        }
-
-                        Position next = findNextStepBfs(getPosition(), heroPos);
-                        if (next != null && board.isWalkable(next.x, next.y)) {
-                            setPosition(next);
-                            waitABit();
-                            speed--;
-                            continue;
-                        }
-
-                        // No path or blocked; consume a speed point to avoid infinite loop
-                        speed--;
-                    }
-
-                    attackHero(hero);
-                    endTurn();
-                    board.notifyMonsterTurnComplete();
-                }
+                executeNextStep(hero);
             }
-        }).start();
+        }, 0.3f);
+    }
 
+    private void executeNextStep(final Hero hero) {
+        if (health <= 0) {
+            board.notifyMonsterTurnComplete();
+            return;
+        }
+
+        if (speed <= 0 || !active || Position.isNear(getPosition(), hero.getPosition())) {
+            attackHero(hero);
+            endTurn();
+            board.notifyMonsterTurnComplete();
+            return;
+        }
+
+        Position next = findNextStepBfs(getPosition(), hero.getPosition());
+        if (next != null && board.isWalkable(next.x, next.y)) {
+            setPosition(next);
+            speed--;
+        } else {
+            speed--;
+        }
+
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                executeNextStep(hero);
+            }
+        }, 0.5f);
     }
 
     private Position findNextStepBfs(Position start, Position goal) {
@@ -181,22 +176,6 @@ public class Monster extends Creature {
             prev = parent[cur.x][cur.y];
         }
         return cur;
-    }
-
-    private void waitABit() {
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void waitABitLess() {
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public void attackHero(Hero hero) {
