@@ -3,7 +3,7 @@
 ## Tech Stack
 
 - **Framework**: libGDX 1.14.0
-- **Language**: Java 21
+- **Language**: Java 17
 - **Build**: Gradle multi-module (core, desktop — HTML/GWT planned)
 - **Desktop backend**: LWJGL3
 - **Package**: `com.mygdx.game`

@@ -28,7 +28,7 @@ gwt {
     compiler.optimize = 9
     compiler.strict = true
 
-    sourceLevel = '11'
+    sourceLevel = '11'  // GWT 2.11 max; core must avoid Java 17+ syntax for HTML export
 
     devMode {
         port = 8080
@@ -39,8 +39,8 @@ gwt {
     }
 }
 
-sourceCompatibility = 11
-targetCompatibility = 11
+sourceCompatibility = 17
+targetCompatibility = 17
 sourceSets.main.java.srcDirs = ["src/"]
 
 clean.delete += [file("war")]
