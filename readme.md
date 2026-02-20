@@ -41,7 +41,7 @@ A turn-based dungeon crawler built with libGDX, inspired by classic DnD gameplay
 ## Tech Stack
 
 - **libGDX** 1.14.0
-- **Java** 17
+- **Java** 11
 - **Gradle** 8.10 (multi-module)
 - **LWJGL3** desktop backend
 
