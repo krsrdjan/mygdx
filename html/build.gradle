@@ -43,17 +43,6 @@ sourceCompatibility = 11
 targetCompatibility = 11
 sourceSets.main.java.srcDirs = ["src/"]
 
-dependencies {
-    implementation project(":core")
-    implementation "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
-    implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
-    implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
-
-    constraints {
-        implementation "jakarta.servlet:jakarta.servlet-api:6.1.0"
-    }
-}
-
 clean.delete += [file("war")]
 
 tasks.named("compileJava").get().dependsOn("clean")

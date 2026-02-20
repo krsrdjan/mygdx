@@ -43,5 +43,9 @@ project(":html") {
         implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
         implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
         implementation "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
+
+        constraints {
+            implementation "jakarta.servlet:jakarta.servlet-api:6.1.0"
+        }
     }
 }
