@@ -2,7 +2,7 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.audio.Sound;
+// import com.badlogic.gdx.audio.Sound;  // muzika uklonjena
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -22,7 +22,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	Texture tile;
 	TiledDrawable tiledDrawable;
 	TextureRegion textureRegion;
-	Sound music;
+	// Sound music;  // muzika uklonjena
 	OrthographicCamera camera;
 	OrthographicCamera hudCamera;
 	BitmapFont font;
@@ -56,8 +56,9 @@ public class MyGdxGame extends ApplicationAdapter {
 			}
 		});
 
-        music = Gdx.audio.newSound(Gdx.files.internal("music.mp3"));
-        music.play(AudioConfig.VOLUME);
+        // muzika uklonjena - ne učitavamo MP3
+        // music = Gdx.audio.newSound(Gdx.files.internal("music.mp3"));
+        // music.play(AudioConfig.VOLUME);
 	}
 
 	@Override
