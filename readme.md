@@ -2,7 +2,7 @@
 
 A turn-based dungeon crawler built with libGDX, inspired by classic DnD gameplay. Explore procedurally generated dungeons, fight monsters, collect weapons, and survive.
 
-![Game Screenshot](assets/logo.png)
+**→ [GitHub](https://github.com/krsrdjan/mygdx)**
 
 ## Features
 
@@ -41,9 +41,9 @@ A turn-based dungeon crawler built with libGDX, inspired by classic DnD gameplay
 ## Tech Stack
 
 - **libGDX** 1.14.0
-- **Java** 21
-- **Gradle** 8.10 (multi-module)
-- **LWJGL3** desktop backend
+- **Java** 17
+- **Gradle** (multi-module: core, desktop, teavm)
+- **LWJGL3** desktop backend · **gdx-teavm** for web (JavaScript)
 
 ## Project Structure
 
@@ -61,19 +61,22 @@ mygdx/
 │   ├── Position.java          # 2D coordinate value object
 │   ├── RoomMazeGenerator.java # Procedural dungeon generation
 │   ├── RandomMonsterFactory.java # Monster factory
+│   ├── TextureCache.java      # Cached textures (dispose in game)
+│   ├── SoundCache.java        # Cached sounds (dispose in game)
 │   ├── MyInputAdapter.java    # Keyboard input handling
 │   ├── Toast.java             # In-game notifications
 │   └── AudioConfig.java       # Audio volume settings
 ├── desktop/src/               # Desktop launcher (LWJGL3)
+├── teavm/src/                 # Web launcher (TeaVM → JavaScript)
 ├── assets/                    # Textures, sounds, fonts
 ├── build.gradle               # Root build config
-├── settings.gradle            # Module includes (desktop, core)
+├── settings.gradle            # Modules: core, desktop, teavm
 └── AGENTS.md                  # AI coding assistant instructions
 ```
 
 ## Prerequisites
 
-- **JDK 21** or newer
+- **JDK 17** or newer
 - **Gradle** (wrapper included, no separate install needed)
 
 ## Getting Started
@@ -81,7 +84,7 @@ mygdx/
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/mygdx.git
+git clone https://github.com/krsrdjan/mygdx.git
 cd mygdx
 ```
 
@@ -104,6 +107,12 @@ Build a distributable JAR:
 ```
 
 The JAR will be in `desktop/build/libs/`.
+
+Run the web version (builds JavaScript and starts a local server at http://localhost:8080/):
+
+```bash
+./gradlew :teavm:run
+```
 
 ## How It Works
 
