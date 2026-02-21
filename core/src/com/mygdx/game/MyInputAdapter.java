@@ -19,6 +19,9 @@ public class MyInputAdapter extends InputAdapter {
     @Override
     public boolean keyDown(int keycode) {
         //System.out.println("touchDown called " + keycode);
+        if (!gameBoard.getHero().isAlive()) {
+            return true; // swallow gameplay input when game is over
+        }
         if (!gameBoard.isHeroTurn()) {
             return true; // swallow input during monster turn
         }

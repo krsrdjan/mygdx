@@ -11,6 +11,8 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 import java.util.ArrayList;
@@ -31,6 +33,8 @@ public class MyGdxGame extends ApplicationAdapter {
 	private List<Toast> activeToasts = new ArrayList<>();
 	private final Color hudBgColor = new Color(0, 0, 0, 0.6f);
 	private final GlyphLayout glyphLayout = new GlyphLayout();
+	private final Rectangle restartButtonBounds = new Rectangle();
+	private final Vector3 touchPoint = new Vector3();
 	
 	@Override
 	public void create () {	// this is done once
@@ -158,6 +162,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		
 		// Render toasts above HUD
 		renderToasts();
+		renderGameOverDialog();
+		handleGameOverInput();
 	}
 	
 	private void updateCamera() {
@@ -254,5 +260,70 @@ public class MyGdxGame extends ApplicationAdapter {
 		font.setColor(1, 1, 1, alpha);
 		font.draw(batch, currentToast.getMessage(), boxX + padding, boxY + padding + textHeight);
 		batch.end();
+	}
+
+	private void renderGameOverDialog() {
+		Hero hero = gameBoard.getHero();
+		if (hero == null || hero.isAlive()) {
+			return;
+		}
+
+		final float panelWidth = 360f;
+		final float panelHeight = 220f;
+		final float panelX = (hudCamera.viewportWidth - panelWidth) / 2f;
+		final float panelY = (hudCamera.viewportHeight - panelHeight) / 2f;
+
+		final float buttonWidth = 180f;
+		final float buttonHeight = 50f;
+		final float buttonX = panelX + (panelWidth - buttonWidth) / 2f;
+		final float buttonY = panelY + 35f;
+		restartButtonBounds.set(buttonX, buttonY, buttonWidth, buttonHeight);
+
+		shapeRenderer.setProjectionMatrix(hudCamera.combined);
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		shapeRenderer.setColor(0f, 0f, 0f, 0.75f);
+		shapeRenderer.rect(0, 0, hudCamera.viewportWidth, hudCamera.viewportHeight);
+		shapeRenderer.setColor(0.1f, 0.1f, 0.1f, 0.95f);
+		shapeRenderer.rect(panelX, panelY, panelWidth, panelHeight);
+		shapeRenderer.setColor(0.75f, 0.1f, 0.1f, 1f);
+		shapeRenderer.rect(buttonX, buttonY, buttonWidth, buttonHeight);
+		shapeRenderer.end();
+
+		batch.setProjectionMatrix(hudCamera.combined);
+		batch.begin();
+		font.setColor(Color.WHITE);
+		glyphLayout.setText(font, "Game Over");
+		font.draw(batch, "Game Over", panelX + (panelWidth - glyphLayout.width) / 2f, panelY + panelHeight - 55f);
+
+		glyphLayout.setText(font, "Your hero has fallen.");
+		font.draw(batch, "Your hero has fallen.", panelX + (panelWidth - glyphLayout.width) / 2f, panelY + panelHeight - 95f);
+
+		glyphLayout.setText(font, "Restart");
+		font.draw(batch, "Restart", buttonX + (buttonWidth - glyphLayout.width) / 2f, buttonY + (buttonHeight + glyphLayout.height) / 2f);
+		batch.end();
+	}
+
+	private void handleGameOverInput() {
+		Hero hero = gameBoard.getHero();
+		if (hero == null || hero.isAlive() || !Gdx.input.justTouched()) {
+			return;
+		}
+
+		touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+		hudCamera.unproject(touchPoint);
+		if (restartButtonBounds.contains(touchPoint.x, touchPoint.y)) {
+			restartGame();
+		}
+	}
+
+	private void restartGame() {
+		gameBoard = new GameBoard();
+		gameBoard.setToastNotifier(new StringCallback() {
+			public void call(String value) {
+				showToast(value);
+			}
+		});
+		activeToasts.clear();
+		Gdx.input.setInputProcessor(new MyInputAdapter(gameBoard));
 	}
 }
