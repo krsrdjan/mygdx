@@ -3,16 +3,18 @@
 ## Tech Stack
 
 - **Framework**: libGDX 1.14.0
-- **Language**: Java 21
-- **Build**: Gradle multi-module (core, desktop)
+- **Language**: Java 17 (configurable via `javaVersion` in root build.gradle)
+- **Build**: Gradle multi-module (core, desktop, teavm)
 - **Desktop backend**: LWJGL3
+- **Web backend**: gdx-teavm 1.4.0 (TeaVM → JavaScript, served via Gretty/Jetty)
 - **Package**: `com.mygdx.game`
 
 ## Project Structure
 
 ```
-core/src/com/mygdx/game/   — All shared game logic (platform-agnostic)
+core/src/com/mygdx/game/    — All shared game logic (platform-agnostic)
 desktop/src/com/mygdx/game/ — Desktop launcher (LWJGL3)
+teavm/src/com/mygdx/game/   — Web launcher (TeaVMLauncher, TeaVMBuilder)
 assets/                     — Shared assets (textures, sounds, fonts)
 ```
 
@@ -23,24 +25,27 @@ Source directories use `src/` (not `src/main/java/`). Assets live in root `asset
 The game follows a turn-based board game pattern:
 
 - `MyGdxGame` extends `ApplicationAdapter` — main game loop (create/render/dispose)
-- `GameBoard` holds `Square[][]` grid, manages turns, monsters, items, exploration
-- `Creature` is the base class for `Hero` and `Monster`
+- `GameBoard` holds `Square[][]` grid, manages turns, monsters, items, exploration; use `setToastNotifier(StringCallback)` to wire toast messages to the UI
+- `Creature` is the base class for `Hero` and `Monster`; textures loaded via `TextureCache.get(image)`
 - `Weapon` is abstract — subclasses: `Sword`, `Axe`, `Mace`, `BigClub`, `Bite`
-- `Item` is abstract base for collectibles
+- `Item` is abstract base for collectibles (extends `Creature`; implement `use(Hero)`)
 - `Position` is an immutable 2D coordinate value object
 - `MyInputAdapter` extends `InputAdapter` for keyboard controls
 - `RoomMazeGenerator` handles procedural dungeon generation
 - `RandomMonsterFactory` creates monsters via factory pattern
 - `Toast` handles in-game notification popups
+- `TextureCache` — static cache for textures; `get(filename)` and `getOrCreateSolid(key, r, g, b, a, size)`; call `TextureCache.dispose()` in game `dispose()`
+- `SoundCache` — static cache for sounds; `get(filename)`; call `SoundCache.dispose()` in game `dispose()`
+- `StringCallback` — interface `call(String value)` used to notify UI (e.g. toasts) from game logic
 
 ## Code Conventions
 
 - All game logic goes in `core/` module — NEVER put game logic in platform modules
-- Platform launchers (desktop) are thin wrappers that only configure and start the game
+- Platform launchers (desktop, teavm) are thin wrappers that only configure and start the game; no game logic in platform modules
 - Use libGDX APIs, not raw Java AWT/Swing/JavaFX — everything must be cross-platform
-- Textures are loaded via `new Texture("filename.png")` from the assets folder
-- Sound via `Gdx.audio.newSound(Gdx.files.internal("file.mp3"))`
-- Dispose all disposable resources (Texture, SpriteBatch, Sound, BitmapFont, ShapeRenderer) in `dispose()`
+- Textures: use `TextureCache.get("filename.png")` or `TextureCache.getOrCreateSolid(...)` for procedural solids; the cache is disposed in the main game `dispose()`
+- Sounds: use `SoundCache.get("file.mp3")` (or `.wav`); the cache is disposed in the main game `dispose()`
+- Dispose all disposable resources (SpriteBatch, Music, BitmapFont, ShapeRenderer, plus `TextureCache.dispose()` and `SoundCache.dispose()`) in `dispose()`
 - Use `Gdx.files.internal()` for all file access — never use `java.io.File` or `java.nio.file`
 - Prefer `com.badlogic.gdx.utils` collections (Array, ObjectMap) over java.util when performance matters
 - Coordinate system: origin (0,0) is bottom-left, Y-axis points up
@@ -58,9 +63,9 @@ The game follows a turn-based board game pattern:
 ## Game Development Best Practices
 
 ### Resource Management
-- Load textures/sounds once (in `create()` or via `AssetManager`), reuse everywhere
-- Always call `.dispose()` on Texture, Sound, Music, SpriteBatch, ShapeRenderer, BitmapFont
-- For many assets, use `AssetManager` for async loading and centralized disposal
+- Load textures/sounds via `TextureCache.get()` and `SoundCache.get()` — they are cached and reused; call `TextureCache.dispose()` and `SoundCache.dispose()` in the main game `dispose()`
+- Always call `.dispose()` on Music, SpriteBatch, ShapeRenderer, BitmapFont, and the static caches
+- For many assets or async loading, consider `AssetManager`; for current scale the static caches are used
 - Use `TextureAtlas` (packed spritesheets) instead of individual textures when asset count grows
 
 ### Performance
@@ -94,8 +99,10 @@ The game follows a turn-based board game pattern:
 ## Gradle Commands
 
 ```bash
-./gradlew :desktop:run          # Run the game
+./gradlew :desktop:run          # Run the game (desktop)
 ./gradlew :desktop:dist         # Build distributable JAR
+./gradlew :teavm:run            # Build JS and run web server (http://localhost:8080/)
+./gradlew :teavm:buildJavaScript # Transpile to JavaScript only (output in teavm/build/dist)
 ./gradlew :core:compileJava     # Compile core module only
 ./gradlew clean                 # Clean build artifacts
 ```
