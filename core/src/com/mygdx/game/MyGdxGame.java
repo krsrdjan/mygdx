@@ -30,6 +30,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	OrthographicCamera hudCamera;
 	BitmapFont font;
 	ShapeRenderer shapeRenderer;
+	MyInputAdapter inputAdapter;
 	private List<Toast> activeToasts = new ArrayList<>();
 	private final Color hudBgColor = new Color(0, 0, 0, 0.6f);
 	private final GlyphLayout glyphLayout = new GlyphLayout();
@@ -54,7 +55,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		font = new BitmapFont();
 		shapeRenderer = new ShapeRenderer();
 		
-		Gdx.input.setInputProcessor(new MyInputAdapter(gameBoard));
+		inputAdapter = new MyInputAdapter(gameBoard);
+		Gdx.input.setInputProcessor(inputAdapter);
 		
 		// Set toast notifier for game board
 		gameBoard.setToastNotifier(new StringCallback() {
@@ -131,30 +133,47 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.setProjectionMatrix(hudCamera.combined);
 		batch.begin();
 		Hero hero = gameBoard.getHero();
+		float hudPadding = 10f;
 		String hudText = "HP: " + hero.getHealth() + "    Moves: " + hero.getSpeed();
 		font.setColor(Color.WHITE);
-		font.draw(batch, hudText, 10, 45);
+		font.draw(batch, hudText, hudPadding, 45);
 
 		// Show weapon info
 		Weapon weapon = hero.getCurrentWeapon();
 		if (weapon != null) {
 			int hitChancePercent = Math.round(weapon.getChanceToHit() * 100);
-			String weaponHud = "Weapon: " + weapon.getName() + "    Hit: " + hitChancePercent + "%    Dmg: " + weapon.getDamage();
-			font.draw(batch, weaponHud, 10, 25);
+			String weaponHud = weapon.getName() + "    Hit: " + hitChancePercent + "%    Dmg: " + weapon.getDamage();
+			font.draw(batch, weaponHud, hudPadding, 25);
 		}
+
+		// Basic controls in the middle of the HUD
+		String controlsTop = "Move: " + inputAdapter.getMoveKeysLabel()
+				+ "    Attack: " + inputAdapter.getAttackKeyLabel();
+		glyphLayout.setText(font, controlsTop);
+		float controlsTopX = (hudCamera.viewportWidth - glyphLayout.width) / 2f;
+		font.draw(batch, controlsTop, controlsTopX, 45);
+		String controlsBottom = "Switch weapon: " + inputAdapter.getSwitchWeaponKeyLabel()
+				+ "    End turn: " + inputAdapter.getEndTurnKeyLabel();
+		glyphLayout.setText(font, controlsBottom);
+		float controlsBottomX = (hudCamera.viewportWidth - glyphLayout.width) / 2f;
+		font.draw(batch, controlsBottom, controlsBottomX, 25);
 
 		// Show adjacent monster info (name and HP) if any
 		Monster adjacent = gameBoard.getAdjacentMonsterToHero();
 		if (adjacent != null) {
 			String monsterHud = "Monster: " + adjacent.getName() + "    HP: " + adjacent.getHealth();
-			font.draw(batch, monsterHud, 300, 45);
+			glyphLayout.setText(font, monsterHud);
+			float monsterHudX = hudCamera.viewportWidth - glyphLayout.width - hudPadding;
+			font.draw(batch, monsterHud, monsterHudX, 45);
 			
 			// Show monster weapon info
 			Weapon monsterWeapon = adjacent.getWeapon();
 			if (monsterWeapon != null) {
 				int hitChancePercent = Math.round(monsterWeapon.getChanceToHit() * 100);
-				String monsterWeaponHud = "Weapon: " + monsterWeapon.getName() + "    Hit: " + hitChancePercent + "%    Dmg: " + monsterWeapon.getDamage();
-				font.draw(batch, monsterWeaponHud, 300, 25);
+				String monsterWeaponHud = monsterWeapon.getName() + "    Hit: " + hitChancePercent + "%    Dmg: " + monsterWeapon.getDamage();
+				glyphLayout.setText(font, monsterWeaponHud);
+				float monsterWeaponHudX = hudCamera.viewportWidth - glyphLayout.width - hudPadding;
+				font.draw(batch, monsterWeaponHud, monsterWeaponHudX, 25);
 			}
 		}
 		
@@ -324,6 +343,7 @@ public class MyGdxGame extends ApplicationAdapter {
 			}
 		});
 		activeToasts.clear();
-		Gdx.input.setInputProcessor(new MyInputAdapter(gameBoard));
+		inputAdapter = new MyInputAdapter(gameBoard);
+		Gdx.input.setInputProcessor(inputAdapter);
 	}
 }

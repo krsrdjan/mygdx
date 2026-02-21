@@ -5,6 +5,14 @@ import com.badlogic.gdx.InputAdapter;
 
 public class MyInputAdapter extends InputAdapter {
 
+    public static final int MOVE_UP_KEY = Input.Keys.W;
+    public static final int MOVE_RIGHT_KEY = Input.Keys.D;
+    public static final int MOVE_DOWN_KEY = Input.Keys.S;
+    public static final int MOVE_LEFT_KEY = Input.Keys.A;
+    public static final int ATTACK_KEY = Input.Keys.U;
+    public static final int END_TURN_KEY = Input.Keys.SPACE;
+    public static final int SWITCH_WEAPON_KEY = Input.Keys.I;
+
     private GameBoard gameBoard;
 
     public MyInputAdapter(GameBoard gameBoard) {
@@ -25,30 +33,65 @@ public class MyInputAdapter extends InputAdapter {
         if (!gameBoard.isHeroTurn()) {
             return true; // swallow input during monster turn
         }
+
+        if (isMoveKey(keycode) && gameBoard.getHero().getSpeed() <= 0) {
+            gameBoard.showToast("No moves left. End your turn.");
+            return true;
+        }
+
         switch (keycode) {
-            case Input.Keys.W:
+            case MOVE_UP_KEY:
                 gameBoard.moveHeroUp();
                 break;
-            case Input.Keys.D:
+            case MOVE_RIGHT_KEY:
                 gameBoard.moveHeroRight();
                 break;
-            case Input.Keys.S:
+            case MOVE_DOWN_KEY:
                 gameBoard.moveHeroDown();
                 break;
-            case Input.Keys.A:
+            case MOVE_LEFT_KEY:
                 gameBoard.moveHeroLeft();
                 break;
-            case Input.Keys.U:
+            case ATTACK_KEY:
                 gameBoard.heroAttack();
                 break;
-            case Input.Keys.SPACE:
+            case END_TURN_KEY:
                 gameBoard.endHeroTurn();
                 break;
-            case Input.Keys.I:
+            case SWITCH_WEAPON_KEY:
                 gameBoard.getHero().switchWeapon();
                 break;
         }
         
         return true;
+    }
+
+    private boolean isMoveKey(int keycode) {
+        return keycode == MOVE_UP_KEY
+                || keycode == MOVE_RIGHT_KEY
+                || keycode == MOVE_DOWN_KEY
+                || keycode == MOVE_LEFT_KEY;
+    }
+
+    public String getMoveKeysLabel() {
+        return Input.Keys.toString(MOVE_UP_KEY)
+                + "/"
+                + Input.Keys.toString(MOVE_LEFT_KEY)
+                + "/"
+                + Input.Keys.toString(MOVE_DOWN_KEY)
+                + "/"
+                + Input.Keys.toString(MOVE_RIGHT_KEY);
+    }
+
+    public String getAttackKeyLabel() {
+        return Input.Keys.toString(ATTACK_KEY);
+    }
+
+    public String getSwitchWeaponKeyLabel() {
+        return Input.Keys.toString(SWITCH_WEAPON_KEY);
+    }
+
+    public String getEndTurnKeyLabel() {
+        return Input.Keys.toString(END_TURN_KEY);
     }
 }
