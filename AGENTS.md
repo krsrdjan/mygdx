@@ -62,6 +62,8 @@ The game follows a turn-based board game pattern:
 
 ## Game Development Best Practices
 
+These sections mix **what this project already does** (caches, `dispose()`, two cameras in `MyGdxGame`) with **general libGDX guidance**. The codebase does not yet use a `Viewport`, a Scene2D `Stage` for input, or a turn-phase enum; it uses `OrthographicCamera` with a fixed logical size in `resize`, a single `InputAdapter`, and a `heroTurn` boolean in `GameBoard`. Use the guidance below when refactoring or growing the project.
+
 ### Resource Management
 - Load textures/sounds via `TextureCache.get()` and `SoundCache.get()` — they are cached and reused; call `TextureCache.dispose()` and `SoundCache.dispose()` in the main game `dispose()`
 - Always call `.dispose()` on Music, SpriteBatch, ShapeRenderer, BitmapFont, and the static caches
@@ -110,10 +112,9 @@ The game follows a turn-based board game pattern:
 ## Adding New Content
 
 ### New Monster
-1. Create weapon class extending `Weapon` in core/
-2. Register monster type in `RandomMonsterFactory`
-3. Add texture to `assets/`
-4. No changes needed in platform modules
+1. Add the monster texture to `assets/`
+2. Register the monster in `RandomMonsterFactory` (image name, stats via `Monster` constructor, `setWeapon(...)` with an existing `Weapon` or a new `Weapon` subclass only if you need a new attack profile)
+3. No changes needed in platform modules
 
 ### New Weapon
 1. Extend `Weapon` with `chanceToHit` and `damage` values

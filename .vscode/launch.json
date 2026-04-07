@@ -1,5 +1,5 @@
 {
-  // VS Code / Cursor launch configurations for libGDX Desktop
+  // VS Code / Cursor launch configurations for libGDX (desktop + TeaVM web)
   "version": "0.2.0",
   "configurations": [
     {
@@ -19,6 +19,18 @@
       "cwd": "${workspaceFolder}/assets",
       "console": "integratedTerminal",
       "stopOnEntry": false
+    },
+    {
+      "name": "Run Web (Gradle :teavm:run)",
+      "type": "java",
+      "request": "launch",
+      "mainClass": "org.gradle.wrapper.GradleWrapperMain",
+      "classPaths": ["${workspaceFolder}/gradle/wrapper/gradle-wrapper.jar"],
+      "modulePaths": [],
+      "args": [":teavm:run"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
     }
   ]
 }
