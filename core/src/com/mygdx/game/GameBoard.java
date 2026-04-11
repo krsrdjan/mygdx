@@ -299,6 +299,98 @@ public class GameBoard {
         hero.attackMonster(nearest);
     }
 
+    public void heroAttackMonster(Monster monster) {
+        if (monster != null && Position.isNear(hero.getPosition(), monster.getPosition())) {
+            hero.attackMonster(monster);
+        }
+    }
+
+    public Monster getMonsterAt(int x, int y) {
+        for (Monster m : monsters) {
+            Position pos = m.getPosition();
+            if (pos.x == x && pos.y == y) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    public void heroClickOnTile(int tileX, int tileY) {
+        if (!heroTurn || !hero.isAlive()) {
+            return;
+        }
+        if (tileX < 0 || tileX >= BOARD_SQUARE_WIDTH || tileY < 0 || tileY >= BOARD_SQUARE_HEIGHT) {
+            return;
+        }
+
+        Position heroPos = hero.getPosition();
+        if (tileX == heroPos.x && tileY == heroPos.y) {
+            return;
+        }
+
+        Monster monsterAtTile = getMonsterAt(tileX, tileY);
+        if (monsterAtTile != null && Position.isNear(heroPos, monsterAtTile.getPosition())) {
+            heroAttackMonster(monsterAtTile);
+            return;
+        }
+
+        if (hero.getSpeed() <= 0) {
+            showToast("No moves left. End your turn.");
+            return;
+        }
+
+        int dx = tileX - heroPos.x;
+        int dy = tileY - heroPos.y;
+
+        if (Math.abs(dx) >= Math.abs(dy)) {
+            if (dx > 0) {
+                if (isSquareEmpty(heroPos.x + 1, heroPos.y)) {
+                    hero.moveRight();
+                    return;
+                }
+            } else if (dx < 0) {
+                if (isSquareEmpty(heroPos.x - 1, heroPos.y)) {
+                    hero.moveLeft();
+                    return;
+                }
+            }
+            if (dy > 0) {
+                if (isSquareEmpty(heroPos.x, heroPos.y + 1)) {
+                    hero.moveUp();
+                    return;
+                }
+            } else if (dy < 0) {
+                if (isSquareEmpty(heroPos.x, heroPos.y - 1)) {
+                    hero.moveDown();
+                    return;
+                }
+            }
+        } else {
+            if (dy > 0) {
+                if (isSquareEmpty(heroPos.x, heroPos.y + 1)) {
+                    hero.moveUp();
+                    return;
+                }
+            } else if (dy < 0) {
+                if (isSquareEmpty(heroPos.x, heroPos.y - 1)) {
+                    hero.moveDown();
+                    return;
+                }
+            }
+            if (dx > 0) {
+                if (isSquareEmpty(heroPos.x + 1, heroPos.y)) {
+                    hero.moveRight();
+                    return;
+                }
+            } else if (dx < 0) {
+                if (isSquareEmpty(heroPos.x - 1, heroPos.y)) {
+                    hero.moveLeft();
+                    return;
+                }
+            }
+        }
+    }
+
     private Monster getNearestMonster(Hero hero) {
         int distance = BOARD_SQUARE_WIDTH + BOARD_SQUARE_HEIGHT;
         Monster nearest = null;
