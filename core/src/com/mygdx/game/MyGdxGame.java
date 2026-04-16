@@ -56,6 +56,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		shapeRenderer = new ShapeRenderer();
 		
 		inputAdapter = new MyInputAdapter(gameBoard);
+		inputAdapter.setCamera(camera);
 		Gdx.input.setInputProcessor(inputAdapter);
 		
 		// Set toast notifier for game board
@@ -147,8 +148,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 
 		// Basic controls in the middle of the HUD
-		String controlsTop = "Move: " + inputAdapter.getMoveKeysLabel()
-				+ "    Attack: " + inputAdapter.getAttackKeyLabel();
+		String controlsTop = "Move: " + inputAdapter.getMoveKeysLabel() + "/Click"
+				+ "    Attack: " + inputAdapter.getAttackKeyLabel() + "/Click monster";
 		glyphLayout.setText(font, controlsTop);
 		float controlsTopX = (hudCamera.viewportWidth - glyphLayout.width) / 2f;
 		font.draw(batch, controlsTop, controlsTopX, 45);
@@ -344,6 +345,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		});
 		activeToasts.clear();
 		inputAdapter = new MyInputAdapter(gameBoard);
+		inputAdapter.setCamera(camera);
 		Gdx.input.setInputProcessor(inputAdapter);
 	}
 }

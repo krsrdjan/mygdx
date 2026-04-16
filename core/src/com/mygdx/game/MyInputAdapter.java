@@ -2,6 +2,8 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector3;
 
 public class MyInputAdapter extends InputAdapter {
 
@@ -14,14 +16,37 @@ public class MyInputAdapter extends InputAdapter {
     public static final int SWITCH_WEAPON_KEY = Input.Keys.I;
 
     private GameBoard gameBoard;
+    private OrthographicCamera camera;
+    private final Vector3 worldCoords = new Vector3();
 
     public MyInputAdapter(GameBoard gameBoard) {
         this.gameBoard = gameBoard;
     }
 
+    public void setCamera(OrthographicCamera camera) {
+        this.camera = camera;
+    }
+
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return super.touchDown(screenX, screenY, pointer, button);
+        if (camera == null) {
+            return false;
+        }
+        if (!gameBoard.getHero().isAlive()) {
+            return false;
+        }
+        if (!gameBoard.isHeroTurn()) {
+            return true;
+        }
+
+        worldCoords.set(screenX, screenY, 0);
+        camera.unproject(worldCoords);
+
+        int tileX = (int) Math.floor(worldCoords.x / GameBoard.SQUARE_SIZE);
+        int tileY = (int) Math.floor(worldCoords.y / GameBoard.SQUARE_SIZE);
+
+        gameBoard.heroClickOnTile(tileX, tileY);
+        return true;
     }
 
     @Override
