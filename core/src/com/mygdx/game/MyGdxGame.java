@@ -83,8 +83,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		font = new BitmapFont();
 		shapeRenderer = new ShapeRenderer();
 		
-		weaponCard1Bounds.set(LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 40f, 114f, 44f);
-		weaponCard2Bounds.set(LEFT_X0 + 134f, HUD_PANEL_Y_BOTTOM + 40f, 114f, 44f);
+		weaponCard1Bounds.set(LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 26f, 114f, 44f);
+		weaponCard2Bounds.set(LEFT_X0 + 134f, HUD_PANEL_Y_BOTTOM + 26f, 114f, 44f);
 
 		inputAdapter = new MyInputAdapter(gameBoard);
 		inputAdapter.setCamera(camera);
@@ -418,11 +418,6 @@ public class MyGdxGame extends ApplicationAdapter {
 			font.setColor(MUTED);
 			font.draw(batch, hitPct + "%  " + w.getDamage() + " dmg", r.x + 8f, r.y + 16f);
 		}
-
-		// "[I] switch" hint
-		font.setColor(MUTED);
-		font.draw(batch, "[I] switch", weaponCard2Bounds.x + weaponCard2Bounds.width + 8f,
-				weaponCard2Bounds.y + 28f);
 
 		// Center panel: pill + controls
 		float pillW = 110f;
