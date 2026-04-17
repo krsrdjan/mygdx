@@ -36,6 +36,8 @@ public class MyGdxGame extends ApplicationAdapter {
 	private final GlyphLayout glyphLayout = new GlyphLayout();
 	private final Rectangle restartButtonBounds = new Rectangle();
 	private final Vector3 touchPoint = new Vector3();
+	private final Vector3 mouseWorldCoords = new Vector3();
+	private final Vector3 mouseHudCoords = new Vector3();
 	
 	@Override
 	public void create () {	// this is done once
@@ -180,6 +182,9 @@ public class MyGdxGame extends ApplicationAdapter {
 		
 		batch.end();
 		
+		// Render monster hover popup
+		renderMonsterHoverPopup();
+
 		// Render toasts above HUD
 		renderToasts();
 		renderGameOverDialog();
@@ -279,6 +284,70 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.begin();
 		font.setColor(1, 1, 1, alpha);
 		font.draw(batch, currentToast.getMessage(), boxX + padding, boxY + padding + textHeight);
+		batch.end();
+	}
+
+	private void renderMonsterHoverPopup() {
+		if (!gameBoard.getHero().isAlive()) return;
+
+		mouseWorldCoords.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+		camera.unproject(mouseWorldCoords);
+		int tileX = (int) Math.floor(mouseWorldCoords.x / GameBoard.SQUARE_SIZE);
+		int tileY = (int) Math.floor(mouseWorldCoords.y / GameBoard.SQUARE_SIZE);
+
+		Monster hovered = gameBoard.getMonsterAt(tileX, tileY);
+		if (hovered == null) return;
+
+		mouseHudCoords.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+		hudCamera.unproject(mouseHudCoords);
+
+		String line1 = "Monster: " + hovered.getName() + "    HP: " + hovered.getHealth();
+		String line2 = null;
+		Weapon monsterWeapon = hovered.getWeapon();
+		if (monsterWeapon != null) {
+			int hitPct = Math.round(monsterWeapon.getChanceToHit() * 100);
+			line2 = monsterWeapon.getName() + "    Hit: " + hitPct + "%    Dmg: " + monsterWeapon.getDamage();
+		}
+
+		float padding = 8f;
+		float gap = 4f;
+
+		glyphLayout.setText(font, line1);
+		float lineH = glyphLayout.height;
+		float maxW = glyphLayout.width;
+		if (line2 != null) {
+			glyphLayout.setText(font, line2);
+			maxW = Math.max(maxW, glyphLayout.width);
+		}
+
+		int numLines = (line2 != null) ? 2 : 1;
+		float boxW = maxW + padding * 2;
+		float boxH = padding * 2 + lineH * numLines + (numLines > 1 ? gap : 0);
+
+		float boxX = mouseHudCoords.x - boxW / 2f;
+		float boxY = mouseHudCoords.y + 15f;
+
+		boxX = Math.max(0, Math.min(boxX, hudCamera.viewportWidth - boxW));
+		if (boxY + boxH > hudCamera.viewportHeight) {
+			boxY = mouseHudCoords.y - boxH - 15f;
+		}
+		boxY = Math.max(65f, boxY);
+
+		shapeRenderer.setProjectionMatrix(hudCamera.combined);
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		shapeRenderer.setColor(0f, 0f, 0f, 0.85f);
+		shapeRenderer.rect(boxX, boxY, boxW, boxH);
+		shapeRenderer.end();
+
+		batch.setProjectionMatrix(hudCamera.combined);
+		batch.begin();
+		font.setColor(Color.WHITE);
+		float textX = boxX + padding;
+		float textY = boxY + boxH - padding;
+		font.draw(batch, line1, textX, textY);
+		if (line2 != null) {
+			font.draw(batch, line2, textX, textY - lineH - gap);
+		}
 		batch.end();
 	}
 
