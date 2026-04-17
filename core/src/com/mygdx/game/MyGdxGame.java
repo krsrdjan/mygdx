@@ -179,13 +179,84 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 		
 		batch.end();
-		
+
+		// Top-left stats HUD
+		renderTopLeftHUD();
+
 		// Render toasts above HUD
 		renderToasts();
 		renderGameOverDialog();
 		handleGameOverInput();
 	}
 	
+	private void renderTopLeftHUD() {
+		Hero hero = gameBoard.getHero();
+		if (hero == null) return;
+
+		final float pad  = 8f;
+		final float panX = 5f;
+		final float panW = 185f;
+		final float barW = panW - pad * 2f;
+		final float barH = 11f;
+		float capH = font.getCapHeight();
+
+		// Layout rows top-down from screen top
+		float topContent = 600f - 5f - pad;
+
+		float hpTextY  = topContent;
+		float hpBarY   = hpTextY  - capH - 4f;
+		float mvTextY  = hpBarY   - barH - 11f;
+		float mvBarY   = mvTextY  - capH - 4f;
+		float wpnNameY = mvBarY   - barH - 11f;
+		float wpnStatY = wpnNameY - capH - 5f;
+		float panBot   = wpnStatY - capH - pad;
+		float panH     = (topContent + pad) - panBot;
+
+		float barX = panX + pad;
+
+		int curHP  = hero.getHealth();
+		int maxHP  = hero.getMaxHealth();
+		float hpRatio = maxHP > 0 ? Math.max(0f, Math.min(1f, (float) curHP / maxHP)) : 0f;
+
+		int curMv  = hero.getSpeed();
+		int maxMv  = 8;
+		float mvRatio = Math.max(0f, Math.min(1f, (float) curMv / maxMv));
+
+		shapeRenderer.setProjectionMatrix(hudCamera.combined);
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		shapeRenderer.setColor(hudBgColor);
+		shapeRenderer.rect(panX, panBot, panW, panH);
+
+		// HP bar (dark red background, red fill)
+		shapeRenderer.setColor(0.35f, 0.05f, 0.05f, 0.9f);
+		shapeRenderer.rect(barX, hpBarY, barW, barH);
+		shapeRenderer.setColor(0.85f, 0.12f, 0.12f, 1f);
+		shapeRenderer.rect(barX, hpBarY, barW * hpRatio, barH);
+
+		// Move bar (dark blue background, blue fill)
+		shapeRenderer.setColor(0.05f, 0.1f, 0.4f, 0.9f);
+		shapeRenderer.rect(barX, mvBarY, barW, barH);
+		shapeRenderer.setColor(0.2f, 0.45f, 0.9f, 1f);
+		shapeRenderer.rect(barX, mvBarY, barW * mvRatio, barH);
+		shapeRenderer.end();
+
+		batch.setProjectionMatrix(hudCamera.combined);
+		batch.begin();
+		font.setColor(Color.WHITE);
+		font.draw(batch, "HP: " + curHP + " / " + maxHP, barX, hpTextY);
+		font.draw(batch, "Moves: " + curMv + " / " + maxMv, barX, mvTextY);
+
+		Weapon weapon = hero.getCurrentWeapon();
+		if (weapon != null) {
+			int hitPct = Math.round(weapon.getChanceToHit() * 100);
+			font.setColor(1f, 0.85f, 0.3f, 1f);
+			font.draw(batch, weapon.getName(), barX, wpnNameY);
+			font.draw(batch, "Hit: " + hitPct + "%   Dmg: " + weapon.getDamage(), barX, wpnStatY);
+			font.setColor(Color.WHITE);
+		}
+		batch.end();
+	}
+
 	private void updateCamera() {
 		// Get hero position
 		Position heroPos = gameBoard.getHero().getPosition();
