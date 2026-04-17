@@ -423,11 +423,19 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 		font.draw(batch, pillText, pillTextX, pillTextY);
 
-		// Control hints (two columns)
+		// Round label below pill
+		font.setColor(MUTED);
+		String roundText = "Round " + gameBoard.getRound();
+		glyphLayout.setText(font, roundText);
+		font.draw(batch, roundText,
+				CENTER_X0 + (CENTER_X1 - CENTER_X0 - glyphLayout.width) / 2f,
+				HUD_PANEL_Y_TOP - 36f);
+
+		// Control hints (two columns) shifted below Round label
 		font.setColor(MUTED);
 		float centerMid = (CENTER_X0 + CENTER_X1) / 2f;
-		float hintY1 = HUD_PANEL_Y_BOTTOM + 92f;
-		float hintY2 = HUD_PANEL_Y_BOTTOM + 62f;
+		float hintY1 = HUD_PANEL_Y_BOTTOM + 98f;
+		float hintY2 = HUD_PANEL_Y_BOTTOM + 68f;
 		drawCenteredText("WASD", (CENTER_X0 + centerMid) / 2f, hintY1);
 		drawCenteredText("U / click", (centerMid + CENTER_X1) / 2f, hintY1);
 		drawCenteredText("SPACE  end turn", (CENTER_X0 + centerMid) / 2f, hintY2);
