@@ -257,7 +257,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		// Hero HP bar
 		float hpBarX = LEFT_X0 + 40f;
-		float hpBarY = HUD_PANEL_Y_BOTTOM + 110f;
+		float hpBarY = HUD_PANEL_Y_BOTTOM + 96f;
 		float hpBarW = 160f;
 		float hpBarH = 10f;
 		shapeRenderer.setColor(DIM_TRACK);
@@ -269,7 +269,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		// Hero MOV bar
 		float movBarX = hpBarX;
-		float movBarY = HUD_PANEL_Y_BOTTOM + 88f;
+		float movBarY = HUD_PANEL_Y_BOTTOM + 74f;
 		float movBarW = hpBarW;
 		float movBarH = hpBarH;
 		shapeRenderer.setColor(DIM_TRACK);
@@ -369,19 +369,24 @@ public class MyGdxGame extends ApplicationAdapter {
 	private void renderHudText(Hero hero, Monster adjacent) {
 		batch.begin();
 
-		// HERO label
+		// Hero portrait (top-left) + HERO label to its right
+		Texture heroPortrait = hero.getTexture();
+		if (heroPortrait != null) {
+			batch.setColor(Color.WHITE);
+			batch.draw(heroPortrait, LEFT_X0 + 12f, HUD_PANEL_Y_TOP - 44f, 32f, 32f);
+		}
 		font.setColor(GOLD);
-		font.draw(batch, "HERO", LEFT_X0 + 12f, HUD_PANEL_Y_TOP - 12f);
+		font.draw(batch, "HERO", LEFT_X0 + 52f, HUD_PANEL_Y_TOP - 20f);
 
 		// HP
 		font.setColor(Color.WHITE);
-		font.draw(batch, "HP", LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 119f);
+		font.draw(batch, "HP", LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 105f);
 		String hpText = hero.getHealth() + " / " + hero.getMaxHealth();
-		font.draw(batch, hpText, LEFT_X0 + 210f, HUD_PANEL_Y_BOTTOM + 119f);
+		font.draw(batch, hpText, LEFT_X0 + 210f, HUD_PANEL_Y_BOTTOM + 105f);
 
 		// MOV
-		font.draw(batch, "MOV", LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 97f);
-		font.draw(batch, String.valueOf(hero.getSpeed()), LEFT_X0 + 210f, HUD_PANEL_Y_BOTTOM + 97f);
+		font.draw(batch, "MOV", LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 83f);
+		font.draw(batch, String.valueOf(hero.getSpeed()), LEFT_X0 + 210f, HUD_PANEL_Y_BOTTOM + 83f);
 
 		// Weapon cards
 		Weapon activeWeapon = hero.getCurrentWeapon();
