@@ -191,9 +191,9 @@ public class Monster extends Creature {
             int damage = attack();
             if (damage > 0) {
                 hero.takeDamage(damage);
-                board.showToast(name + " hits you for " + damage + " damage!");
+                board.logCombat(name + " hits you for " + damage + " damage!");
             } else {
-                board.showToast(name + " misses!");
+                board.logCombat(name + " misses!");
             }
         }
     }

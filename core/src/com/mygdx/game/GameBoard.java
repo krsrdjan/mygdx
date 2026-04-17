@@ -38,6 +38,10 @@ public class GameBoard {
         }
     }
 
+    public void logCombat(String message) {
+        combatLog.add(message);
+    }
+
     public CombatLog getCombatLog() {
         return combatLog;
     }
