@@ -369,9 +369,14 @@ public class MyGdxGame extends ApplicationAdapter {
 	private void renderHudText(Hero hero, Monster adjacent) {
 		batch.begin();
 
-		// HERO label
+		// HERO label + portrait
 		font.setColor(GOLD);
 		font.draw(batch, "HERO", LEFT_X0 + 12f, HUD_PANEL_Y_TOP - 12f);
+		Texture heroPortrait = hero.getTexture();
+		if (heroPortrait != null) {
+			batch.setColor(Color.WHITE);
+			batch.draw(heroPortrait, LEFT_X1 - 44f, HUD_PANEL_Y_TOP - 44f, 32f, 32f);
+		}
 
 		// HP
 		font.setColor(Color.WHITE);
