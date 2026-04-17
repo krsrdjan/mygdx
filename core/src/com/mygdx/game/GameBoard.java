@@ -461,7 +461,7 @@ public class GameBoard {
 
     public void endMonsterTurn() {
         round++;
-        showToast("Round " + round + " begins.");
+        logCombat("Round " + round + " begins.");
         heroTurn = true;
         hero.startTurn();
     }
