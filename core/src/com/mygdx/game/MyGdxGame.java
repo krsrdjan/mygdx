@@ -319,21 +319,17 @@ public class MyGdxGame extends ApplicationAdapter {
 			shapeRenderer.setColor(HP_RED);
 			shapeRenderer.rect(eBarX, eBarY, eBarW * eFill, eBarH);
 
-			// Pip row
-			float pipSize = 14f;
-			float pipGap = 4f;
-			float pipsX = RIGHT_X0 + 12f;
-			float pipsY = HUD_PANEL_Y_BOTTOM + 72f;
-			int currentHp = Math.max(0, adjacent.getHealth());
-			for (int i = 0; i < enemyMaxHp; i++) {
-				float px = pipsX + i * (pipSize + pipGap);
-				if (i < currentHp) {
-					shapeRenderer.setColor(HP_RED);
-				} else {
-					shapeRenderer.setColor(DIM_TRACK);
-				}
-				shapeRenderer.rect(px, pipsY, pipSize, pipSize);
-			}
+			// Enemy MOV bar
+			float eMovBarX = eBarX;
+			float eMovBarY = HUD_PANEL_Y_BOTTOM + 72f;
+			float eMovBarW = eBarW;
+			float eMovBarH = eBarH;
+			shapeRenderer.setColor(DIM_TRACK);
+			shapeRenderer.rect(eMovBarX, eMovBarY, eMovBarW, eMovBarH);
+			int eMaxSpeed = Math.max(1, adjacent.getMaxSpeed());
+			float eMovFill = Math.max(0f, Math.min(1f, adjacent.getSpeed() / (float) eMaxSpeed));
+			shapeRenderer.setColor(MOV_BLUE);
+			shapeRenderer.rect(eMovBarX, eMovBarY, eMovBarW * eMovFill, eMovBarH);
 		}
 
 		shapeRenderer.end();
@@ -366,19 +362,6 @@ public class MyGdxGame extends ApplicationAdapter {
 			shapeRenderer.rect(r.x, r.y, r.width, r.height);
 		}
 
-		// Enemy pip outlines
-		if (adjacent != null) {
-			int enemyMaxHp = Math.max(1, adjacent.getMaxHealth());
-			float pipSize = 14f;
-			float pipGap = 4f;
-			float pipsX = RIGHT_X0 + 12f;
-			float pipsY = HUD_PANEL_Y_BOTTOM + 72f;
-			shapeRenderer.setColor(BORDER);
-			for (int i = 0; i < enemyMaxHp; i++) {
-				float px = pipsX + i * (pipSize + pipGap);
-				shapeRenderer.rect(px, pipsY, pipSize, pipSize);
-			}
-		}
 
 		shapeRenderer.end();
 	}
@@ -460,10 +443,16 @@ public class MyGdxGame extends ApplicationAdapter {
 				batch.draw(portrait, RIGHT_X1 - 44f, HUD_PANEL_Y_TOP - 44f, 32f, 32f);
 			}
 
-			// HP text beside bar (bar is 150 wide starting at RIGHT_X0 + 12)
+			// HP row
 			font.setColor(Color.WHITE);
-			font.draw(batch, adjacent.getHealth() + " / " + adjacent.getMaxHealth() + " HP",
+			font.draw(batch, "HP", RIGHT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 105f);
+			font.draw(batch, adjacent.getHealth() + " / " + adjacent.getMaxHealth(),
 					RIGHT_X0 + 170f, HUD_PANEL_Y_BOTTOM + 105f);
+
+			// MOV row
+			font.draw(batch, "MOV", RIGHT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 81f);
+			font.draw(batch, String.valueOf(adjacent.getSpeed()),
+					RIGHT_X0 + 170f, HUD_PANEL_Y_BOTTOM + 81f);
 
 			// Weapon summary
 			Weapon mw = adjacent.getWeapon();
