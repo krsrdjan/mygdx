@@ -83,8 +83,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		font = new BitmapFont();
 		shapeRenderer = new ShapeRenderer();
 		
-		weaponCard1Bounds.set(LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 26f, 114f, 44f);
-		weaponCard2Bounds.set(LEFT_X0 + 134f, HUD_PANEL_Y_BOTTOM + 26f, 114f, 44f);
+		weaponCard1Bounds.set(LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 10f, 114f, 44f);
+		weaponCard2Bounds.set(LEFT_X0 + 134f, HUD_PANEL_Y_BOTTOM + 10f, 114f, 44f);
 
 		inputAdapter = new MyInputAdapter(gameBoard);
 		inputAdapter.setCamera(camera);
@@ -256,7 +256,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		shapeRenderer.rect(0, 0, hudCamera.viewportWidth, LOG_STRIP_H);
 
 		// Hero HP bar
-		float hpBarX = LEFT_X0 + 40f;
+		float hpBarX = LEFT_X0 + 52f;
 		float hpBarY = HUD_PANEL_Y_BOTTOM + 96f;
 		float hpBarW = 160f;
 		float hpBarH = 10f;
@@ -382,11 +382,11 @@ public class MyGdxGame extends ApplicationAdapter {
 		font.setColor(Color.WHITE);
 		font.draw(batch, "HP", LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 105f);
 		String hpText = hero.getHealth() + " / " + hero.getMaxHealth();
-		font.draw(batch, hpText, LEFT_X0 + 210f, HUD_PANEL_Y_BOTTOM + 105f);
+		font.draw(batch, hpText, LEFT_X0 + 222f, HUD_PANEL_Y_BOTTOM + 105f);
 
 		// MOV
 		font.draw(batch, "MOV", LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 83f);
-		font.draw(batch, String.valueOf(hero.getSpeed()), LEFT_X0 + 210f, HUD_PANEL_Y_BOTTOM + 83f);
+		font.draw(batch, String.valueOf(hero.getSpeed()), LEFT_X0 + 222f, HUD_PANEL_Y_BOTTOM + 83f);
 
 		// Weapon cards
 		Weapon activeWeapon = hero.getCurrentWeapon();
