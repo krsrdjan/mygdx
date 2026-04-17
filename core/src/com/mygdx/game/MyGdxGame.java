@@ -310,8 +310,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (adjacent != null) {
 			int enemyMaxHp = Math.max(1, adjacent.getMaxHealth());
 			float eBarX = RIGHT_X0 + 12f;
-			float eBarY = HUD_PANEL_Y_BOTTOM + 78f;
-			float eBarW = 200f;
+			float eBarY = HUD_PANEL_Y_BOTTOM + 96f;
+			float eBarW = 150f;
 			float eBarH = 10f;
 			shapeRenderer.setColor(DIM_TRACK);
 			shapeRenderer.rect(eBarX, eBarY, eBarW, eBarH);
@@ -323,7 +323,7 @@ public class MyGdxGame extends ApplicationAdapter {
 			float pipSize = 14f;
 			float pipGap = 4f;
 			float pipsX = RIGHT_X0 + 12f;
-			float pipsY = HUD_PANEL_Y_BOTTOM + 52f;
+			float pipsY = HUD_PANEL_Y_BOTTOM + 72f;
 			int currentHp = Math.max(0, adjacent.getHealth());
 			for (int i = 0; i < enemyMaxHp; i++) {
 				float px = pipsX + i * (pipSize + pipGap);
@@ -372,7 +372,7 @@ public class MyGdxGame extends ApplicationAdapter {
 			float pipSize = 14f;
 			float pipGap = 4f;
 			float pipsX = RIGHT_X0 + 12f;
-			float pipsY = HUD_PANEL_Y_BOTTOM + 52f;
+			float pipsY = HUD_PANEL_Y_BOTTOM + 72f;
 			shapeRenderer.setColor(BORDER);
 			for (int i = 0; i < enemyMaxHp; i++) {
 				float px = pipsX + i * (pipSize + pipGap);
@@ -453,9 +453,6 @@ public class MyGdxGame extends ApplicationAdapter {
 			font.setColor(GOLD);
 			font.draw(batch, adjacent.getName().toUpperCase(), RIGHT_X0 + 12f, HUD_PANEL_Y_TOP - 32f);
 
-			font.setColor(MUTED);
-			font.draw(batch, "Melee fighter", RIGHT_X0 + 12f, HUD_PANEL_Y_TOP - 50f);
-
 			// Portrait icon (top-right of panel)
 			Texture portrait = adjacent.getTexture();
 			if (portrait != null) {
@@ -463,10 +460,10 @@ public class MyGdxGame extends ApplicationAdapter {
 				batch.draw(portrait, RIGHT_X1 - 44f, HUD_PANEL_Y_TOP - 44f, 32f, 32f);
 			}
 
-			// HP text above bar
+			// HP text beside bar (bar is 150 wide starting at RIGHT_X0 + 12)
 			font.setColor(Color.WHITE);
 			font.draw(batch, adjacent.getHealth() + " / " + adjacent.getMaxHealth() + " HP",
-					RIGHT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 102f);
+					RIGHT_X0 + 170f, HUD_PANEL_Y_BOTTOM + 105f);
 
 			// Weapon summary
 			Weapon mw = adjacent.getWeapon();
@@ -474,7 +471,7 @@ public class MyGdxGame extends ApplicationAdapter {
 				int pct = Math.round(mw.getChanceToHit() * 100);
 				String line = mw.getName() + "  \u00B7  " + pct + "% hit  \u00B7  " + mw.getDamage() + " dmg";
 				font.setColor(MUTED);
-				font.draw(batch, line, RIGHT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 30f);
+				font.draw(batch, line, RIGHT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 40f);
 			}
 		}
 
