@@ -442,7 +442,6 @@ public class GameBoard {
         }
         heroTurn = false;
         hero.endTurn();
-        showToast("Turn ended");
         if (monsters.isEmpty()) {
             // No monsters to act; immediately start hero's next turn
             endMonsterTurn();
