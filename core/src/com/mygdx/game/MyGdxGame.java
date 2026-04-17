@@ -309,7 +309,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		// Enemy panel content
 		if (adjacent != null) {
 			int enemyMaxHp = Math.max(1, adjacent.getMaxHealth());
-			float eBarX = RIGHT_X0 + 12f;
+			float eBarX = RIGHT_X0 + 48f;
 			float eBarY = HUD_PANEL_Y_BOTTOM + 96f;
 			float eBarW = 150f;
 			float eBarH = 10f;
@@ -452,12 +452,12 @@ public class MyGdxGame extends ApplicationAdapter {
 			font.setColor(Color.WHITE);
 			font.draw(batch, "HP", RIGHT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 105f);
 			font.draw(batch, adjacent.getHealth() + " / " + adjacent.getMaxHealth(),
-					RIGHT_X0 + 170f, HUD_PANEL_Y_BOTTOM + 105f);
+					RIGHT_X0 + 206f, HUD_PANEL_Y_BOTTOM + 105f);
 
 			// MOV row
 			font.draw(batch, "MOV", RIGHT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 81f);
 			font.draw(batch, String.valueOf(adjacent.getSpeed()),
-					RIGHT_X0 + 170f, HUD_PANEL_Y_BOTTOM + 81f);
+					RIGHT_X0 + 206f, HUD_PANEL_Y_BOTTOM + 81f);
 
 			// Weapon summary
 			Weapon mw = adjacent.getWeapon();
