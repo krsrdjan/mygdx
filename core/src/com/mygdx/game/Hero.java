@@ -17,27 +17,21 @@ public class Hero extends Creature {
     private Sound deathSound;
     private List<Weapon> inventory = new ArrayList<>();
     private Weapon currentWeapon;
-    private int MAX_HEALTH;
 
     public Hero(String image, int health, GameBoard board) {
         super(image, health);
-        this.MAX_HEALTH = health;
         weaponHit = SoundCache.get("sword.wav");
         deathSound = SoundCache.get("death.mp3");
         this.board = board;
         Sword sword = new Sword();
         Axe axe = new Axe();
-        inventory.add(sword);
         inventory.add(axe);
-        currentWeapon = sword;
+        inventory.add(sword);
+        currentWeapon = axe;
     }
-    
-    public int getMaxHealth() {
-        return MAX_HEALTH;
-    }
-    
+
     public void heal(int amount) {
-        health = Math.min(MAX_HEALTH, health + amount);
+        health = Math.min(maxHealth, health + amount);
     }
 
     public void setPosition(Position newPosition) {
@@ -161,6 +155,10 @@ public class Hero extends Creature {
 
     public int getSpeed() {
         return speed;
+    }
+
+    public int getMaxSpeed() {
+        return MAX_SPEED;
     }
 
     public Collection<Weapon> getInventory() {

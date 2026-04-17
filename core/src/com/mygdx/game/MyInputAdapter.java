@@ -15,8 +15,13 @@ public class MyInputAdapter extends InputAdapter {
     public static final int END_TURN_KEY = Input.Keys.SPACE;
     public static final int SWITCH_WEAPON_KEY = Input.Keys.I;
 
+    public interface HudClickHandler {
+        boolean handleHudTouch(int screenX, int screenY);
+    }
+
     private GameBoard gameBoard;
     private OrthographicCamera camera;
+    private HudClickHandler hudClickHandler;
     private final Vector3 worldCoords = new Vector3();
 
     public MyInputAdapter(GameBoard gameBoard) {
@@ -27,6 +32,10 @@ public class MyInputAdapter extends InputAdapter {
         this.camera = camera;
     }
 
+    public void setHudClickHandler(HudClickHandler hudClickHandler) {
+        this.hudClickHandler = hudClickHandler;
+    }
+
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         if (camera == null) {
@@ -34,6 +43,9 @@ public class MyInputAdapter extends InputAdapter {
         }
         if (!gameBoard.getHero().isAlive()) {
             return false;
+        }
+        if (hudClickHandler != null && hudClickHandler.handleHudTouch(screenX, screenY)) {
+            return true;
         }
         if (!gameBoard.isHeroTurn()) {
             return true;

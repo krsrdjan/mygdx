@@ -32,12 +32,38 @@ public class MyGdxGame extends ApplicationAdapter {
 	ShapeRenderer shapeRenderer;
 	MyInputAdapter inputAdapter;
 	private List<Toast> activeToasts = new ArrayList<>();
-	private final Color hudBgColor = new Color(0, 0, 0, 0.6f);
 	private final GlyphLayout glyphLayout = new GlyphLayout();
 	private final Rectangle restartButtonBounds = new Rectangle();
 	private final Vector3 touchPoint = new Vector3();
 	private final Vector3 mouseWorldCoords = new Vector3();
 	private final Vector3 mouseHudCoords = new Vector3();
+
+	// HUD layout (hudCamera 800x600 screen space)
+	private static final float LOG_STRIP_H = 22f;
+	private static final float HUD_PANEL_Y_BOTTOM = LOG_STRIP_H;
+	private static final float HUD_PANEL_H = 160f;
+	private static final float HUD_PANEL_Y_TOP = HUD_PANEL_Y_BOTTOM + HUD_PANEL_H;
+	private static final float LEFT_X0 = 0f, LEFT_X1 = 260f;
+	private static final float CENTER_X0 = 260f, CENTER_X1 = 540f;
+	private static final float RIGHT_X0 = 540f, RIGHT_X1 = 800f;
+	private static final float TOAST_Y = 195f;
+
+	// HUD colors
+	private static final Color HUD_BG = new Color(0.08f, 0.06f, 0.05f, 0.95f);
+	private static final Color LOG_BG = new Color(0.05f, 0.04f, 0.03f, 0.95f);
+	private static final Color BORDER = new Color(0.30f, 0.25f, 0.18f, 1f);
+	private static final Color GOLD = new Color(0.85f, 0.68f, 0.28f, 1f);
+	private static final Color GOLD_PILL_TEXT = new Color(0.12f, 0.10f, 0.06f, 1f);
+	private static final Color HP_RED = new Color(0.85f, 0.25f, 0.25f, 1f);
+	private static final Color MOV_BLUE = new Color(0.30f, 0.55f, 0.90f, 1f);
+	private static final Color MUTED = new Color(0.55f, 0.52f, 0.48f, 1f);
+	private static final Color DIM_TRACK = new Color(0.20f, 0.17f, 0.14f, 1f);
+	private static final Color LOG_DIM = new Color(0.45f, 0.45f, 0.45f, 1f);
+	private static final Color LOG_HIGHLIGHT = new Color(0.95f, 0.55f, 0.30f, 1f);
+
+	// Weapon card click zones (populated in create())
+	private final Rectangle weaponCard1Bounds = new Rectangle();
+	private final Rectangle weaponCard2Bounds = new Rectangle();
 	
 	@Override
 	public void create () {	// this is done once
@@ -57,10 +83,18 @@ public class MyGdxGame extends ApplicationAdapter {
 		font = new BitmapFont();
 		shapeRenderer = new ShapeRenderer();
 		
+		weaponCard1Bounds.set(LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 40f, 114f, 44f);
+		weaponCard2Bounds.set(LEFT_X0 + 134f, HUD_PANEL_Y_BOTTOM + 40f, 114f, 44f);
+
 		inputAdapter = new MyInputAdapter(gameBoard);
 		inputAdapter.setCamera(camera);
+		inputAdapter.setHudClickHandler(new MyInputAdapter.HudClickHandler() {
+			public boolean handleHudTouch(int sx, int sy) {
+				return MyGdxGame.this.handleHudClick(sx, sy);
+			}
+		});
 		Gdx.input.setInputProcessor(inputAdapter);
-		
+
 		// Set toast notifier for game board
 		gameBoard.setToastNotifier(new StringCallback() {
 			public void call(String value) {
@@ -127,61 +161,8 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		// HUD rendering (screen space)
 		hudCamera.update();
-		shapeRenderer.setProjectionMatrix(hudCamera.combined);
-		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-		shapeRenderer.setColor(hudBgColor);
-		shapeRenderer.rect(0, 0, hudCamera.viewportWidth, 60);
-		shapeRenderer.end();
+		renderHud();
 
-		batch.setProjectionMatrix(hudCamera.combined);
-		batch.begin();
-		Hero hero = gameBoard.getHero();
-		float hudPadding = 10f;
-		String hudText = "HP: " + hero.getHealth() + "    Moves: " + hero.getSpeed();
-		font.setColor(Color.WHITE);
-		font.draw(batch, hudText, hudPadding, 45);
-
-		// Show weapon info
-		Weapon weapon = hero.getCurrentWeapon();
-		if (weapon != null) {
-			int hitChancePercent = Math.round(weapon.getChanceToHit() * 100);
-			String weaponHud = weapon.getName() + "    Hit: " + hitChancePercent + "%    Dmg: " + weapon.getDamage();
-			font.draw(batch, weaponHud, hudPadding, 25);
-		}
-
-		// Basic controls in the middle of the HUD
-		String controlsTop = "Move: " + inputAdapter.getMoveKeysLabel() + "/Click"
-				+ "    Attack: " + inputAdapter.getAttackKeyLabel() + "/Click monster";
-		glyphLayout.setText(font, controlsTop);
-		float controlsTopX = (hudCamera.viewportWidth - glyphLayout.width) / 2f;
-		font.draw(batch, controlsTop, controlsTopX, 45);
-		String controlsBottom = "Switch weapon: " + inputAdapter.getSwitchWeaponKeyLabel()
-				+ "    End turn: " + inputAdapter.getEndTurnKeyLabel();
-		glyphLayout.setText(font, controlsBottom);
-		float controlsBottomX = (hudCamera.viewportWidth - glyphLayout.width) / 2f;
-		font.draw(batch, controlsBottom, controlsBottomX, 25);
-
-		// Show adjacent monster info (name and HP) if any
-		Monster adjacent = gameBoard.getAdjacentMonsterToHero();
-		if (adjacent != null) {
-			String monsterHud = "Monster: " + adjacent.getName() + "    HP: " + adjacent.getHealth();
-			glyphLayout.setText(font, monsterHud);
-			float monsterHudX = hudCamera.viewportWidth - glyphLayout.width - hudPadding;
-			font.draw(batch, monsterHud, monsterHudX, 45);
-			
-			// Show monster weapon info
-			Weapon monsterWeapon = adjacent.getWeapon();
-			if (monsterWeapon != null) {
-				int hitChancePercent = Math.round(monsterWeapon.getChanceToHit() * 100);
-				String monsterWeaponHud = monsterWeapon.getName() + "    Hit: " + hitChancePercent + "%    Dmg: " + monsterWeapon.getDamage();
-				glyphLayout.setText(font, monsterWeaponHud);
-				float monsterWeaponHudX = hudCamera.viewportWidth - glyphLayout.width - hudPadding;
-				font.draw(batch, monsterWeaponHud, monsterWeaponHudX, 25);
-			}
-		}
-		
-		batch.end();
-		
 		// Render monster hover popup
 		renderMonsterHoverPopup();
 
@@ -251,6 +232,345 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 	}
 	
+	private void renderHud() {
+		shapeRenderer.setProjectionMatrix(hudCamera.combined);
+		batch.setProjectionMatrix(hudCamera.combined);
+
+		Hero hero = gameBoard.getHero();
+		Monster adjacent = gameBoard.getAdjacentMonsterToHero();
+
+		renderHudFilled(hero, adjacent);
+		renderHudLines(hero, adjacent);
+		renderHudText(hero, adjacent);
+	}
+
+	private void renderHudFilled(Hero hero, Monster adjacent) {
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+		// Main panel background
+		shapeRenderer.setColor(HUD_BG);
+		shapeRenderer.rect(0, HUD_PANEL_Y_BOTTOM, hudCamera.viewportWidth, HUD_PANEL_H);
+
+		// Combat log strip background
+		shapeRenderer.setColor(LOG_BG);
+		shapeRenderer.rect(0, 0, hudCamera.viewportWidth, LOG_STRIP_H);
+
+		// Hero HP bar
+		float hpBarX = LEFT_X0 + 40f;
+		float hpBarY = HUD_PANEL_Y_BOTTOM + 110f;
+		float hpBarW = 160f;
+		float hpBarH = 10f;
+		shapeRenderer.setColor(DIM_TRACK);
+		shapeRenderer.rect(hpBarX, hpBarY, hpBarW, hpBarH);
+		int maxHp = Math.max(1, hero.getMaxHealth());
+		float hpFill = Math.max(0f, Math.min(1f, hero.getHealth() / (float) maxHp));
+		shapeRenderer.setColor(HP_RED);
+		shapeRenderer.rect(hpBarX, hpBarY, hpBarW * hpFill, hpBarH);
+
+		// Hero MOV bar
+		float movBarX = hpBarX;
+		float movBarY = HUD_PANEL_Y_BOTTOM + 88f;
+		float movBarW = hpBarW;
+		float movBarH = hpBarH;
+		shapeRenderer.setColor(DIM_TRACK);
+		shapeRenderer.rect(movBarX, movBarY, movBarW, movBarH);
+		int maxSpeed = Math.max(1, hero.getMaxSpeed());
+		float movFill = Math.max(0f, Math.min(1f, hero.getSpeed() / (float) maxSpeed));
+		shapeRenderer.setColor(MOV_BLUE);
+		shapeRenderer.rect(movBarX, movBarY, movBarW * movFill, movBarH);
+
+		// Weapon cards: dark card backgrounds + gold underline on active
+		Weapon activeWeapon = hero.getCurrentWeapon();
+		List<Weapon> inv = new ArrayList<>(hero.getInventory());
+		Rectangle[] cardRects = new Rectangle[] { weaponCard1Bounds, weaponCard2Bounds };
+		for (int i = 0; i < cardRects.length; i++) {
+			if (i >= inv.size()) break;
+			Rectangle r = cardRects[i];
+			shapeRenderer.setColor(DIM_TRACK);
+			shapeRenderer.rect(r.x, r.y, r.width, r.height);
+			if (inv.get(i) == activeWeapon) {
+				shapeRenderer.setColor(GOLD);
+				shapeRenderer.rect(r.x, r.y, r.width, 2f);
+			}
+		}
+
+		// "Your turn" pill or "Enemy turn" pill
+		float pillW = 110f;
+		float pillH = 22f;
+		float pillX = CENTER_X0 + (CENTER_X1 - CENTER_X0 - pillW) / 2f;
+		float pillY = HUD_PANEL_Y_TOP - 28f;
+		if (gameBoard.isHeroTurn()) {
+			shapeRenderer.setColor(GOLD);
+		} else {
+			shapeRenderer.setColor(DIM_TRACK);
+		}
+		shapeRenderer.rect(pillX, pillY, pillW, pillH);
+
+		// Enemy panel content
+		if (adjacent != null) {
+			int enemyMaxHp = Math.max(1, adjacent.getMaxHealth());
+			float eBarX = RIGHT_X0 + 12f;
+			float eBarY = HUD_PANEL_Y_BOTTOM + 78f;
+			float eBarW = 200f;
+			float eBarH = 10f;
+			shapeRenderer.setColor(DIM_TRACK);
+			shapeRenderer.rect(eBarX, eBarY, eBarW, eBarH);
+			float eFill = Math.max(0f, Math.min(1f, adjacent.getHealth() / (float) enemyMaxHp));
+			shapeRenderer.setColor(HP_RED);
+			shapeRenderer.rect(eBarX, eBarY, eBarW * eFill, eBarH);
+
+			// Pip row
+			float pipSize = 14f;
+			float pipGap = 4f;
+			float pipsX = RIGHT_X0 + 12f;
+			float pipsY = HUD_PANEL_Y_BOTTOM + 52f;
+			int currentHp = Math.max(0, adjacent.getHealth());
+			for (int i = 0; i < enemyMaxHp; i++) {
+				float px = pipsX + i * (pipSize + pipGap);
+				if (i < currentHp) {
+					shapeRenderer.setColor(HP_RED);
+				} else {
+					shapeRenderer.setColor(DIM_TRACK);
+				}
+				shapeRenderer.rect(px, pipsY, pipSize, pipSize);
+			}
+		}
+
+		shapeRenderer.end();
+	}
+
+	private void renderHudLines(Hero hero, Monster adjacent) {
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+		// Top border
+		shapeRenderer.setColor(BORDER);
+		shapeRenderer.line(0, HUD_PANEL_Y_TOP, hudCamera.viewportWidth, HUD_PANEL_Y_TOP);
+		// Divider above log strip
+		shapeRenderer.line(0, HUD_PANEL_Y_BOTTOM, hudCamera.viewportWidth, HUD_PANEL_Y_BOTTOM);
+		// Vertical panel dividers
+		shapeRenderer.line(LEFT_X1, HUD_PANEL_Y_BOTTOM, LEFT_X1, HUD_PANEL_Y_TOP);
+		shapeRenderer.line(CENTER_X1, HUD_PANEL_Y_BOTTOM, CENTER_X1, HUD_PANEL_Y_TOP);
+
+		// Weapon card borders
+		Weapon activeWeapon = hero.getCurrentWeapon();
+		List<Weapon> inv = new ArrayList<>(hero.getInventory());
+		Rectangle[] cardRects = new Rectangle[] { weaponCard1Bounds, weaponCard2Bounds };
+		for (int i = 0; i < cardRects.length; i++) {
+			if (i >= inv.size()) break;
+			Rectangle r = cardRects[i];
+			if (inv.get(i) == activeWeapon) {
+				shapeRenderer.setColor(GOLD);
+			} else {
+				shapeRenderer.setColor(BORDER);
+			}
+			shapeRenderer.rect(r.x, r.y, r.width, r.height);
+		}
+
+		// Enemy pip outlines
+		if (adjacent != null) {
+			int enemyMaxHp = Math.max(1, adjacent.getMaxHealth());
+			float pipSize = 14f;
+			float pipGap = 4f;
+			float pipsX = RIGHT_X0 + 12f;
+			float pipsY = HUD_PANEL_Y_BOTTOM + 52f;
+			shapeRenderer.setColor(BORDER);
+			for (int i = 0; i < enemyMaxHp; i++) {
+				float px = pipsX + i * (pipSize + pipGap);
+				shapeRenderer.rect(px, pipsY, pipSize, pipSize);
+			}
+		}
+
+		shapeRenderer.end();
+	}
+
+	private void renderHudText(Hero hero, Monster adjacent) {
+		batch.begin();
+
+		// HERO label
+		font.setColor(GOLD);
+		font.draw(batch, "HERO", LEFT_X0 + 12f, HUD_PANEL_Y_TOP - 12f);
+
+		// HP
+		font.setColor(Color.WHITE);
+		font.draw(batch, "HP", LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 119f);
+		String hpText = hero.getHealth() + " / " + hero.getMaxHealth();
+		font.draw(batch, hpText, LEFT_X0 + 210f, HUD_PANEL_Y_BOTTOM + 119f);
+
+		// MOV
+		font.draw(batch, "MOV", LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 97f);
+		font.draw(batch, String.valueOf(hero.getSpeed()), LEFT_X0 + 210f, HUD_PANEL_Y_BOTTOM + 97f);
+
+		// Weapon cards
+		Weapon activeWeapon = hero.getCurrentWeapon();
+		List<Weapon> inv = new ArrayList<>(hero.getInventory());
+		Rectangle[] cardRects = new Rectangle[] { weaponCard1Bounds, weaponCard2Bounds };
+		for (int i = 0; i < cardRects.length; i++) {
+			if (i >= inv.size()) break;
+			Weapon w = inv.get(i);
+			Rectangle r = cardRects[i];
+			if (w == activeWeapon) {
+				font.setColor(Color.WHITE);
+			} else {
+				font.setColor(MUTED);
+			}
+			font.draw(batch, w.getName(), r.x + 8f, r.y + r.height - 8f);
+			int hitPct = Math.round(w.getChanceToHit() * 100);
+			font.setColor(MUTED);
+			font.draw(batch, hitPct + "%  " + w.getDamage() + " dmg", r.x + 8f, r.y + 16f);
+		}
+
+		// "[I] switch" hint
+		font.setColor(MUTED);
+		font.draw(batch, "[I] switch", weaponCard2Bounds.x + weaponCard2Bounds.width + 8f,
+				weaponCard2Bounds.y + 28f);
+
+		// Center panel: pill + controls
+		float pillW = 110f;
+		float pillH = 22f;
+		float pillX = CENTER_X0 + (CENTER_X1 - CENTER_X0 - pillW) / 2f;
+		float pillY = HUD_PANEL_Y_TOP - 28f;
+		String pillText = gameBoard.isHeroTurn() ? "YOUR TURN" : "ENEMY TURN";
+		glyphLayout.setText(font, pillText);
+		float pillTextX = pillX + (pillW - glyphLayout.width) / 2f;
+		float pillTextY = pillY + (pillH + glyphLayout.height) / 2f - 1f;
+		if (gameBoard.isHeroTurn()) {
+			font.setColor(GOLD_PILL_TEXT);
+		} else {
+			font.setColor(MUTED);
+		}
+		font.draw(batch, pillText, pillTextX, pillTextY);
+
+		// Control hints (two columns)
+		font.setColor(MUTED);
+		float centerMid = (CENTER_X0 + CENTER_X1) / 2f;
+		float hintY1 = HUD_PANEL_Y_BOTTOM + 92f;
+		float hintY2 = HUD_PANEL_Y_BOTTOM + 62f;
+		drawCenteredText("WASD", (CENTER_X0 + centerMid) / 2f, hintY1);
+		drawCenteredText("U / click", (centerMid + CENTER_X1) / 2f, hintY1);
+		drawCenteredText("SPACE  end turn", (CENTER_X0 + centerMid) / 2f, hintY2);
+		drawCenteredText("[I]  switch", (centerMid + CENTER_X1) / 2f, hintY2);
+
+		// Enemy panel
+		if (adjacent != null) {
+			font.setColor(MUTED);
+			font.draw(batch, "NEARBY ENEMY", RIGHT_X0 + 12f, HUD_PANEL_Y_TOP - 12f);
+
+			font.setColor(GOLD);
+			font.draw(batch, adjacent.getName().toUpperCase(), RIGHT_X0 + 12f, HUD_PANEL_Y_TOP - 32f);
+
+			font.setColor(MUTED);
+			font.draw(batch, "Melee fighter", RIGHT_X0 + 12f, HUD_PANEL_Y_TOP - 50f);
+
+			// Portrait icon (top-right of panel)
+			Texture portrait = adjacent.getTexture();
+			if (portrait != null) {
+				batch.setColor(Color.WHITE);
+				batch.draw(portrait, RIGHT_X1 - 44f, HUD_PANEL_Y_TOP - 44f, 32f, 32f);
+			}
+
+			// HP text above bar
+			font.setColor(Color.WHITE);
+			font.draw(batch, adjacent.getHealth() + " / " + adjacent.getMaxHealth() + " HP",
+					RIGHT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 102f);
+
+			// Weapon summary
+			Weapon mw = adjacent.getWeapon();
+			if (mw != null) {
+				int pct = Math.round(mw.getChanceToHit() * 100);
+				String line = mw.getName() + "  \u00B7  " + pct + "% hit  \u00B7  " + mw.getDamage() + " dmg";
+				font.setColor(MUTED);
+				font.draw(batch, line, RIGHT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 30f);
+			}
+		}
+
+		batch.end();
+
+		// Combat log strip (separate begin/end so we can share the batch cleanly)
+		renderCombatLog();
+	}
+
+	private void drawCenteredText(String text, float centerX, float y) {
+		glyphLayout.setText(font, text);
+		font.draw(batch, text, centerX - glyphLayout.width / 2f, y);
+	}
+
+	private void renderCombatLog() {
+		java.util.List<String> recent = gameBoard.getCombatLog().recent();
+		if (recent.isEmpty()) {
+			return;
+		}
+
+		float margin = 10f;
+		float available = hudCamera.viewportWidth - margin * 2f;
+		String sep = "  \u00B7  ";
+		glyphLayout.setText(font, sep);
+		float sepW = glyphLayout.width;
+
+		// Compute widths, drop oldest if overflow
+		java.util.List<String> entries = new java.util.ArrayList<>(recent);
+		float[] widths = new float[entries.size()];
+		float total = 0f;
+		for (int i = 0; i < entries.size(); i++) {
+			glyphLayout.setText(font, entries.get(i));
+			widths[i] = glyphLayout.width;
+			total += widths[i];
+			if (i > 0) total += sepW;
+		}
+		while (total > available && entries.size() > 1) {
+			total -= widths[0];
+			if (entries.size() > 1) total -= sepW;
+			entries.remove(0);
+			float[] w2 = new float[entries.size()];
+			System.arraycopy(widths, 1, w2, 0, entries.size());
+			widths = w2;
+		}
+
+		batch.begin();
+		float x = margin;
+		float y = 16f;
+		int last = entries.size() - 1;
+		for (int i = 0; i < entries.size(); i++) {
+			if (i == last) {
+				font.setColor(LOG_HIGHLIGHT);
+			} else {
+				font.setColor(LOG_DIM);
+			}
+			font.draw(batch, entries.get(i), x, y);
+			x += widths[i];
+			if (i < last) {
+				font.setColor(LOG_DIM);
+				font.draw(batch, sep, x, y);
+				x += sepW;
+			}
+		}
+		batch.end();
+	}
+
+	public boolean handleHudClick(int screenX, int screenY) {
+		touchPoint.set(screenX, screenY, 0);
+		hudCamera.unproject(touchPoint);
+		Hero hero = gameBoard.getHero();
+		if (hero == null) return false;
+		java.util.List<Weapon> inv = new java.util.ArrayList<>(hero.getInventory());
+		if (inv.size() >= 1 && weaponCard1Bounds.contains(touchPoint.x, touchPoint.y)) {
+			Weapon w = inv.get(0);
+			if (hero.getCurrentWeapon() != w) {
+				hero.setCurrentWeapon(w);
+				gameBoard.showToast("Switched to " + w.getName());
+			}
+			return true;
+		}
+		if (inv.size() >= 2 && weaponCard2Bounds.contains(touchPoint.x, touchPoint.y)) {
+			Weapon w = inv.get(1);
+			if (hero.getCurrentWeapon() != w) {
+				hero.setCurrentWeapon(w);
+				gameBoard.showToast("Switched to " + w.getName());
+			}
+			return true;
+		}
+		return false;
+	}
+
 	private void renderToasts() {
 		if (activeToasts.isEmpty()) {
 			return;
@@ -259,8 +579,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		// Get the most recent toast (or we could show multiple, but for simplicity show just one)
 		Toast currentToast = activeToasts.get(activeToasts.size() - 1);
 		
-		// Calculate position: bottom center, above HUD (which is 60px high)
-		float toastY = 80; // Above HUD
+		// Calculate position: bottom center, above HUD
+		float toastY = TOAST_Y;
 		float padding = 10;
 		
 		glyphLayout.setText(font, currentToast.getMessage());
@@ -331,7 +651,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (boxY + boxH > hudCamera.viewportHeight) {
 			boxY = mouseHudCoords.y - boxH - 15f;
 		}
-		boxY = Math.max(65f, boxY);
+		boxY = Math.max(HUD_PANEL_Y_TOP + 8f, boxY);
 
 		shapeRenderer.setProjectionMatrix(hudCamera.combined);
 		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -415,6 +735,11 @@ public class MyGdxGame extends ApplicationAdapter {
 		activeToasts.clear();
 		inputAdapter = new MyInputAdapter(gameBoard);
 		inputAdapter.setCamera(camera);
+		inputAdapter.setHudClickHandler(new MyInputAdapter.HudClickHandler() {
+			public boolean handleHudTouch(int sx, int sy) {
+				return MyGdxGame.this.handleHudClick(sx, sy);
+			}
+		});
 		Gdx.input.setInputProcessor(inputAdapter);
 	}
 }
