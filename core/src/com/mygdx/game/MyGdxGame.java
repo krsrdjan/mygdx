@@ -443,7 +443,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		drawCenteredText("WASD", (CENTER_X0 + centerMid) / 2f, hintY1);
 		drawCenteredText("U / click", (centerMid + CENTER_X1) / 2f, hintY1);
 		drawCenteredText("SPACE  end turn", (CENTER_X0 + centerMid) / 2f, hintY2);
-		drawCenteredText("[I]  switch", (centerMid + CENTER_X1) / 2f, hintY2);
+		drawCenteredText("I / Switch weapon", (centerMid + CENTER_X1) / 2f, hintY2);
 
 		// Enemy panel
 		if (adjacent != null) {
