@@ -36,6 +36,7 @@ The game follows a turn-based board game pattern:
 - `Toast` handles in-game notification popups
 - `TextureCache` — static cache for textures; `get(filename)` and `getOrCreateSolid(key, r, g, b, a, size)`; call `TextureCache.dispose()` in game `dispose()`
 - `SoundCache` — static cache for sounds; `get(filename)`; call `SoundCache.dispose()` in game `dispose()`
+- `Square` — represents a single board tile; holds a `Texture`, an optional `Creature` occupant, and an `explored` flag
 - `StringCallback` — interface `call(String value)` used to notify UI (e.g. toasts) from game logic
 
 ## Code Conventions
