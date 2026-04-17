@@ -24,15 +24,30 @@ public class GameBoard {
     private StringCallback toastNotifier;
     private Texture wallTexture;
     private Texture unexploredTexture;
+    private final CombatLog combatLog = new CombatLog();
+    private int round = 1;
 
     public void setToastNotifier(StringCallback toastNotifier) {
         this.toastNotifier = toastNotifier;
     }
 
     public void showToast(String message) {
+        combatLog.add(message);
         if (toastNotifier != null) {
             toastNotifier.call(message);
         }
+    }
+
+    public void logCombat(String message) {
+        combatLog.add(message);
+    }
+
+    public CombatLog getCombatLog() {
+        return combatLog;
+    }
+
+    public int getRound() {
+        return round;
     }
 
     public GameBoard() {
@@ -452,6 +467,8 @@ public class GameBoard {
     }
 
     public void endMonsterTurn() {
+        round++;
+        logCombat("Round " + round + " begins.");
         heroTurn = true;
         hero.startTurn();
     }

@@ -43,6 +43,14 @@ public class Monster extends Creature {
         this.weapon = weapon;
     }
 
+    public int getSpeed() {
+        return speed;
+    }
+
+    public int getMaxSpeed() {
+        return MAX_SPEED;
+    }
+
     public void takeDamage(int damage) {
         health = health - damage;
         if(health <= 0) {
@@ -183,9 +191,9 @@ public class Monster extends Creature {
             int damage = attack();
             if (damage > 0) {
                 hero.takeDamage(damage);
-                board.showToast(name + " hits you for " + damage + " damage!");
+                board.logCombat(name + " hits you for " + damage + " damage!");
             } else {
-                board.showToast(name + " misses!");
+                board.logCombat(name + " misses!");
             }
         }
     }
