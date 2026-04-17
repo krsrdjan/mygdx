@@ -66,7 +66,7 @@ public class MyGdxGame extends ApplicationAdapter {
 			}
 		});
 
-        music = Gdx.audio.newMusic(Gdx.files.internal("music.mp3"));
+        music = Gdx.audio.newMusic(Gdx.files.internal("atmosphere.mp3"));
         music.setLooping(true);
         music.setVolume(AudioConfig.VOLUME);
         music.play();
