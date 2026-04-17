@@ -179,7 +179,6 @@ public class Hero extends Creature {
         int currentIndex = inventory.indexOf(currentWeapon);
         int nextIndex = (currentIndex + 1) % inventory.size();
         currentWeapon = inventory.get(nextIndex);
-        board.showToast("Switched to " + currentWeapon.getName());
     }
 
 }

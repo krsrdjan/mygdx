@@ -548,19 +548,11 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (hero == null) return false;
 		java.util.List<Weapon> inv = new java.util.ArrayList<>(hero.getInventory());
 		if (inv.size() >= 1 && weaponCard1Bounds.contains(touchPoint.x, touchPoint.y)) {
-			Weapon w = inv.get(0);
-			if (hero.getCurrentWeapon() != w) {
-				hero.setCurrentWeapon(w);
-				gameBoard.showToast("Switched to " + w.getName());
-			}
+			hero.setCurrentWeapon(inv.get(0));
 			return true;
 		}
 		if (inv.size() >= 2 && weaponCard2Bounds.contains(touchPoint.x, touchPoint.y)) {
-			Weapon w = inv.get(1);
-			if (hero.getCurrentWeapon() != w) {
-				hero.setCurrentWeapon(w);
-				gameBoard.showToast("Switched to " + w.getName());
-			}
+			hero.setCurrentWeapon(inv.get(1));
 			return true;
 		}
 		return false;
