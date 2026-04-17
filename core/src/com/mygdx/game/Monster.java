@@ -60,6 +60,11 @@ public class Monster extends Creature {
                 square.setCreature(null);
             }
             board.removeMonster(this);
+            if (new Random().nextFloat() < 0.5f) {
+                HealPotion potion = new HealPotion(board);
+                potion.setPosition(position);
+                board.addItem(potion);
+            }
         }
     }
 

@@ -442,7 +442,6 @@ public class GameBoard {
         }
         heroTurn = false;
         hero.endTurn();
-        showToast("Turn ended");
         if (monsters.isEmpty()) {
             // No monsters to act; immediately start hero's next turn
             endMonsterTurn();
@@ -503,6 +502,10 @@ public class GameBoard {
 
     public void removeItem(Item item) {
         items.remove(item);
+    }
+
+    public void addItem(Item item) {
+        items.add(item);
     }
 
     public void collectNearbyItems(Hero hero) {
