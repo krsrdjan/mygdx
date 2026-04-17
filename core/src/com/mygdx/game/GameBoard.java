@@ -505,6 +505,10 @@ public class GameBoard {
         items.remove(item);
     }
 
+    public void addItem(Item item) {
+        items.add(item);
+    }
+
     public void collectNearbyItems(Hero hero) {
         Position heroPos = hero.getPosition();
         java.util.List<Item> itemsToCollect = new java.util.ArrayList<>();
