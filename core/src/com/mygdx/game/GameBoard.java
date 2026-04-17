@@ -263,9 +263,16 @@ public class GameBoard {
         }
         if (!candidates.isEmpty()) {
             Position p = candidates.get(random.nextInt(candidates.size()));
-            Monster m = monsterFactory.createRandomMonster(this);
-            m.setPosition(p);
-            monsters.add(m);
+
+            if (random.nextFloat() < 0.20f) {  // ~20% chance of potion instead of monster
+                HealPotion potion = new HealPotion(this);
+                potion.setPosition(p);
+                items.add(potion);
+            } else {
+                Monster m = monsterFactory.createRandomMonster(this);
+                m.setPosition(p);
+                monsters.add(m);
+            }
         }
     }
 
