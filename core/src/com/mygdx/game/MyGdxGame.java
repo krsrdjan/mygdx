@@ -64,6 +64,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	// Weapon card click zones (populated in create())
 	private final Rectangle weaponCard1Bounds = new Rectangle();
 	private final Rectangle weaponCard2Bounds = new Rectangle();
+	private final Rectangle endTurnButtonBounds = new Rectangle();
 	
 	@Override
 	public void create () {	// this is done once
@@ -85,6 +86,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		
 		weaponCard1Bounds.set(LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 10f, 114f, 44f);
 		weaponCard2Bounds.set(LEFT_X0 + 134f, HUD_PANEL_Y_BOTTOM + 10f, 114f, 44f);
+		float endBtnW = 120f, endBtnH = 34f;
+		endTurnButtonBounds.set((CENTER_X0 + CENTER_X1 - endBtnW) / 2f, HUD_PANEL_Y_BOTTOM + 6f, endBtnW, endBtnH);
 
 		inputAdapter = new MyInputAdapter(gameBoard);
 		inputAdapter.setCamera(camera);
@@ -306,6 +309,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 		shapeRenderer.rect(pillX, pillY, pillW, pillH);
 
+		// END TURN button
+		if (gameBoard.isHeroTurn()) {
+			shapeRenderer.setColor(GOLD);
+		} else {
+			shapeRenderer.setColor(DIM_TRACK);
+		}
+		shapeRenderer.rect(endTurnButtonBounds.x, endTurnButtonBounds.y, endTurnButtonBounds.width, endTurnButtonBounds.height);
+
 		// Enemy panel content
 		if (adjacent != null) {
 			int enemyMaxHp = Math.max(1, adjacent.getMaxHealth());
@@ -362,6 +373,9 @@ public class MyGdxGame extends ApplicationAdapter {
 			shapeRenderer.rect(r.x, r.y, r.width, r.height);
 		}
 
+		// END TURN button border
+		shapeRenderer.setColor(gameBoard.isHeroTurn() ? GOLD : BORDER);
+		shapeRenderer.rect(endTurnButtonBounds.x, endTurnButtonBounds.y, endTurnButtonBounds.width, endTurnButtonBounds.height);
 
 		shapeRenderer.end();
 	}
@@ -430,6 +444,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		font.draw(batch, roundText,
 				CENTER_X0 + (CENTER_X1 - CENTER_X0 - glyphLayout.width) / 2f,
 				HUD_PANEL_Y_TOP - 36f);
+
+		// END TURN button text
+		String endBtnText = "END TURN";
+		glyphLayout.setText(font, endBtnText);
+		float endBtnTextX = endTurnButtonBounds.x + (endTurnButtonBounds.width - glyphLayout.width) / 2f;
+		float endBtnTextY = endTurnButtonBounds.y + (endTurnButtonBounds.height + glyphLayout.height) / 2f;
+		font.setColor(gameBoard.isHeroTurn() ? GOLD_PILL_TEXT : MUTED);
+		font.draw(batch, endBtnText, endBtnTextX, endBtnTextY);
 
 		// Control hints (two columns) shifted below Round label
 		font.setColor(MUTED);
@@ -552,6 +574,10 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 		if (inv.size() >= 2 && weaponCard2Bounds.contains(touchPoint.x, touchPoint.y)) {
 			hero.setCurrentWeapon(inv.get(1));
+			return true;
+		}
+		if (gameBoard.isHeroTurn() && endTurnButtonBounds.contains(touchPoint.x, touchPoint.y)) {
+			gameBoard.endHeroTurn();
 			return true;
 		}
 		return false;
