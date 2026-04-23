@@ -9,14 +9,14 @@ public class HealPotion extends Item {
     @Override
     public void use(Hero hero) {
         int before = hero.getHealth();
+        if (before == hero.getMaxHealth()) {
+            board.showToast("You found a health potion! (HP already full)");
+            return;
+        }
+
         hero.heal(1);
         int after = hero.getHealth();
-
-        if (after > before) {
-            board.showToast("You found a health potion! +" + (after - before) + " HP");
-        } else {
-            board.showToast("You found a health potion! (HP already full)");
-        }
+        board.showToast("You found a health potion! +" + (after - before) + " HP");
 
         if (position != null) {
             Square square = board.getSquare(position.x, position.y);
