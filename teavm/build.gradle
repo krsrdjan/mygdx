@@ -21,11 +21,18 @@ dependencies {
     implementation project(':core')
 }
 
+tasks.register("copyWebapp", Copy) {
+    setDescription("Copy custom webapp resources (index.html, etc.) into the dist folder")
+    from "webapp"
+    into "build/dist/webapp"
+}
+
 tasks.register("buildJavaScript", JavaExec) {
     dependsOn classes
     setDescription("Transpile bytecode to JavaScript via TeaVM")
     mainClass.set(project.mainClassName)
     setClasspath(sourceSets.main.runtimeClasspath)
+    finalizedBy("copyWebapp")
 }
 build.dependsOn buildJavaScript
 

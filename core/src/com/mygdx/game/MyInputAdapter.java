@@ -2,8 +2,8 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MyInputAdapter extends InputAdapter {
 
@@ -20,7 +20,7 @@ public class MyInputAdapter extends InputAdapter {
     }
 
     private GameBoard gameBoard;
-    private OrthographicCamera camera;
+    private Viewport worldViewport;
     private HudClickHandler hudClickHandler;
     private final Vector3 worldCoords = new Vector3();
 
@@ -28,8 +28,8 @@ public class MyInputAdapter extends InputAdapter {
         this.gameBoard = gameBoard;
     }
 
-    public void setCamera(OrthographicCamera camera) {
-        this.camera = camera;
+    public void setViewport(Viewport worldViewport) {
+        this.worldViewport = worldViewport;
     }
 
     public void setHudClickHandler(HudClickHandler hudClickHandler) {
@@ -38,7 +38,7 @@ public class MyInputAdapter extends InputAdapter {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        if (camera == null) {
+        if (worldViewport == null) {
             return false;
         }
         if (!gameBoard.getHero().isAlive()) {
@@ -52,7 +52,7 @@ public class MyInputAdapter extends InputAdapter {
         }
 
         worldCoords.set(screenX, screenY, 0);
-        camera.unproject(worldCoords);
+        worldViewport.unproject(worldCoords);
 
         int tileX = (int) Math.floor(worldCoords.x / GameBoard.SQUARE_SIZE);
         int tileY = (int) Math.floor(worldCoords.y / GameBoard.SQUARE_SIZE);

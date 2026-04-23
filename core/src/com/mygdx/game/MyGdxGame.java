@@ -15,6 +15,8 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -28,6 +30,10 @@ public class MyGdxGame extends ApplicationAdapter {
 	Music music;
 	OrthographicCamera camera;
 	OrthographicCamera hudCamera;
+	Viewport worldViewport;
+	Viewport hudViewport;
+	private static final float WORLD_VIEW_WIDTH = 800f;
+	private static final float WORLD_VIEW_HEIGHT = 600f;
 	BitmapFont font;
 	ShapeRenderer shapeRenderer;
 	MyInputAdapter inputAdapter;
@@ -75,11 +81,16 @@ public class MyGdxGame extends ApplicationAdapter {
 		textureRegion = new TextureRegion(tile);
 		tiledDrawable = new TiledDrawable(textureRegion);
 		
-		// Setup camera
+		// Setup cameras + viewports. FitViewport keeps a fixed 800x600 logical area
+		// and letterboxes when the actual canvas/window has a different aspect ratio,
+		// so the HUD layout (which uses absolute 800x600 coordinates) stays consistent
+		// on phones, tablets and desktop browsers.
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, 800, 600); // Show 12-13 squares horizontally, 9-10 vertically
+		camera.setToOrtho(false, WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT);
 		hudCamera = new OrthographicCamera();
-		hudCamera.setToOrtho(false, 800, 600);
+		hudCamera.setToOrtho(false, WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT);
+		worldViewport = new FitViewport(WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT, camera);
+		hudViewport = new FitViewport(WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT, hudCamera);
 
 		font = new BitmapFont();
 		shapeRenderer = new ShapeRenderer();
@@ -90,7 +101,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		endTurnButtonBounds.set((CENTER_X0 + CENTER_X1 - endBtnW) / 2f, HUD_PANEL_Y_BOTTOM + 6f, endBtnW, endBtnH);
 
 		inputAdapter = new MyInputAdapter(gameBoard);
-		inputAdapter.setCamera(camera);
+		inputAdapter.setViewport(worldViewport);
 		inputAdapter.setHudClickHandler(new MyInputAdapter.HudClickHandler() {
 			public boolean handleHudTouch(int sx, int sy) {
 				return MyGdxGame.this.handleHudClick(sx, sy);
@@ -119,10 +130,10 @@ public class MyGdxGame extends ApplicationAdapter {
 		updateToasts(deltaTime);
 		
 		ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
-		
+
 		// Update camera to follow hero
 		updateCamera();
-		camera.update();
+		worldViewport.apply();
 		batch.setProjectionMatrix(camera.combined);
 		
 		batch.begin();
@@ -163,7 +174,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.end();
 
 		// HUD rendering (screen space)
-		hudCamera.update();
+		hudViewport.apply(true);
 		renderHud();
 
 		// Render monster hover popup
@@ -199,10 +210,10 @@ public class MyGdxGame extends ApplicationAdapter {
 	
 	@Override
 	public void resize(int width, int height) {
-		// Update camera viewport when window is resized
-		camera.viewportWidth = 800;
-		camera.viewportHeight = 600;
-		camera.update();
+		// World camera is positioned every frame to follow the hero; do not let the
+		// viewport recenter it.
+		worldViewport.update(width, height, false);
+		hudViewport.update(width, height, true);
 	}
 	
 	@Override
@@ -564,7 +575,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	public boolean handleHudClick(int screenX, int screenY) {
 		touchPoint.set(screenX, screenY, 0);
-		hudCamera.unproject(touchPoint);
+		hudViewport.unproject(touchPoint);
 		Hero hero = gameBoard.getHero();
 		if (hero == null) return false;
 		java.util.List<Weapon> inv = new java.util.ArrayList<>(hero.getInventory());
@@ -623,7 +634,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (!gameBoard.getHero().isAlive()) return;
 
 		mouseWorldCoords.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-		camera.unproject(mouseWorldCoords);
+		worldViewport.unproject(mouseWorldCoords);
 		int tileX = (int) Math.floor(mouseWorldCoords.x / GameBoard.SQUARE_SIZE);
 		int tileY = (int) Math.floor(mouseWorldCoords.y / GameBoard.SQUARE_SIZE);
 
@@ -631,7 +642,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (hovered == null) return;
 
 		mouseHudCoords.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-		hudCamera.unproject(mouseHudCoords);
+		hudViewport.unproject(mouseHudCoords);
 
 		String line1 = "Monster: " + hovered.getName() + "    HP: " + hovered.getHealth();
 		String line2 = null;
@@ -731,7 +742,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 
 		touchPoint.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-		hudCamera.unproject(touchPoint);
+		hudViewport.unproject(touchPoint);
 		if (restartButtonBounds.contains(touchPoint.x, touchPoint.y)) {
 			restartGame();
 		}
@@ -746,7 +757,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		});
 		activeToasts.clear();
 		inputAdapter = new MyInputAdapter(gameBoard);
-		inputAdapter.setCamera(camera);
+		inputAdapter.setViewport(worldViewport);
 		inputAdapter.setHudClickHandler(new MyInputAdapter.HudClickHandler() {
 			public boolean handleHudTouch(int sx, int sy) {
 				return MyGdxGame.this.handleHudClick(sx, sy);

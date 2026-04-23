@@ -7,8 +7,12 @@ public class TeaVMLauncher {
 
     public static void main(String[] args) {
         TeaApplicationConfiguration config = new TeaApplicationConfiguration("canvas");
-        config.width = 800;
-        config.height = 600;
+        // 0 = let the canvas grow to fill its CSS box (the full browser viewport, see webapp/index.html).
+        config.width = 0;
+        config.height = 0;
+        config.padHorizontal = 0;
+        config.padVertical = 0;
+        config.usePhysicalPixels = true;
         new TeaApplication(new MyGdxGame(), config);
     }
 }

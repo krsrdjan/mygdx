@@ -17,6 +17,9 @@ public class TeaVMBuilder {
         teaBuildConfiguration.assetsPath.add(new AssetFileHandle("../assets"));
         teaBuildConfiguration.webappPath = new File("build/dist").getAbsolutePath();
         teaBuildConfiguration.targetType = TeaVMTargetType.JAVASCRIPT;
+        // Use the index.html shipped under teavm/webapp/ instead of the gdx-teavm default
+        // so we can opt into a mobile-friendly viewport and a canvas that fills the screen.
+        teaBuildConfiguration.useDefaultHtmlIndex = false;
 
         TeaBuilder.config(teaBuildConfiguration);
         TeaVMTool tool = new TeaVMTool();
