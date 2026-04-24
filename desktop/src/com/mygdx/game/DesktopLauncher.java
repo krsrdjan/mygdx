@@ -9,7 +9,7 @@ public class DesktopLauncher {
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
 		config.setForegroundFPS(60);
 		config.setTitle("My GDX Game - Turn-Based Adventure");
-		config.setWindowedMode(1024, 768);
+		config.setWindowedMode(1280, 720);
 		config.setResizable(true);
 		config.setWindowIcon("hero.png");
 		new Lwjgl3Application(new MyGdxGame(), config);
