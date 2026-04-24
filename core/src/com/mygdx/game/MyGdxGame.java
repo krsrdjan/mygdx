@@ -113,6 +113,10 @@ public class MyGdxGame extends ApplicationAdapter {
 		});
 		Gdx.input.setInputProcessor(inputAdapter);
 
+		// Web (TeaVM): first resize can be 0x0 before the canvas has layout. Skip
+		// viewport updates until dimensions are positive to avoid glViewport(0,0,0,0).
+		updateViewportsIfSized(Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
+
 		// Set toast notifier for game board
 		gameBoard.setToastNotifier(new StringCallback() {
 			public void call(String value) {
@@ -134,6 +138,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		updateToasts(deltaTime);
 		
 		ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
+
+		// Recover if we skipped an initial 0x0 resize (TeaVM / mobile WebView).
+		if (worldViewport.getScreenWidth() <= 0 || worldViewport.getScreenHeight() <= 0) {
+			updateViewportsIfSized(Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
+		}
+		if (worldViewport.getScreenWidth() <= 0 || worldViewport.getScreenHeight() <= 0) {
+			return;
+		}
 
 		// Update camera to follow hero
 		updateCamera();
@@ -215,6 +227,14 @@ public class MyGdxGame extends ApplicationAdapter {
 	
 	@Override
 	public void resize(int width, int height) {
+		updateViewportsIfSized(width, height);
+	}
+
+	/** No-op if width or height are zero (avoids broken GL viewport on web before layout). */
+	private void updateViewportsIfSized(int width, int height) {
+		if (width <= 0 || height <= 0) {
+			return;
+		}
 		// World camera is positioned every frame to follow the hero; do not let the
 		// viewport recenter it.
 		worldViewport.update(width, height, false);
