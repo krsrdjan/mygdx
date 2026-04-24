@@ -32,8 +32,12 @@ public class MyGdxGame extends ApplicationAdapter {
 	OrthographicCamera hudCamera;
 	Viewport worldViewport;
 	Viewport hudViewport;
-	private static final float WORLD_VIEW_WIDTH = 800f;
-	private static final float WORLD_VIEW_HEIGHT = 600f;
+	// 16:9 logical size so the FitViewport fills HD (1280x720), FHD (1920x1080),
+	// QHD (2560x1440) and 4K (3840x2160) displays with no letterboxing. It also
+	// matches the common 16:9/19.5:9 phone landscape aspect much better than the
+	// old 4:3 layout, leaving only small bars on 19.5:9 devices.
+	private static final float WORLD_VIEW_WIDTH = 1280f;
+	private static final float WORLD_VIEW_HEIGHT = 720f;
 	BitmapFont font;
 	ShapeRenderer shapeRenderer;
 	MyInputAdapter inputAdapter;
@@ -44,14 +48,17 @@ public class MyGdxGame extends ApplicationAdapter {
 	private final Vector3 mouseWorldCoords = new Vector3();
 	private final Vector3 mouseHudCoords = new Vector3();
 
-	// HUD layout (hudCamera 800x600 screen space)
+	// HUD layout in the 1280x720 logical HUD camera space. The three HUD panels
+	// span the full screen width, with side panels sized proportionally to the
+	// original 4:3 design (32.5%/35%/32.5%) so existing absolute offsets inside
+	// each panel still fit.
 	private static final float LOG_STRIP_H = 22f;
 	private static final float HUD_PANEL_Y_BOTTOM = LOG_STRIP_H;
 	private static final float HUD_PANEL_H = 160f;
 	private static final float HUD_PANEL_Y_TOP = HUD_PANEL_Y_BOTTOM + HUD_PANEL_H;
-	private static final float LEFT_X0 = 0f, LEFT_X1 = 260f;
-	private static final float CENTER_X0 = 260f, CENTER_X1 = 540f;
-	private static final float RIGHT_X0 = 540f, RIGHT_X1 = 800f;
+	private static final float LEFT_X0 = 0f, LEFT_X1 = 416f;
+	private static final float CENTER_X0 = 416f, CENTER_X1 = 864f;
+	private static final float RIGHT_X0 = 864f, RIGHT_X1 = 1280f;
 	private static final float TOAST_Y = 195f;
 
 	// HUD colors
@@ -81,10 +88,9 @@ public class MyGdxGame extends ApplicationAdapter {
 		textureRegion = new TextureRegion(tile);
 		tiledDrawable = new TiledDrawable(textureRegion);
 		
-		// Setup cameras + viewports. FitViewport keeps a fixed 800x600 logical area
-		// and letterboxes when the actual canvas/window has a different aspect ratio,
-		// so the HUD layout (which uses absolute 800x600 coordinates) stays consistent
-		// on phones, tablets and desktop browsers.
+		// Setup cameras + viewports. FitViewport keeps a fixed 1280x720 (16:9) logical
+		// area and scales it to fill the canvas, so the HUD layout stays consistent on
+		// phones, tablets and desktop browsers regardless of device resolution.
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT);
 		hudCamera = new OrthographicCamera();
