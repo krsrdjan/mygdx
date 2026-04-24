@@ -118,6 +118,10 @@ Run the web version (builds JavaScript and starts a local server at http://local
 
 The game generates a 32x32 tile dungeon composed of 8x8 rooms (4x4 tiles each). The hero starts in one room and explores by moving into unexplored tiles, which reveals the room and may spawn monsters. Each turn the hero can move (up to 8 tiles) and attack. After ending the turn, all active monsters take theirs — moving toward the hero using BFS pathfinding and attacking if adjacent.
 
+## Display and scaling
+
+The game uses libGDX **viewports** with a **minimum logical resolution of 1280×720** (16:9 HD) for both the world and the HUD. **`ExtendViewport`** fills the window or browser canvas on any aspect ratio: on **16:9** screens (720p, 1080p, 4K at 16:9, etc.) the visible world matches that size; on **taller or wider** devices (many phones in landscape, ultrawide monitors) the view **extends** without letterboxing—you see a bit more dungeon at the sides or top/bottom. The bottom HUD bar stays anchored to the bottom edge; extra vertical space appears above it on very tall layouts.
+
 ## License
 
 This project is a proof of concept for learning libGDX game development.

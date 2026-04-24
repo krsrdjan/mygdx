@@ -24,7 +24,7 @@ Source directories use `src/` (not `src/main/java/`). Assets live in root `asset
 
 The game follows a turn-based board game pattern:
 
-- `MyGdxGame` extends `ApplicationAdapter` — main game loop (create/render/dispose)
+- `MyGdxGame` extends `ApplicationAdapter` — main game loop (create/render/dispose); dual `OrthographicCamera` + `ExtendViewport` (world and HUD, min 1280×720 logical units)
 - `GameBoard` holds `Square[][]` grid, manages turns, monsters, items, exploration; use `setToastNotifier(StringCallback)` to wire toast messages to the UI
 - `Creature` is the base class for `Hero` and `Monster`; textures loaded via `TextureCache.get(image)`
 - `Weapon` is abstract — subclasses: `Sword`, `Axe`, `Mace`, `BigClub`, `Bite`
@@ -57,13 +57,13 @@ The game follows a turn-based board game pattern:
 - All rendering happens between `batch.begin()` and `batch.end()` — never nest or overlap
 - ShapeRenderer has its own begin/end cycle — do not mix with SpriteBatch
 - Use `OrthographicCamera` for world view and a separate `hudCamera` for UI overlay
-- Call `camera.update()` before setting projection matrix
+- Call `camera.update()` before drawing with the camera’s combined matrix (world camera is updated after follow logic each frame; viewports update cameras in `apply()` as well)
 - Clear screen with `ScreenUtils.clear()` at the start of render
 - Font rendering uses `BitmapFont` — for styled text use libGDX's `Label` with `Scene2D`
 
 ## Game Development Best Practices
 
-These sections mix **what this project already does** (caches, `dispose()`, two cameras in `MyGdxGame`) with **general libGDX guidance**. The codebase does not yet use a `Viewport`, a Scene2D `Stage` for input, or a turn-phase enum; it uses `OrthographicCamera` with a fixed logical size in `resize`, a single `InputAdapter`, and a `heroTurn` boolean in `GameBoard`. Use the guidance below when refactoring or growing the project.
+These sections mix **what this project already does** (caches, `dispose()`, two cameras, `ExtendViewport` for world and HUD in `MyGdxGame`) with **general libGDX guidance**. The codebase does not use a Scene2D `Stage` for input or a turn-phase enum; it uses `MyInputAdapter` and a `heroTurn` boolean in `GameBoard`. Use the guidance below when refactoring or growing the project.
 
 ### Resource Management
 - Load textures/sounds via `TextureCache.get()` and `SoundCache.get()` — they are cached and reused; call `TextureCache.dispose()` and `SoundCache.dispose()` in the main game `dispose()`
@@ -90,9 +90,9 @@ These sections mix **what this project already does** (caches, `dispose()`, two 
 - Map controls to actions, not raw keys — makes rebinding easy
 
 ### Scaling & Cameras
-- Use `Viewport` (FitViewport, ExtendViewport) to handle window resizing properly
-- Override `resize(int width, int height)` and call `viewport.update(width, height)`
-- Separate world camera from UI camera — world uses game units, UI uses screen pixels
+- **This project**: `ExtendViewport` with minimum world size **1280×720** (16:9) on both world and HUD cameras. The viewport **extends** width or height on taller or wider aspects (typical tall phones in landscape/portrait, ultrawide monitors) so there is **no letterboxing**; the player may see extra dungeon tiles at the edges. Pure **16:9** surfaces still see exactly 1280×720 world units (same as a fixed HD logical size).
+- Override `resize(int width, int height)` and call `viewport.update(width, height)` for each viewport (world uses `centerCamera` false so the follow camera is not reset).
+- Separate world camera from UI camera — both use logical units; the HUD is laid out in the HUD camera space (bottom-anchored bars; `hudCamera.viewportWidth` / `viewportHeight` reflect extended size).
 
 ### Audio
 - Use `Sound` for short effects (< 5 seconds), `Music` for background tracks

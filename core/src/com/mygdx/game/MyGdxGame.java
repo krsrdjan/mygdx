@@ -15,7 +15,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -32,10 +32,10 @@ public class MyGdxGame extends ApplicationAdapter {
 	OrthographicCamera hudCamera;
 	Viewport worldViewport;
 	Viewport hudViewport;
-	// 16:9 logical size so the FitViewport fills HD (1280x720), FHD (1920x1080),
-	// QHD (2560x1440) and 4K (3840x2160) displays with no letterboxing. It also
-	// matches the common 16:9/19.5:9 phone landscape aspect much better than the
-	// old 4:3 layout, leaving only small bars on 19.5:9 devices.
+	// Minimum logical world size (16:9 HD). ExtendViewport grows width or height
+	// to match the screen aspect, so tall phones (portrait or 20:9 landscape) fill
+	// the screen with no letterboxing; extra strips show more dungeon / world.
+	// 16:9 multiples (720p, 1080p, etc.) still map 1:1 at this minimum size.
 	private static final float WORLD_VIEW_WIDTH = 1280f;
 	private static final float WORLD_VIEW_HEIGHT = 720f;
 	BitmapFont font;
@@ -48,10 +48,9 @@ public class MyGdxGame extends ApplicationAdapter {
 	private final Vector3 mouseWorldCoords = new Vector3();
 	private final Vector3 mouseHudCoords = new Vector3();
 
-	// HUD layout in the 1280x720 logical HUD camera space. The three HUD panels
-	// span the full screen width, with side panels sized proportionally to the
-	// original 4:3 design (32.5%/35%/32.5%) so existing absolute offsets inside
-	// each panel still fit.
+	// HUD layout anchored to the bottom; minimum width 1280 (matches world min).
+	// With ExtendViewport, wider screens stretch the bar; taller screens add empty
+	// space above the HUD. Panel column splits (32.5% / 35% / 32.5%) at 1280 wide.
 	private static final float LOG_STRIP_H = 22f;
 	private static final float HUD_PANEL_Y_BOTTOM = LOG_STRIP_H;
 	private static final float HUD_PANEL_H = 160f;
@@ -88,15 +87,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		textureRegion = new TextureRegion(tile);
 		tiledDrawable = new TiledDrawable(textureRegion);
 		
-		// Setup cameras + viewports. FitViewport keeps a fixed 1280x720 (16:9) logical
-		// area and scales it to fill the canvas, so the HUD layout stays consistent on
-		// phones, tablets and desktop browsers regardless of device resolution.
+		// ExtendViewport: at least 1280x720 world units; expands on tall/wide aspects.
+		// World and HUD use the same minimum aspect so UI scale matches the board.
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT);
 		hudCamera = new OrthographicCamera();
 		hudCamera.setToOrtho(false, WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT);
-		worldViewport = new FitViewport(WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT, camera);
-		hudViewport = new FitViewport(WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT, hudCamera);
+		worldViewport = new ExtendViewport(WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT, camera);
+		hudViewport = new ExtendViewport(WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT, hudCamera);
 
 		font = new BitmapFont();
 		shapeRenderer = new ShapeRenderer();
@@ -212,6 +210,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		
 		// Set camera position with bounds
 		camera.position.set(clampedX, clampedY, 0);
+		camera.update();
 	}
 	
 	@Override
