@@ -122,6 +122,8 @@ The game generates a 32x32 tile dungeon composed of 8x8 rooms (4x4 tiles each). 
 
 The game uses libGDX **viewports** with a **minimum logical resolution of 1280×720** (16:9 HD) for both the world and the HUD. **`ExtendViewport`** fills the window or browser canvas on any aspect ratio: on **16:9** screens (720p, 1080p, 4K at 16:9, etc.) the visible world matches that size; on **taller or wider** devices (many phones in landscape, ultrawide monitors) the view **extends** without letterboxing—you see a bit more dungeon at the sides or top/bottom. The bottom HUD bar stays anchored to the bottom edge; extra vertical space appears above it on very tall layouts.
 
+On **web (TeaVM)**, the canvas can briefly report **0×0** pixels before the browser lays out the page. The game skips viewport updates until the back buffer has a positive size so the GL viewport is never set to zero (which would otherwise show a **black screen** on GitHub Pages or similar hosts).
+
 ## License
 
 This project is a proof of concept for learning libGDX game development.

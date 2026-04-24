@@ -91,7 +91,7 @@ These sections mix **what this project already does** (caches, `dispose()`, two 
 
 ### Scaling & Cameras
 - **This project**: `ExtendViewport` with minimum world size **1280×720** (16:9) on both world and HUD cameras. The viewport **extends** width or height on taller or wider aspects (typical tall phones in landscape/portrait, ultrawide monitors) so there is **no letterboxing**; the player may see extra dungeon tiles at the edges. Pure **16:9** surfaces still see exactly 1280×720 world units (same as a fixed HD logical size).
-- Override `resize(int width, int height)` and call `viewport.update(width, height)` for each viewport (world uses `centerCamera` false so the follow camera is not reset).
+- Override `resize(int width, int height)` and call `viewport.update(width, height)` for each viewport (world uses `centerCamera` false so the follow camera is not reset). **Web (TeaVM)**: the launcher can report **0×0** before the canvas has CSS layout; `MyGdxGame` skips viewport updates until width/height are positive and retries from `create`/`render` using `Gdx.graphics.getBackBufferWidth/Height()` so `glViewport` is never called with zero size (which would show a black screen).
 - Separate world camera from UI camera — both use logical units; the HUD is laid out in the HUD camera space (bottom-anchored bars; `hudCamera.viewportWidth` / `viewportHeight` reflect extended size).
 
 ### Audio
