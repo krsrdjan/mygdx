@@ -15,7 +15,8 @@ public class TeaVMBuilder {
     public static void main(String[] arguments) {
         TeaBuildConfiguration teaBuildConfiguration = new TeaBuildConfiguration();
         teaBuildConfiguration.assetsPath.add(new AssetFileHandle("../assets"));
-        teaBuildConfiguration.webappPath = new File("build/dist").getAbsolutePath();
+        // Keep generated JS and custom index.html in the same published folder.
+        teaBuildConfiguration.webappPath = new File("build/dist/webapp").getAbsolutePath();
         teaBuildConfiguration.targetType = TeaVMTargetType.JAVASCRIPT;
         // Use the index.html shipped under teavm/webapp/ instead of the gdx-teavm default
         // so we can opt into a mobile-friendly viewport and a canvas that fills the screen.
