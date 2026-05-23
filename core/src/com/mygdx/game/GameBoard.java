@@ -346,9 +346,10 @@ public class GameBoard {
     }
 
     public void activateNearMonsters(Position position) {
+        Hero hero = this.hero;
         for (Monster m : monsters) {
             if (Position.isNear(m.getPosition(), position)) {
-                m.activate();
+                m.activate(hero);
             }
         }
     }

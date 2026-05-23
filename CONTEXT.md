@@ -82,6 +82,10 @@ _Avoid_: Aggroed, awakened, engaged
 The transition when a previously inactive Monster becomes Active. Happens when the Hero is Near that Monster's Position.
 _Avoid_: Aggro, wake up
 
+**Initiative strike**:
+When a **Monster** with **1 max HP** is first **Activated**, it immediately attempts one melee attack (normal **Weapon** **Hit** / **Miss**) if **Near** the **Hero**. Fires once per **Monster** per **Run**; does not replace its **Turn** on **End turn** if still alive.
+_Avoid_: First strike, ambush, pre-emptive attack
+
 **Item**:
 A pickup on the dungeon floor (**Heal Potion**, **Greater Heal Potion**). Auto-collected when the Hero enters its **Square**; consumed via `use(Hero)`. Items occupy a **Square** but do not block movement—**Hero** and **Monster** pathfinding may traverse Item **Squares**; an unconsumed Item is restored when the occupant steps off.
 _Avoid_: Loot, pickup, consumable (use Item for the domain concept; consumable describes behavior)
