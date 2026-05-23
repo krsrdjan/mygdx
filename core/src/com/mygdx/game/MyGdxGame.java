@@ -622,12 +622,12 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (gameBoard.isVictory()) {
 			return false;
 		}
-		if (screenY >= hudScreenPx) {
+		touchPoint.set(screenX, screenY, 0);
+		hudViewport.unproject(touchPoint);
+		if (touchPoint.y > HUD_PANEL_Y_TOP) {
 			return false;
 		}
 
-		touchPoint.set(screenX, screenY, 0);
-		hudViewport.unproject(touchPoint);
 		Hero hero = gameBoard.getHero();
 		if (hero == null) {
 			return true;
@@ -686,7 +686,10 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	private void renderMonsterHoverPopup() {
 		if (!gameBoard.getHero().isAlive() || gameBoard.isVictory()) return;
-		if (Gdx.input.getY() < hudScreenPx) return;
+
+		mouseHudCoords.set(Gdx.input.getX(), Gdx.input.getY(), 0);
+		hudViewport.unproject(mouseHudCoords);
+		if (mouseHudCoords.y <= HUD_PANEL_Y_TOP) return;
 
 		mouseWorldCoords.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 		worldViewport.unproject(mouseWorldCoords);

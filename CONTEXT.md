@@ -27,7 +27,7 @@ An immutable (x, y) coordinate on the Square grid. Origin is bottom-left; Y incr
 _Avoid_: Point, cell, tile coords
 
 **HUD strip**:
-The fixed bottom band of the screen showing stats, controls, and the **Combat log**. **Dungeon** art never renders here; the band keeps a consistent layout height across screen sizes.
+The fixed bottom band of the screen showing stats, controls, and the **Combat log**. **Dungeon** art never renders here; the band keeps a consistent layout height across screen sizes. Touches on the **HUD strip** never pass through to the **Play area**—only mapped controls (weapon cards, **End turn**, etc.) do anything.
 _Avoid_: UI panel, overlay, bottom bar
 
 **Play area**:
