@@ -1,5 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "chmod +x gradlew && ./gradlew :teavm:build --no-daemon",
+  "buildCommand": "bash scripts/vercel-build.sh",
   "outputDirectory": "teavm/build/dist/webapp"
 }

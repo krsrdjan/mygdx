@@ -46,15 +46,3 @@ project(":teavm") {
         implementation "com.github.xpenatan.gdx-teavm:backend-teavm:$gdxTeaVMVersion"
     }
 }
-
-subprojects {
-    plugins.withId('java-library') {
-        java {
-            toolchain {
-                languageVersion = JavaLanguageVersion.of(
-                    Integer.parseInt(rootProject.findProperty('javaVersion') ?: '17')
-                )
-            }
-        }
-    }
-}
