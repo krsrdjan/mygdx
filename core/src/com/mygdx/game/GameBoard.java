@@ -331,10 +331,12 @@ public class GameBoard {
         if (!candidates.isEmpty()) {
             Position p = candidates.get(random.nextInt(candidates.size()));
 
-            if (random.nextFloat() < 0.20f) {  // ~20% chance of potion instead of monster
-                HealPotion potion = new HealPotion(this);
-                potion.setPosition(p);
-                items.add(potion);
+            if (random.nextFloat() < 0.20f) {  // ~20% chance of item instead of monster
+                Item item = random.nextFloat() < 0.25f
+                        ? new GreaterHealPotion(this)
+                        : new HealPotion(this);
+                item.setPosition(p);
+                items.add(item);
             } else {
                 Monster m = monsterFactory.createRandomMonster(this);
                 m.setPosition(p);

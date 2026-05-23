@@ -83,12 +83,16 @@ The transition when a previously inactive Monster becomes Active. Happens when t
 _Avoid_: Aggro, wake up
 
 **Item**:
-A pickup on the dungeon floor (currently **Heal Potion** only). Auto-collected when the Hero enters its **Square**; consumed via `use(Hero)`. Items occupy a **Square** but do not block **Hero** movement—an unconsumed Item remains on its **Square** when the Hero steps off. Additional Item types are **deferred** until after playtesting the expanded **Monster** roster—specific types not chosen yet.
+A pickup on the dungeon floor (**Heal Potion**, **Greater Heal Potion**). Auto-collected when the Hero enters its **Square**; consumed via `use(Hero)`. Items occupy a **Square** but do not block **Hero** movement—an unconsumed Item remains on its **Square** when the Hero steps off.
 _Avoid_: Loot, pickup, consumable (use Item for the domain concept; consumable describes behavior)
 
 **Heal Potion**:
-An Item that restores 1 HP if the Hero is below max HP; otherwise **found but not consumed**—the potion stays on the floor and does not block movement.
+An Item that restores 1 HP if the Hero is below max HP; otherwise **found but not consumed**—the potion stays on the floor and does not block movement. Sprite: `potion-red.png`. Room spawn-on-explore: **~15%** of **Rooms** (~75% of item spawns). **Monster** kill drops: **50%** chance (red only).
 _Avoid_: Health potion, red potion
+
+**Greater Heal Potion**:
+An Item that restores 2 HP if the Hero is below max HP (capped at max); otherwise **found but not consumed**. Sprite: `potion-blue.png`. Room spawn-on-explore only: **~5%** of **Rooms** (~25% of item spawns). Does not drop from **Monster** kills.
+_Avoid_: Large potion, blue potion
 
 ### Combat and equipment
 
@@ -134,7 +138,7 @@ An attack roll that fails; no damage dealt.
 _Avoid_: Dodge, block (those imply different mechanics)
 
 **Near**:
-Chebyshev distance ≤ 1 between two Positions (orthogonal or diagonal neighbors). Required for melee attack and item pickup.
+Chebyshev distance ≤ 1 between two Positions (orthogonal or diagonal neighbors). Required for melee **Attack action** and for **Activated** checks. **Items** are picked up by entering their **Square**, not by being **Near** alone.
 _Avoid_: Adjacent (ambiguous — see Flagged ambiguities), in range
 
 **Very near**:
