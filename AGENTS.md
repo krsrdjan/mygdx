@@ -24,7 +24,7 @@ Source directories use `src/` (not `src/main/java/`). Assets live in root `asset
 
 The game follows a turn-based board game pattern:
 
-- `MyGdxGame` extends `ApplicationAdapter` — main game loop (create/render/dispose); dual `OrthographicCamera` + `ExtendViewport` (world and HUD, min 1280×720 logical units)
+- `MyGdxGame` extends `ApplicationAdapter` — main game loop (create/render/dispose); dual `OrthographicCamera` + `ExtendViewport` (world **play area** min 1280×538, HUD full screen min 1280×720)
 - `GameBoard` holds `Square[][]` grid, manages turns, monsters, items, exploration; use `setToastNotifier(StringCallback)` to wire toast messages to the UI
 - `Creature` is the base class for `Hero` and `Monster`; textures loaded via `TextureCache.get(image)`
 - `Weapon` is abstract — subclasses: `Sword`, `Axe`, `Mace`, `BigClub`, `Bite`
@@ -90,9 +90,9 @@ These sections mix **what this project already does** (caches, `dispose()`, two 
 - Map controls to actions, not raw keys — makes rebinding easy
 
 ### Scaling & Cameras
-- **This project**: `ExtendViewport` with minimum world size **1280×720** (16:9) on both world and HUD cameras. The viewport **extends** width or height on taller or wider aspects (typical tall phones in landscape/portrait, ultrawide monitors) so there is **no letterboxing**; the player may see extra dungeon tiles at the edges. Pure **16:9** surfaces still see exactly 1280×720 world units (same as a fixed HD logical size).
-- Override `resize(int width, int height)` and call `viewport.update(width, height)` for each viewport (world uses `centerCamera` false so the follow camera is not reset). **Web (TeaVM)**: the launcher can report **0×0** before the canvas has CSS layout; `MyGdxGame` skips viewport updates until width/height are positive and retries from `create`/`render` using `Gdx.graphics.getBackBufferWidth/Height()` so `glViewport` is never called with zero size (which would show a black screen).
-- Separate world camera from UI camera — both use logical units; the HUD is laid out in the HUD camera space (bottom-anchored bars; `hudCamera.viewportWidth` / `viewportHeight` reflect extended size).
+- **This project**: Split viewports per ADR 0002. World **play area** uses `ExtendViewport` with minimum **1280×538** (720 minus ~182px HUD strip); HUD uses full-screen minimum **1280×720**. The world glViewport is shifted above the HUD strip on resize (`ExtendViewport.update()` resets bounds—re-apply Y offset). World draws are scissor-clipped to the play area. **Camera follow** centers the Hero in the play area; at the south map edge the camera clamps to the grid (no empty space below y=0). Viewports **extend** width or height on ultrawide/tall aspects so there is no letterboxing in the play area; pure **16:9** still maps 1:1 at minimum logical size.
+- Override `resize(int width, int height)` and call `updateViewportsIfSized` (HUD first, then world with play-area height + Y offset; world uses `centerCamera` false so follow logic is not reset). **Web (TeaVM)**: the launcher can report **0×0** before the canvas has CSS layout; `MyGdxGame` skips viewport updates until width/height are positive and retries from `create`/`render` using `Gdx.graphics.getBackBufferWidth/Height()` so `glViewport` is never called with zero size (which would show a black screen).
+- Separate world camera from HUD camera — HUD layout is bottom-anchored in HUD logical space (`hudCamera.viewportWidth` / `viewportHeight` reflect extended size). Input in the HUD strip is handled by `handleHudClick`; play-area touches unproject through the world viewport.
 
 ### Audio
 - Use `Sound` for short effects (< 5 seconds), `Music` for background tracks

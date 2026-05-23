@@ -3,11 +3,13 @@ package com.mygdx.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.glutils.HdpiUtils;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -55,14 +57,16 @@ public class MyGdxGame extends ApplicationAdapter {
 	private static final float HUD_PANEL_Y_BOTTOM = LOG_STRIP_H;
 	private static final float HUD_PANEL_H = 160f;
 	private static final float HUD_PANEL_Y_TOP = HUD_PANEL_Y_BOTTOM + HUD_PANEL_H;
+	// Play area logical height (screen above HUD strip); see docs/adr/0002-play-area-viewport.md
+	private static final float WORLD_PLAY_HEIGHT = WORLD_VIEW_HEIGHT - HUD_PANEL_Y_TOP;
 	private static final float LEFT_X0 = 0f, LEFT_X1 = 416f;
 	private static final float CENTER_X0 = 416f, CENTER_X1 = 864f;
 	private static final float RIGHT_X0 = 864f, RIGHT_X1 = 1280f;
 	private static final float TOAST_Y = 195f;
 
 	// HUD colors
-	private static final Color HUD_BG = new Color(0.08f, 0.06f, 0.05f, 0.95f);
-	private static final Color LOG_BG = new Color(0.05f, 0.04f, 0.03f, 0.95f);
+	private static final Color HUD_BG = new Color(0.08f, 0.06f, 0.05f, 1f);
+	private static final Color LOG_BG = new Color(0.05f, 0.04f, 0.03f, 1f);
 	private static final Color BORDER = new Color(0.30f, 0.25f, 0.18f, 1f);
 	private static final Color GOLD = new Color(0.85f, 0.68f, 0.28f, 1f);
 	private static final Color GOLD_PILL_TEXT = new Color(0.12f, 0.10f, 0.06f, 1f);
@@ -77,7 +81,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private final Rectangle weaponCard1Bounds = new Rectangle();
 	private final Rectangle weaponCard2Bounds = new Rectangle();
 	private final Rectangle endTurnButtonBounds = new Rectangle();
-	
+	private int hudScreenPx;
 	@Override
 	public void create () {	// this is done once
 		gameBoard = new GameBoard();
@@ -87,13 +91,12 @@ public class MyGdxGame extends ApplicationAdapter {
 		textureRegion = new TextureRegion(tile);
 		tiledDrawable = new TiledDrawable(textureRegion);
 		
-		// ExtendViewport: at least 1280x720 world units; expands on tall/wide aspects.
-		// World and HUD use the same minimum aspect so UI scale matches the board.
+		// World viewport: play area only. HUD viewport: full screen (see ADR 0002).
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT);
+		camera.setToOrtho(false, WORLD_VIEW_WIDTH, WORLD_PLAY_HEIGHT);
 		hudCamera = new OrthographicCamera();
 		hudCamera.setToOrtho(false, WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT);
-		worldViewport = new ExtendViewport(WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT, camera);
+		worldViewport = new ExtendViewport(WORLD_VIEW_WIDTH, WORLD_PLAY_HEIGHT, camera);
 		hudViewport = new ExtendViewport(WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT, hudCamera);
 
 		font = new BitmapFont();
@@ -151,7 +154,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		updateCamera();
 		worldViewport.apply();
 		batch.setProjectionMatrix(camera.combined);
-		
+
+		HdpiUtils.glScissor(
+				worldViewport.getScreenX(),
+				worldViewport.getScreenY(),
+				worldViewport.getScreenWidth(),
+				worldViewport.getScreenHeight());
+		Gdx.gl.glEnable(GL20.GL_SCISSOR_TEST);
+
 		batch.begin();
 
 		//draw tiles with repeat - use world coordinates
@@ -188,6 +198,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		}
 
 		batch.end();
+		Gdx.gl.glDisable(GL20.GL_SCISSOR_TEST);
 
 		// HUD rendering (screen space)
 		hudViewport.apply(true);
@@ -204,24 +215,20 @@ public class MyGdxGame extends ApplicationAdapter {
 	}
 	
 	private void updateCamera() {
-		// Get hero position
 		Position heroPos = gameBoard.getHero().getPosition();
-		
-		// Calculate hero's world position (center of the square)
+
 		float heroWorldX = heroPos.x * GameBoard.SQUARE_SIZE + GameBoard.SQUARE_SIZE / 2f;
 		float heroWorldY = heroPos.y * GameBoard.SQUARE_SIZE + GameBoard.SQUARE_SIZE / 2f;
-		
-		// Calculate world bounds
+
 		float worldWidth = GameBoard.BOARD_SQUARE_WIDTH * GameBoard.SQUARE_SIZE;
 		float worldHeight = GameBoard.BOARD_SQUARE_HEIGHT * GameBoard.SQUARE_SIZE;
 		float halfViewportWidth = camera.viewportWidth / 2f;
 		float halfViewportHeight = camera.viewportHeight / 2f;
-		
-		// Clamp camera position to world bounds
+		float maxCameraY = worldHeight - halfViewportHeight;
+
 		float clampedX = Math.max(halfViewportWidth, Math.min(heroWorldX, worldWidth - halfViewportWidth));
-		float clampedY = Math.max(halfViewportHeight, Math.min(heroWorldY, worldHeight - halfViewportHeight));
-		
-		// Set camera position with bounds
+		float clampedY = Math.max(halfViewportHeight, Math.min(heroWorldY, maxCameraY));
+
 		camera.position.set(clampedX, clampedY, 0);
 		camera.update();
 	}
@@ -236,10 +243,16 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (width <= 0 || height <= 0) {
 			return;
 		}
-		// World camera is positioned every frame to follow the hero; do not let the
-		// viewport recenter it.
-		worldViewport.update(width, height, false);
 		hudViewport.update(width, height, true);
+		hudScreenPx = Math.round(HUD_PANEL_Y_TOP / hudCamera.viewportHeight * height);
+		int worldScreenH = height - hudScreenPx;
+		if (worldScreenH <= 0) {
+			return;
+		}
+		// ExtendViewport.update() resets screen bounds; pass play-area height for scaling,
+		// then shift the glViewport above the HUD strip.
+		worldViewport.update(width, worldScreenH, false);
+		worldViewport.setScreenY(worldViewport.getScreenY() + hudScreenPx);
 	}
 	
 	@Override
@@ -609,10 +622,16 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (gameBoard.isVictory()) {
 			return false;
 		}
+		if (screenY >= hudScreenPx) {
+			return false;
+		}
+
 		touchPoint.set(screenX, screenY, 0);
 		hudViewport.unproject(touchPoint);
 		Hero hero = gameBoard.getHero();
-		if (hero == null) return false;
+		if (hero == null) {
+			return true;
+		}
 		java.util.List<Weapon> inv = new java.util.ArrayList<>(hero.getInventory());
 		if (inv.size() >= 1 && weaponCard1Bounds.contains(touchPoint.x, touchPoint.y)) {
 			hero.setCurrentWeapon(inv.get(0));
@@ -626,7 +645,7 @@ public class MyGdxGame extends ApplicationAdapter {
 			gameBoard.endHeroTurn();
 			return true;
 		}
-		return false;
+		return true;
 	}
 
 	private void renderToasts() {
@@ -667,6 +686,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	private void renderMonsterHoverPopup() {
 		if (!gameBoard.getHero().isAlive() || gameBoard.isVictory()) return;
+		if (Gdx.input.getY() < hudScreenPx) return;
 
 		mouseWorldCoords.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 		worldViewport.unproject(mouseWorldCoords);

@@ -26,6 +26,18 @@ _Avoid_: Block, obstacle
 An immutable (x, y) coordinate on the Square grid. Origin is bottom-left; Y increases upward.
 _Avoid_: Point, cell, tile coords
 
+**HUD strip**:
+The fixed bottom band of the screen showing stats, controls, and the **Combat log**. **Dungeon** art never renders here; the band keeps a consistent layout height across screen sizes.
+_Avoid_: UI panel, overlay, bottom bar
+
+**Play area**:
+The screen region above the **HUD strip** where the **Dungeon** is rendered. The camera frames the **Hero** within this region so a full **Room** stays readable.
+_Avoid_: World view, game canvas, viewport
+
+**Camera follow**:
+The view tracks the **Hero**, centering them in the **Play area** when not at a map edge. At the **Dungeon** boundary the camera clamps to the grid; on the south edge the Hero sits toward the bottom of the **Play area** (still above the **HUD strip**), with no empty space shown below the grid.
+_Avoid_: Scroll, pan, viewport center
+
 ### Visibility and discovery
 
 **Explored**:
