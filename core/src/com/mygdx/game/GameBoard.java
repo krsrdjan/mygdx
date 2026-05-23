@@ -120,7 +120,7 @@ public class GameBoard {
             }
         }
 
-        hero = new Hero("hero.png", TEST_MODE ? 200 : 20, this);
+        hero = new Hero("hero.png", TEST_MODE ? 200 : 8, this);
         if (TEST_MODE) {
             hero.setMaxSpeed(200);
         }

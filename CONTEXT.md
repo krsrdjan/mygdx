@@ -75,7 +75,7 @@ Anything with HP, a sprite, and life/death state. Base type for **Hero** and **M
 _Avoid_: Entity, actor, unit
 
 **Hero**:
-The player-controlled Creature. **20 max HP**, movement budget (**MOV**), one attack per **Turn**, and a **Weapon** inventory.
+The player-controlled Creature. **8 max HP**, movement budget (**MOV**), one attack per **Turn**, and a **Weapon** inventory.
 _Avoid_: Player, character, avatar
 
 **Monster**:
