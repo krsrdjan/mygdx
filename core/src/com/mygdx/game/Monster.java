@@ -70,10 +70,11 @@ public class Monster extends Creature {
     }
 
     public void setPosition(Position newPosition) {
-        if(position != null) {
+        if (position != null) {
             Square oldSquare = board.getSquare(position.x, position.y);
-            if(oldSquare != null) {
+            if (oldSquare != null) {
                 oldSquare.setCreature(null);
+                board.restoreFloorItemAt(position);
             }
         }
 

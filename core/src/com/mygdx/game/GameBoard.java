@@ -253,8 +253,8 @@ public class GameBoard {
             return false;
         }
         Square s = board[x][y];
-        // Walkable only if explored, no wall texture and no creature on it
-        return s.isExplored() && s.getTexture() == null && s.getCreature() == null;
+        // Walkable only if explored, no wall, and not blocked by Hero/Monster (items are passable)
+        return s.isExplored() && isSquareTraversable(x, y);
     }
 
     public Texture getTexture(int x, int y) {
@@ -420,46 +420,46 @@ public class GameBoard {
 
         if (Math.abs(dx) >= Math.abs(dy)) {
             if (dx > 0) {
-                if (isSquareEmpty(heroPos.x + 1, heroPos.y)) {
+                if (isSquareTraversable(heroPos.x + 1, heroPos.y)) {
                     hero.moveRight();
                     return;
                 }
             } else if (dx < 0) {
-                if (isSquareEmpty(heroPos.x - 1, heroPos.y)) {
+                if (isSquareTraversable(heroPos.x - 1, heroPos.y)) {
                     hero.moveLeft();
                     return;
                 }
             }
             if (dy > 0) {
-                if (isSquareEmpty(heroPos.x, heroPos.y + 1)) {
+                if (isSquareTraversable(heroPos.x, heroPos.y + 1)) {
                     hero.moveUp();
                     return;
                 }
             } else if (dy < 0) {
-                if (isSquareEmpty(heroPos.x, heroPos.y - 1)) {
+                if (isSquareTraversable(heroPos.x, heroPos.y - 1)) {
                     hero.moveDown();
                     return;
                 }
             }
         } else {
             if (dy > 0) {
-                if (isSquareEmpty(heroPos.x, heroPos.y + 1)) {
+                if (isSquareTraversable(heroPos.x, heroPos.y + 1)) {
                     hero.moveUp();
                     return;
                 }
             } else if (dy < 0) {
-                if (isSquareEmpty(heroPos.x, heroPos.y - 1)) {
+                if (isSquareTraversable(heroPos.x, heroPos.y - 1)) {
                     hero.moveDown();
                     return;
                 }
             }
             if (dx > 0) {
-                if (isSquareEmpty(heroPos.x + 1, heroPos.y)) {
+                if (isSquareTraversable(heroPos.x + 1, heroPos.y)) {
                     hero.moveRight();
                     return;
                 }
             } else if (dx < 0) {
-                if (isSquareEmpty(heroPos.x - 1, heroPos.y)) {
+                if (isSquareTraversable(heroPos.x - 1, heroPos.y)) {
                     hero.moveLeft();
                     return;
                 }
@@ -567,12 +567,20 @@ public class GameBoard {
             return false;
         }
         Square square = board[x][y];
-        Creature occupant = square.getCreature();
-        boolean passableOccupant = occupant == null || occupant instanceof Item;
-        return square.getTexture() == null && passableOccupant;
+        return square.getTexture() == null && square.getCreature() == null;
     }
 
-    /** Puts a floor Item back on its Square after the Hero steps off (e.g. full HP, potion not consumed). */
+    /** Floor items do not block movement or monster pathfinding. */
+    public boolean isSquareTraversable(int x, int y) {
+        if (x >= BOARD_SQUARE_WIDTH || y >= BOARD_SQUARE_HEIGHT || x < 0 || y < 0) {
+            return false;
+        }
+        Square square = board[x][y];
+        Creature occupant = square.getCreature();
+        return square.getTexture() == null && (occupant == null || occupant instanceof Item);
+    }
+
+    /** Puts a floor Item back on its Square after a Creature steps off. */
     public void restoreFloorItemAt(Position position) {
         for (Item item : items) {
             Position itemPos = item.getPosition();

@@ -101,7 +101,7 @@ public class Hero extends Creature {
     public void moveUp() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.y < GameBoard.BOARD_SQUARE_HEIGHT - 1 && board.isSquareEmpty(pos.x, pos.y+1)) {
+            if(pos.y < GameBoard.BOARD_SQUARE_HEIGHT - 1 && board.isSquareTraversable(pos.x, pos.y+1)) {
                 setPosition(new Position(pos.x, pos.y+1));
                 speed--;
             }
@@ -111,7 +111,7 @@ public class Hero extends Creature {
     public void moveRight() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.x < GameBoard.BOARD_SQUARE_WIDTH - 1 && board.isSquareEmpty(pos.x+1, pos.y)) {
+            if(pos.x < GameBoard.BOARD_SQUARE_WIDTH - 1 && board.isSquareTraversable(pos.x+1, pos.y)) {
                 setPosition(new Position(pos.x+1, pos.y));
                 speed--;
             }
@@ -121,7 +121,7 @@ public class Hero extends Creature {
     public void moveDown() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.y > 0 && board.isSquareEmpty(pos.x, pos.y-1)) {
+            if(pos.y > 0 && board.isSquareTraversable(pos.x, pos.y-1)) {
                 setPosition(new Position(pos.x, pos.y-1));
                 speed--;
             }
@@ -131,7 +131,7 @@ public class Hero extends Creature {
     public void moveLeft() {
         if(speed > 0) {
             Position pos = getPosition();
-            if(pos.x > 0 && board.isSquareEmpty(pos.x-1, pos.y)) {
+            if(pos.x > 0 && board.isSquareTraversable(pos.x-1, pos.y)) {
                 setPosition(new Position(pos.x-1, pos.y));
                 speed--;
             }
