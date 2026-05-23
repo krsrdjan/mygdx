@@ -354,15 +354,9 @@ public class GameBoard {
                 item.setPosition(p);
                 items.add(item);
             } else if (random.nextFloat() < 0.20f) {  // ~20% chance of item instead of monster
-                float roll = random.nextFloat();
-                Item item;
-                if (roll < 1f / 3f) {
-                    item = new HealPotion(this);
-                } else if (roll < 2f / 3f) {
-                    item = new GreaterHealPotion(this);
-                } else {
-                    item = createRandomWeaponPickup();
-                }
+                Item item = random.nextFloat() < 0.5f
+                        ? new GreaterHealPotion(this)
+                        : createRandomWeaponPickup();
                 item.setPosition(p);
                 items.add(item);
             } else {

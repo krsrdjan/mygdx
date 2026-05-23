@@ -57,7 +57,7 @@ The act of marking Squares as Explored. When the **Hero** enters a Room, all 16 
 _Avoid_: Scouting, fog clearing
 
 **Spawn on explore**:
-The rule that the first time any Square in a Room is Explored, that Room gets exactly one spawn attempt (Monster or Item). Each Room spawns at most once per run. When the spawn is a **Monster**, type is chosen uniformly from the full roster (**equal weight** per type).
+The rule that the first time any Square in a Room is Explored, that Room gets exactly one spawn attempt (**80% Monster**, **20% Item**). Each Room spawns at most once per run. When the spawn is a **Monster**, type is chosen uniformly from the full roster (**equal weight** per type). When the spawn is an **Item**, it is **50%** **Greater Heal Potion** or **50%** **Weapon pickup** (**Heal Potion** does not spawn from explore).
 _Avoid_: Room activation, encounter trigger
 
 **Fully explored dungeon**:
@@ -75,7 +75,7 @@ Anything with HP, a sprite, and life/death state. Base type for **Hero** and **M
 _Avoid_: Entity, actor, unit
 
 **Hero**:
-The player-controlled Creature. Has movement budget (**MOV**), one attack per **Turn**, and a **Weapon** inventory.
+The player-controlled Creature. **20 max HP**, movement budget (**MOV**), one attack per **Turn**, and a **Weapon** inventory.
 _Avoid_: Player, character, avatar
 
 **Monster**:
@@ -99,15 +99,15 @@ A pickup on the dungeon floor (**Heal Potion**, **Greater Heal Potion**). Auto-c
 _Avoid_: Loot, pickup, consumable (use Item for the domain concept; consumable describes behavior)
 
 **Heal Potion**:
-An Item that restores 1 HP if the Hero is below max HP; otherwise **found but not consumed**—the potion stays on the floor and does not block movement. Sprite: `potion-red.png`. Room spawn-on-explore: **~33%** of **Item** spawns (~**7%** of **Rooms**). **Monster** kill drops: **50%** chance (red only).
+An Item that restores 1 HP if the Hero is below max HP; otherwise **found but not consumed**—the potion stays on the floor and does not block movement. Sprite: `potion-red.png`. Does not spawn from **spawn on explore**; **Monster** kill drops only: **33%** chance.
 _Avoid_: Health potion, red potion
 
 **Greater Heal Potion**:
-An Item that restores 2 HP if the Hero is below max HP (capped at max); otherwise **found but not consumed**. Sprite: `potion-blue.png`. Room spawn-on-explore only: **~33%** of **Item** spawns (~**7%** of **Rooms**). Does not drop from **Monster** kills.
+An Item that restores 2 HP if the Hero is below max HP (capped at max); otherwise **found but not consumed**. Sprite: `potion-blue.png`. Room **spawn on explore** only: **50%** of **Item** spawns (~**10%** of **Rooms**). Does not drop from **Monster** kills.
 _Avoid_: Large potion, blue potion
 
 **Weapon pickup**:
-A floor **Item** that grants the **Hero** a **Weapon** when collected. Auto-collected on entering its **Square** (same as potions). Sprite: generic `weapon.png` for all types; the **Weapon** name and stats are shown when the player hovers that **Square** (same pattern as **Monster** inspect). Pool: **Mace**, **Big Club**, **Hammer** (equal weight among **Weapon pickup** spawns). Room spawn-on-explore: **~33%** of **Item** spawns (~**7%** of **Rooms**). If **Weapon inventory** has an empty slot (fewer than 3 **Weapons**), the **Weapon** is added without auto-equip—the player selects via **Weapon card** or keyboard switch. If inventory is full, collecting triggers **Weapon swap**. Removed from the floor on successful pickup (or becomes the swapped-out **Weapon**).
+A floor **Item** that grants the **Hero** a **Weapon** when collected. Auto-collected on entering its **Square** (same as potions). Sprite: generic `weapon.png` for all types; the **Weapon** name and stats are shown when the player hovers that **Square** (same pattern as **Monster** inspect). Pool: **Mace**, **Big Club**, **Hammer** (equal weight among **Weapon pickup** spawns). Room **spawn on explore** only: **50%** of **Item** spawns (~**10%** of **Rooms**). If **Weapon inventory** has an empty slot (fewer than 3 **Weapons**), the **Weapon** is added without auto-equip—the player selects via **Weapon card** or keyboard switch. If inventory is full, collecting triggers **Weapon swap**. Removed from the floor on successful pickup (or becomes the swapped-out **Weapon**).
 _Avoid_: Weapon drop, gear loot, equipment chest
 
 **Weapon swap**:
@@ -214,7 +214,7 @@ The Hero achieves a **fully explored dungeon**. After the Hero **ends turn** on 
 _Avoid_: Win screen, completion, success state
 
 **Monsters killed**:
-Run stat: count of **Monsters** the Hero reduced to 0 HP. Incremented once per Monster death from Hero damage (not from other causes—there are none today). On death, each **Monster** has a 50% chance to leave a **Heal Potion** on its **Square** (separate from room spawn potions).
+Run stat: count of **Monsters** the Hero reduced to 0 HP. Incremented once per Monster death from Hero damage (not from other causes—there are none today). On death, each **Monster** has a **33%** chance to leave a **Heal Potion** on its **Square** (separate from room spawn potions).
 _Avoid_: Kill count, score, KOs
 
 **Game over**:
@@ -240,7 +240,7 @@ _Avoid_: Session, game, match
 
 **Dev**: When the player walks into a new area, what happens?
 
-**Designer**: They **Explore** a **Room**—all 16 **Squares** in that **Room** flip to **Explored**. If it's the first time that **Room** was touched, **spawn on explore** fires once: usually a **Monster**, sometimes a **Heal Potion**.
+**Designer**: They **Explore** a **Room**—all 16 **Squares** in that **Room** flip to **Explored**. If it's the first time that **Room** was touched, **spawn on explore** fires once: usually a **Monster**, sometimes a **Greater Heal Potion** or **Weapon pickup**.
 
 **Dev**: Does every Monster fight immediately?
 
