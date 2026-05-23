@@ -22,6 +22,21 @@ dependencies {
     implementation project(':core')
 }
 
+def teavmOutputDir = layout.buildDirectory.dir("dist/webapp/webapp")
+def teavmAppJs = layout.buildDirectory.file("dist/webapp/webapp/app.js")
+def siteDir = layout.buildDirectory.dir("dist/site")
+
+tasks.register("buildJavaScript", JavaExec) {
+    dependsOn classes
+    setDescription("Transpile bytecode to JavaScript via TeaVM")
+    mainClass.set(project.mainClassName)
+    setClasspath(sourceSets.main.runtimeClasspath)
+    // Required so :clean invalidates this task; without outputs Gradle keeps it UP-TO-DATE
+    // even after app.js was deleted, which breaks Vercel deploys.
+    outputs.file(teavmAppJs)
+    inputs.files(sourceSets.main.allSource, sourceSets.main.runtimeClasspath)
+}
+
 tasks.register("copyWebapp", Copy) {
     setDescription("Copy custom webapp resources (index.html, etc.) into the dist folder")
     dependsOn tasks.named("buildJavaScript")
@@ -29,27 +44,29 @@ tasks.register("copyWebapp", Copy) {
     into "build/dist/webapp"
 }
 
-tasks.register("buildJavaScript", JavaExec) {
-    dependsOn classes
-    setDescription("Transpile bytecode to JavaScript via TeaVM")
-    mainClass.set(project.mainClassName)
-    setClasspath(sourceSets.main.runtimeClasspath)
-}
-
-def siteDir = layout.buildDirectory.dir("dist/site")
-
-tasks.register("stageWebDist", Sync) {
+tasks.register("stageWebDist") {
     setDescription("Flatten TeaVM webapp/ output for static hosting (Vercel, Gretty)")
     dependsOn tasks.named("copyWebapp")
-    from(layout.buildDirectory.dir("dist/webapp/webapp"))
-    into(siteDir)
+    inputs.dir(teavmOutputDir)
+    outputs.dir(siteDir)
     doLast {
+        def nested = teavmOutputDir.get().asFile
+        def appJs = teavmAppJs.get().asFile
+        if (!appJs.isFile()) {
+            throw new GradleException(
+                "TeaVM did not produce ${appJs}. " +
+                "Contents of ${nested.parentFile}: ${nested.parentFile.list()?.toList() ?: '[]'}"
+            )
+        }
+        delete siteDir.get().asFile
+        siteDir.get().asFile.mkdirs()
+        copy {
+            from nested
+            into siteDir.get().asFile
+        }
         copy {
             from "webapp/index.html"
             into siteDir.get().asFile
-        }
-        if (!siteDir.get().file("app.js").asFile.exists()) {
-            throw new GradleException("TeaVM did not produce app.js — web build is incomplete.")
         }
     }
 }

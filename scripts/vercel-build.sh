@@ -35,7 +35,7 @@ echo "JAVA_HOME=$JAVA_HOME"
 
 chmod +x gradlew
 # Clean teavm output so a partial Vercel build cache cannot leave index.html without app.js.
-./gradlew :teavm:clean :teavm:build --no-daemon
+./gradlew :teavm:clean :teavm:build --no-daemon --rerun-tasks
 
 SITE_DIR="teavm/build/dist/site"
 if [ ! -f "$SITE_DIR/app.js" ]; then
