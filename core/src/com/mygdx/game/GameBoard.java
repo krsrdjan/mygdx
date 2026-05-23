@@ -31,7 +31,9 @@ public class GameBoard {
     private boolean fullExplorationAnnounced = false;
     private StringCallback toastNotifier;
     private Texture wallTexture;
+    private Texture rockTexture;
     private Texture unexploredTexture;
+    private final int[][] roomConnections;
     private final CombatLog combatLog = new CombatLog();
     private int round = 1;
 
@@ -82,6 +84,7 @@ public class GameBoard {
         board = new Square[BOARD_SQUARE_WIDTH][BOARD_SQUARE_HEIGHT];
 
         wallTexture = TextureCache.getOrCreateSolid("_wall", 0.0f, 0.0f, 0.0f, 1.0f, SQUARE_SIZE);
+        rockTexture = TextureCache.get("rock.png");
         unexploredTexture = TextureCache.getOrCreateSolid("_unexplored", 0.2f, 0.2f, 0.2f, 1.0f, SQUARE_SIZE);
 
         // Initialize all squares as empty floors
@@ -94,23 +97,28 @@ public class GameBoard {
         // Generate walls using RoomMazeGenerator
         RoomMazeGenerator generator = new RoomMazeGenerator();
         int[][] maze = generator.generate();
+        roomConnections = generator.getRoomConnections();
         
         // Remove isolated single walls, keep walls that are part of larger structures
         int[][] cleanedMaze = removeIsolatedWalls(maze);
         
-        // Ensure inner 4x4 squares of every room are empty
+        // Ensure inner 2×2 of every room stays floor (perimeter walls unchanged)
         int[][] roomCleanedMaze = ensureRoomInteriorsEmpty(cleanedMaze);
-        
-        // Apply room-cleaned maze to board (all walls share a single texture)
+
+        generator.applyRoomLayouts(roomCleanedMaze, generator.getRoomConnections());
+
         for (int x = 0; x < BOARD_SQUARE_WIDTH; x++) {
             for (int y = 0; y < BOARD_SQUARE_HEIGHT; y++) {
-                if (roomCleanedMaze[y][x] == 1) {
+                int cell = roomCleanedMaze[y][x];
+                if (cell == RoomMazeGenerator.WALL) {
                     board[x][y] = new Square(wallTexture);
+                } else if (cell == RoomMazeGenerator.ROCK) {
+                    board[x][y] = new Square(rockTexture);
                 }
             }
         }
 
-        hero = new Hero("hero.png", 8, this);
+        hero = new Hero("hero.png", 20, this);
         Position spawn = findNearestEmpty(new Position(16, 16));
         spawn = fallbackFindAnyEmpty(spawn);
         if (spawn == null) {
@@ -177,7 +185,7 @@ public class GameBoard {
         // Remove isolated walls (walls with no adjacent walls)
         for (int y = 0; y < maze.length; y++) {
             for (int x = 0; x < maze[0].length; x++) {
-                if (maze[y][x] == 1) { // If it's a wall
+                if (maze[y][x] == RoomMazeGenerator.WALL) { // perimeter wall
                     if (countAdjacentWalls(maze, x, y) == 0) {
                         // Remove isolated wall
                         cleaned[y][x] = 0;
@@ -248,12 +256,17 @@ public class GameBoard {
         return null;
     }
 
+    /** Passable floor for movement/pathfinding (no fog check). */
+    public boolean isPassable(int x, int y) {
+        return isSquareTraversable(x, y);
+    }
+
     public boolean isWalkable(int x, int y) {
         if (x < 0 || y < 0 || x >= BOARD_SQUARE_WIDTH || y >= BOARD_SQUARE_HEIGHT) {
             return false;
         }
         Square s = board[x][y];
-        // Walkable only if explored, no wall, and not blocked by Hero/Monster (items are passable)
+        // Hero click-to-move preview; monsters use isPassable instead
         return s.isExplored() && isSquareTraversable(x, y);
     }
 
@@ -322,7 +335,7 @@ public class GameBoard {
                 int sx = startX + dx;
                 int sy = startY + dy;
                 if (sx >= 0 && sx < BOARD_SQUARE_WIDTH && sy >= 0 && sy < BOARD_SQUARE_HEIGHT) {
-                    if (isSquareEmpty(sx, sy)) {
+                    if (isSquareEmpty(sx, sy) && isReachableFromRoomDoors(sx, sy, roomX, roomY)) {
                         candidates.add(new Position(sx, sy));
                     }
                 }
@@ -579,6 +592,75 @@ public class GameBoard {
         Square square = board[x][y];
         Creature occupant = square.getCreature();
         return square.getTexture() == null && (occupant == null || occupant instanceof Item);
+    }
+
+    /** Whether a floor square connects to this room's door passages (used for spawn placement). */
+    private boolean isReachableFromRoomDoors(int sx, int sy, int roomX, int roomY) {
+        if (roomConnections == null) {
+            return true;
+        }
+        int connections = roomConnections[roomY][roomX];
+        int x0 = roomX * 4;
+        int y0 = roomY * 4;
+        boolean[][] visited = new boolean[4][4];
+        java.util.ArrayDeque<Position> queue = new java.util.ArrayDeque<>();
+        seedDoorTraversable(x0, y0, roomX, roomY, connections, visited, queue);
+
+        int[][] dirs = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
+        while (!queue.isEmpty()) {
+            Position p = queue.poll();
+            if (p.x == sx && p.y == sy) {
+                return true;
+            }
+            for (int[] d : dirs) {
+                int nx = p.x + d[0];
+                int ny = p.y + d[1];
+                if (nx < x0 || nx >= x0 + 4 || ny < y0 || ny >= y0 + 4) {
+                    continue;
+                }
+                int lx = nx - x0;
+                int ly = ny - y0;
+                if (visited[lx][ly] || !isSquareTraversable(nx, ny)) {
+                    continue;
+                }
+                visited[lx][ly] = true;
+                queue.add(new Position(nx, ny));
+            }
+        }
+        return false;
+    }
+
+    private void seedDoorTraversable(int x0, int y0, int roomX, int roomY, int connections,
+            boolean[][] visited, java.util.ArrayDeque<Position> queue) {
+        if ((connections & (1 << 0)) != 0) {
+            trySeedTraversable(x0 + 1, y0 + 0, x0, y0, visited, queue);
+            trySeedTraversable(x0 + 2, y0 + 0, x0, y0, visited, queue);
+        }
+        if ((connections & (1 << 1)) != 0) {
+            trySeedTraversable(x0 + 3, y0 + 1, x0, y0, visited, queue);
+            trySeedTraversable(x0 + 3, y0 + 2, x0, y0, visited, queue);
+        }
+        if ((connections & (1 << 2)) != 0) {
+            trySeedTraversable(x0 + 1, y0 + 3, x0, y0, visited, queue);
+            trySeedTraversable(x0 + 2, y0 + 3, x0, y0, visited, queue);
+        }
+        if ((connections & (1 << 3)) != 0) {
+            trySeedTraversable(x0 + 0, y0 + 1, x0, y0, visited, queue);
+            trySeedTraversable(x0 + 0, y0 + 2, x0, y0, visited, queue);
+        }
+    }
+
+    private void trySeedTraversable(int wx, int wy, int x0, int y0,
+            boolean[][] visited, java.util.ArrayDeque<Position> queue) {
+        if (!isSquareTraversable(wx, wy)) {
+            return;
+        }
+        int lx = wx - x0;
+        int ly = wy - y0;
+        if (!visited[lx][ly]) {
+            visited[lx][ly] = true;
+            queue.add(new Position(wx, wy));
+        }
     }
 
     /** Puts a floor Item back on its Square after a Creature steps off. */

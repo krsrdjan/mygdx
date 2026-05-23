@@ -129,7 +129,7 @@ public class Monster extends Creature {
         }
 
         Position next = findNextStepBfs(getPosition(), hero.getPosition());
-        if (next != null && board.isWalkable(next.x, next.y)) {
+        if (next != null && board.isPassable(next.x, next.y)) {
             setPosition(next);
             speed--;
         } else {
@@ -170,7 +170,7 @@ public class Monster extends Creature {
                 int ny = p.y + d[1];
                 if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
                 if (visited[nx][ny]) continue;
-                if (!board.isWalkable(nx, ny)) continue;
+                if (!board.isPassable(nx, ny)) continue;
                 visited[nx][ny] = true;
                 parent[nx][ny] = p;
                 queue.add(new Position(nx, ny));

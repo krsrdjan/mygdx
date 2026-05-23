@@ -184,7 +184,8 @@ public class MyGdxGame extends ApplicationAdapter {
 				
 				// Draw creature on this square (hero, monsters, etc.)
 				Square square = gameBoard.getSquare(i, j);
-				if (square != null && square.getCreature() != null) {
+				if (square != null && square.getCreature() != null
+						&& (square.isExplored() || gameBoard.exploredAll)) {
 					Texture creatureTex = square.getCreature().getTexture();
 					if (creatureTex != null) {
 						batch.draw(creatureTex,

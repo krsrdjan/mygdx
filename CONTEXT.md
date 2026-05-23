@@ -11,16 +11,24 @@ The entire playable grid for one run (32×32 **Squares** arranged as 8×8 **Room
 _Avoid_: Level, map, board (except when referring to the `GameBoard` class in code)
 
 **Square**:
-One cell on the dungeon grid. May hold a wall texture, a **Creature**, or nothing (open floor).
+One cell on the dungeon grid. May hold a **Wall**, a **Rock**, a **Creature**, or open floor.
 _Avoid_: Tile (overloaded — see Flagged ambiguities)
 
 **Room**:
-A fixed 4×4 block of adjacent Squares (64 Squares total across the dungeon). Rooms are connected by carved passages; the dungeon layout is generated at the Room level then expanded to Squares.
+A fixed 4×4 block of adjacent Squares (64 Squares total across the dungeon). Rooms are connected by carved passages; the dungeon layout is generated at the Room level then expanded to Squares. Walkable **Squares** inside a **Room** may contain **Rocks** placed by **Room layout** (see **Rock**).
 _Avoid_: Chamber, zone, tile
 
 **Wall**:
-A Square whose texture is solid (non-walkable). All walls share one visual.
+A Square whose texture is solid (non-walkable). All perimeter **Walls** share one visual (black solid). Carved passages connect **Rooms**.
 _Avoid_: Block, obstacle
+
+**Rock**:
+An interior obstacle **Square** inside a **Room**—distinct from perimeter **Wall** (`rock.png`). Non-walkable; blocks **Hero** and **Monster** movement. **Monsters** and **Items** never spawn on **Rocks**. Placed by **Room layout** patterns.
+_Avoid_: Pillar, boulder, prop
+
+**Room layout**:
+The pattern of **Rocks** (or open floor) inside a **Room**, chosen from a small library based on how many exits the **Room** has. Dead-end **Rooms** (one exit) use chokepoint/ambush patterns; two-exit **Rooms** use medium patterns; junction **Rooms** (three or four exits) stay open. The **Hero** spawn **Room** always uses the open layout regardless of exit count. A pattern is rejected if it would split the **Room**'s floor into disconnected areas (which would trap **Monsters** or the **Hero**).
+_Avoid_: Room template, room type, biome
 
 **Position**:
 An immutable (x, y) coordinate on the Square grid. Origin is bottom-left; Y increases upward.
@@ -75,7 +83,7 @@ An enemy Creature placed by spawn-on-explore. Inactive until **Activated**; once
 _Avoid_: Enemy, mob, foe
 
 **Active** (monster):
-A Monster that has been Activated (typically because the Hero came **Near** it). Only Active Monsters act during the monster phase.
+A Monster that has been Activated (typically because the Hero came **Near** it). Only Active Monsters act during the monster phase. Active Monsters path toward the Hero through passable **Squares** regardless of fog (**Explored** or not).
 _Avoid_: Aggroed, awakened, engaged
 
 **Activated**:
