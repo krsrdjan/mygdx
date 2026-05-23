@@ -30,6 +30,10 @@ tasks.register('debug', JavaExec) {
     workingDir = project.assetsDir
     ignoreExitValue = true
     debug = true
+
+    if (OperatingSystem.current() == OperatingSystem.MAC_OS) {
+        jvmArgs += "-XstartOnFirstThread"
+    }
 }
 
 tasks.register('dist', Jar) {

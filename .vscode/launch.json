@@ -8,7 +8,8 @@
       "request": "launch",
       "mainClass": "com.mygdx.game.DesktopLauncher",
       "projectName": "desktop",
-      "cwd": "${workspaceFolder}/assets"
+      "cwd": "${workspaceFolder}/assets",
+      "vmArgs": "-XstartOnFirstThread"
     },
     {
       "name": "Debug Desktop (libGDX)",
@@ -18,7 +19,8 @@
       "projectName": "desktop",
       "cwd": "${workspaceFolder}/assets",
       "console": "integratedTerminal",
-      "stopOnEntry": false
+      "stopOnEntry": false,
+      "vmArgs": "-XstartOnFirstThread"
     },
     {
       "name": "Run Web (Gradle :teavm:run)",

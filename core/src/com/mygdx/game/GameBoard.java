@@ -20,7 +20,15 @@ public class GameBoard {
     public static final int SQUARE_SIZE = 64;
     public static final int BOARD_SQUARE_HEIGHT = 32;
     public static final int BOARD_SQUARE_WIDTH = 32;
+    public static final int ROOMS_WIDE = BOARD_SQUARE_WIDTH / 4;
+    public static final int ROOMS_TALL = BOARD_SQUARE_HEIGHT / 4;
+    public static final int TOTAL_ROOMS = ROOMS_WIDE * ROOMS_TALL;
     public boolean exploredAll = false;
+    private final boolean[][] roomExplored = new boolean[ROOMS_WIDE][ROOMS_TALL];
+    private int roomsExploredCount = 0;
+    private int monstersKilled = 0;
+    private boolean victory = false;
+    private boolean fullExplorationAnnounced = false;
     private StringCallback toastNotifier;
     private Texture wallTexture;
     private Texture unexploredTexture;
@@ -48,6 +56,26 @@ public class GameBoard {
 
     public int getRound() {
         return round;
+    }
+
+    public int getRoomsExploredCount() {
+        return roomsExploredCount;
+    }
+
+    public int getTotalRooms() {
+        return TOTAL_ROOMS;
+    }
+
+    public int getMonstersKilled() {
+        return monstersKilled;
+    }
+
+    public boolean isVictory() {
+        return victory;
+    }
+
+    public void recordMonsterKill() {
+        monstersKilled++;
     }
 
     public GameBoard() {
@@ -248,6 +276,10 @@ public class GameBoard {
             boolean newlyExplored = !square.isExplored();
             square.setExplored(true);
 
+            if (newlyExplored) {
+                markRoomExploredIfNew(x, y);
+            }
+
             if (spawnOnExplore && newlyExplored) {
                 int roomX = x / 4;
                 int roomY = y / 4;
@@ -257,6 +289,26 @@ public class GameBoard {
                         trySpawnMonsterInRoom(roomX, roomY);
                     }
                 }
+            }
+        }
+    }
+
+    private void markRoomExploredIfNew(int x, int y) {
+        int roomX = x / 4;
+        int roomY = y / 4;
+        if (roomX < 0 || roomX >= ROOMS_WIDE || roomY < 0 || roomY >= ROOMS_TALL) {
+            return;
+        }
+        if (roomExplored[roomX][roomY]) {
+            return;
+        }
+        roomExplored[roomX][roomY] = true;
+        roomsExploredCount++;
+        if (roomsExploredCount >= TOTAL_ROOMS) {
+            exploredAll = true;
+            if (!fullExplorationAnnounced) {
+                fullExplorationAnnounced = true;
+                showToast("All rooms explored! Survive this turn to win.");
             }
         }
     }
@@ -466,10 +518,30 @@ public class GameBoard {
     }
 
     public void endMonsterTurn() {
+        if (checkAndTriggerVictory()) {
+            return;
+        }
         round++;
         logCombat("Round " + round + " begins.");
         heroTurn = true;
         hero.startTurn();
+    }
+
+    private boolean checkAndTriggerVictory() {
+        if (victory) {
+            return true;
+        }
+        if (!hero.isAlive()) {
+            return false;
+        }
+        if (roomsExploredCount < TOTAL_ROOMS) {
+            return false;
+        }
+        victory = true;
+        heroTurn = false;
+        logCombat("Victory! The dungeon is fully explored.");
+        showToast("Victory! The dungeon is fully explored.");
+        return true;
     }
 
     public void notifyMonsterTurnComplete() {

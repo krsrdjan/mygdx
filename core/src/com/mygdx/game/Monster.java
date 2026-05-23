@@ -59,6 +59,7 @@ public class Monster extends Creature {
             if(square != null) {
                 square.setCreature(null);
             }
+            board.recordMonsterKill();
             board.removeMonster(this);
             if (new Random().nextFloat() < 0.5f) {
                 HealPotion potion = new HealPotion(board);

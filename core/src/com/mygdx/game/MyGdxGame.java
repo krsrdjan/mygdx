@@ -198,8 +198,9 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		// Render toasts above HUD
 		renderToasts();
+		renderVictoryDialog();
 		renderGameOverDialog();
-		handleGameOverInput();
+		handleEndRunInput();
 	}
 	
 	private void updateCamera() {
@@ -481,6 +482,12 @@ public class MyGdxGame extends ApplicationAdapter {
 				CENTER_X0 + (CENTER_X1 - CENTER_X0 - glyphLayout.width) / 2f,
 				HUD_PANEL_Y_TOP - 36f);
 
+		String roomsText = "Rooms " + gameBoard.getRoomsExploredCount() + " / " + gameBoard.getTotalRooms();
+		glyphLayout.setText(font, roomsText);
+		font.draw(batch, roomsText,
+				CENTER_X0 + (CENTER_X1 - CENTER_X0 - glyphLayout.width) / 2f,
+				HUD_PANEL_Y_TOP - 54f);
+
 		// END TURN button text
 		String endBtnText = "END TURN";
 		glyphLayout.setText(font, endBtnText);
@@ -599,6 +606,9 @@ public class MyGdxGame extends ApplicationAdapter {
 	}
 
 	public boolean handleHudClick(int screenX, int screenY) {
+		if (gameBoard.isVictory()) {
+			return false;
+		}
 		touchPoint.set(screenX, screenY, 0);
 		hudViewport.unproject(touchPoint);
 		Hero hero = gameBoard.getHero();
@@ -656,7 +666,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	}
 
 	private void renderMonsterHoverPopup() {
-		if (!gameBoard.getHero().isAlive()) return;
+		if (!gameBoard.getHero().isAlive() || gameBoard.isVictory()) return;
 
 		mouseWorldCoords.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 		worldViewport.unproject(mouseWorldCoords);
@@ -719,14 +729,24 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.end();
 	}
 
-	private void renderGameOverDialog() {
-		Hero hero = gameBoard.getHero();
-		if (hero == null || hero.isAlive()) {
+	private void renderVictoryDialog() {
+		if (gameBoard == null || !gameBoard.isVictory()) {
 			return;
 		}
+		renderEndRunDialog(true);
+	}
 
+	private void renderGameOverDialog() {
+		Hero hero = gameBoard.getHero();
+		if (hero == null || hero.isAlive() || gameBoard.isVictory()) {
+			return;
+		}
+		renderEndRunDialog(false);
+	}
+
+	private void renderEndRunDialog(boolean victory) {
 		final float panelWidth = 360f;
-		final float panelHeight = 220f;
+		final float panelHeight = 240f;
 		final float panelX = (hudCamera.viewportWidth - panelWidth) / 2f;
 		final float panelY = (hudCamera.viewportHeight - panelHeight) / 2f;
 
@@ -742,27 +762,44 @@ public class MyGdxGame extends ApplicationAdapter {
 		shapeRenderer.rect(0, 0, hudCamera.viewportWidth, hudCamera.viewportHeight);
 		shapeRenderer.setColor(0.1f, 0.1f, 0.1f, 0.95f);
 		shapeRenderer.rect(panelX, panelY, panelWidth, panelHeight);
-		shapeRenderer.setColor(0.75f, 0.1f, 0.1f, 1f);
+		if (victory) {
+			shapeRenderer.setColor(GOLD);
+		} else {
+			shapeRenderer.setColor(0.75f, 0.1f, 0.1f, 1f);
+		}
 		shapeRenderer.rect(buttonX, buttonY, buttonWidth, buttonHeight);
 		shapeRenderer.end();
 
+		String title = victory ? "Victory!" : "Game Over";
+		String subtitle = victory ? "The dungeon is fully explored." : "Your hero has fallen.";
+		String stats = "Round " + gameBoard.getRound() + "  \u00B7  Monsters killed " + gameBoard.getMonstersKilled();
+
 		batch.setProjectionMatrix(hudCamera.combined);
 		batch.begin();
+		font.setColor(victory ? GOLD : Color.WHITE);
+		glyphLayout.setText(font, title);
+		font.draw(batch, title, panelX + (panelWidth - glyphLayout.width) / 2f, panelY + panelHeight - 55f);
+
 		font.setColor(Color.WHITE);
-		glyphLayout.setText(font, "Game Over");
-		font.draw(batch, "Game Over", panelX + (panelWidth - glyphLayout.width) / 2f, panelY + panelHeight - 55f);
+		glyphLayout.setText(font, subtitle);
+		font.draw(batch, subtitle, panelX + (panelWidth - glyphLayout.width) / 2f, panelY + panelHeight - 90f);
 
-		glyphLayout.setText(font, "Your hero has fallen.");
-		font.draw(batch, "Your hero has fallen.", panelX + (panelWidth - glyphLayout.width) / 2f, panelY + panelHeight - 95f);
+		font.setColor(MUTED);
+		glyphLayout.setText(font, stats);
+		font.draw(batch, stats, panelX + (panelWidth - glyphLayout.width) / 2f, panelY + panelHeight - 120f);
 
+		font.setColor(victory ? GOLD_PILL_TEXT : Color.WHITE);
 		glyphLayout.setText(font, "Restart");
 		font.draw(batch, "Restart", buttonX + (buttonWidth - glyphLayout.width) / 2f, buttonY + (buttonHeight + glyphLayout.height) / 2f);
 		batch.end();
 	}
 
-	private void handleGameOverInput() {
+	private void handleEndRunInput() {
 		Hero hero = gameBoard.getHero();
-		if (hero == null || hero.isAlive() || !Gdx.input.justTouched()) {
+		if (hero == null || !Gdx.input.justTouched()) {
+			return;
+		}
+		if (hero.isAlive() && !gameBoard.isVictory()) {
 			return;
 		}
 
