@@ -640,28 +640,31 @@ public class MyGdxGame extends ApplicationAdapter {
 		float margin = 10f;
 		float available = hudCamera.viewportWidth - margin * 2f;
 		String sep = "  \u00B7  ";
+		font.setColor(LOG_DIM);
 		glyphLayout.setText(font, sep);
 		float sepW = glyphLayout.width;
 
-		// Compute widths, drop oldest if overflow
+		// Compute widths, drop oldest entries until the row fits the full HUD width.
 		java.util.List<String> entries = new java.util.ArrayList<>(recent);
 		float[] widths = new float[entries.size()];
-		float total = 0f;
-		for (int i = 0; i < entries.size(); i++) {
-			glyphLayout.setText(font, entries.get(i));
-			widths[i] = glyphLayout.width;
-			total += widths[i];
-			if (i > 0) total += sepW;
-		}
+		float total = measureCombatLogWidth(entries, widths, sepW);
 		while (total > available && entries.size() > 1) {
 			total -= widths[0];
-			if (entries.size() > 1) total -= sepW;
+			if (entries.size() > 1) {
+				total -= sepW;
+			}
 			entries.remove(0);
-			float[] w2 = new float[entries.size()];
-			System.arraycopy(widths, 1, w2, 0, entries.size());
-			widths = w2;
+			float[] trimmed = new float[entries.size()];
+			System.arraycopy(widths, 1, trimmed, 0, entries.size());
+			widths = trimmed;
+		}
+		if (total > available && entries.size() == 1) {
+			entries.set(0, truncateHudText(entries.get(0), available));
+			widths[0] = measureCombatLogEntryWidth(entries.get(0));
+			total = widths[0];
 		}
 
+		batch.setProjectionMatrix(hudCamera.combined);
 		batch.begin();
 		float x = margin;
 		float y = 16f;
@@ -681,6 +684,23 @@ public class MyGdxGame extends ApplicationAdapter {
 			}
 		}
 		batch.end();
+	}
+
+	private float measureCombatLogEntryWidth(String entry) {
+		glyphLayout.setText(font, entry);
+		return glyphLayout.width;
+	}
+
+	private float measureCombatLogWidth(java.util.List<String> entries, float[] widths, float sepW) {
+		float total = 0f;
+		for (int i = 0; i < entries.size(); i++) {
+			widths[i] = measureCombatLogEntryWidth(entries.get(i));
+			total += widths[i];
+			if (i > 0) {
+				total += sepW;
+			}
+		}
+		return total;
 	}
 
 	public boolean handleHudClick(int screenX, int screenY) {
