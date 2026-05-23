@@ -34,4 +34,14 @@ echo "Using Java: $(java -version 2>&1 | head -n 1)"
 echo "JAVA_HOME=$JAVA_HOME"
 
 chmod +x gradlew
-./gradlew :teavm:build --no-daemon
+# Clean teavm output so a partial Vercel build cache cannot leave index.html without app.js.
+./gradlew :teavm:clean :teavm:build --no-daemon
+
+SITE_DIR="teavm/build/dist/site"
+if [ ! -f "$SITE_DIR/app.js" ]; then
+  echo "ERROR: Missing $SITE_DIR/app.js after TeaVM build." >&2
+  find teavm/build/dist -type f 2>/dev/null | head -50 >&2 || true
+  exit 1
+fi
+
+echo "Web build ready ($(find "$SITE_DIR" -type f | wc -l | tr -d ' ') files in $SITE_DIR)"

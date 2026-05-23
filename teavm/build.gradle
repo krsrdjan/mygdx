@@ -4,7 +4,8 @@ plugins {
 
 gretty {
     contextPath = '/'
-    extraResourceBase 'build/dist/webapp'
+    // Flattened TeaVM output (app.js, assets/, scripts/ at root — matches index.html).
+    extraResourceBase 'build/dist/site'
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
@@ -23,6 +24,7 @@ dependencies {
 
 tasks.register("copyWebapp", Copy) {
     setDescription("Copy custom webapp resources (index.html, etc.) into the dist folder")
+    dependsOn tasks.named("buildJavaScript")
     from "webapp"
     into "build/dist/webapp"
 }
@@ -32,11 +34,29 @@ tasks.register("buildJavaScript", JavaExec) {
     setDescription("Transpile bytecode to JavaScript via TeaVM")
     mainClass.set(project.mainClassName)
     setClasspath(sourceSets.main.runtimeClasspath)
-    finalizedBy("copyWebapp")
 }
-build.dependsOn buildJavaScript
+
+def siteDir = layout.buildDirectory.dir("dist/site")
+
+tasks.register("stageWebDist", Sync) {
+    setDescription("Flatten TeaVM webapp/ output for static hosting (Vercel, Gretty)")
+    dependsOn tasks.named("copyWebapp")
+    from(layout.buildDirectory.dir("dist/webapp/webapp"))
+    into(siteDir)
+    doLast {
+        copy {
+            from "webapp/index.html"
+            into siteDir.get().asFile
+        }
+        if (!siteDir.get().file("app.js").asFile.exists()) {
+            throw new GradleException("TeaVM did not produce app.js — web build is incomplete.")
+        }
+    }
+}
+
+build.dependsOn tasks.named("stageWebDist")
 
 tasks.register("run") {
     description = "Run the JavaScript application hosted via a local Jetty server at http://localhost:8080/"
-    dependsOn(buildJavaScript, tasks.named("jettyRun"))
+    dependsOn(tasks.named("stageWebDist"), tasks.named("jettyRun"))
 }

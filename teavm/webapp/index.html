@@ -40,12 +40,9 @@
     </head>
     <body oncontextmenu="return false">
         <canvas id="canvas"></canvas>
-        <script>
-            async function start() {
-                main();
-            }
-            window.addEventListener("load", start);
-        </script>
         <script type="text/javascript" charset="utf-8" src="app.js"></script>
+        <script>
+            window.addEventListener("load", () => main());
+        </script>
     </body>
 </html>
