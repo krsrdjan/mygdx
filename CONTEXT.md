@@ -38,6 +38,17 @@ _Avoid_: Point, cell, tile coords
 The fixed bottom band of the screen showing stats, controls, and the **Combat log**. **Dungeon** art never renders here; the band keeps a consistent layout height across screen sizes. Touches on the **HUD strip** never pass through to the **Play area**—only mapped controls (weapon cards, **End turn**, etc.) do anything.
 _Avoid_: UI panel, overlay, bottom bar
 
+**Hero panel**:
+The left third of the **HUD strip**. Shows the **Hero** portrait, HP/MOV, and **Weapon card**s. Uses the same internal layout template as the **Adjacent monster panel**: **Panel inset**, stat rows with flexible HP/MOV bars, and right-aligned numeric values.
+_Avoid_: Player box, left HUD, status panel
+
+**Adjacent monster panel**:
+The right third of the **HUD strip**. Shown only when a **Monster** is **Near** the **Hero**; displays that **Monster**'s portrait, HP/MOV, and a left-aligned **Weapon** summary line (same **Panel inset** as the stat rows). Mirrors the **Hero panel** layout.
+_Avoid_: Enemy box, right HUD, target panel
+
+**Panel inset**:
+The uniform horizontal padding inside the **Hero panel** and **Adjacent monster panel** between content and the panel edges (12px at minimum HUD width). Long names and **Weapon** summary lines truncate with an ellipsis rather than overflow.
+
 **Play area**:
 The screen region above the **HUD strip** where the **Dungeon** is rendered. The camera frames the **Hero** within this region so a full **Room** stays readable.
 _Avoid_: World view, game canvas, viewport
@@ -135,7 +146,7 @@ The set of **Weapons** the **Hero** carries. Starts with **Axe** and **Sword**; 
 _Avoid_: Loadout, arsenal, equipment slots
 
 **Weapon card**:
-A HUD control showing one **Weapon** from the **Weapon inventory** (name, hit %, damage). Up to **3** cards when inventory is full. Tapping a card equips that **Weapon**. Gold underline marks the active **Weapon**.
+A **Hero panel** control showing one **Weapon** from the **Weapon inventory** (name, hit %, damage). Up to **3** cards when inventory is full. Tapping a card equips that **Weapon**. Gold underline marks the active **Weapon**.
 _Avoid_: Weapon slot, gear tab
 
 **Weapon pickup feedback**:

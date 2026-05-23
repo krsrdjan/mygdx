@@ -78,6 +78,16 @@ public class MyGdxGame extends ApplicationAdapter {
 	}
 	private static final float LEFT_X0 = 0f;
 	private static final float TOAST_Y = 195f;
+	private static final float HUD_PANEL_INSET = 12f;
+	private static final float HUD_PORTRAIT_SIZE = 32f;
+	private static final float HUD_NAME_X_OFFSET = 40f;
+	private static final float HUD_STAT_LABEL_COL_W = 36f;
+	private static final float HUD_STAT_ROW_GAP = 8f;
+	private static final float HUD_BAR_H = 10f;
+	private static final float HUD_HP_TEXT_Y = 105f;
+	private static final float HUD_HP_BAR_Y = 96f;
+	private static final float HUD_MOV_TEXT_Y = 83f;
+	private static final float HUD_MOV_BAR_Y = 74f;
 	private static final float WEAPON_CARD_W = 114f;
 	private static final float WEAPON_CARD_H = 44f;
 	private static final float WEAPON_CARD_GAP = 8f;
@@ -343,28 +353,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		shapeRenderer.rect(0, 0, hudCamera.viewportWidth, LOG_STRIP_H);
 
 		// Hero HP bar
-		float hpBarX = LEFT_X0 + 52f;
-		float hpBarY = HUD_PANEL_Y_BOTTOM + 96f;
-		float hpBarW = 160f;
-		float hpBarH = 10f;
-		shapeRenderer.setColor(DIM_TRACK);
-		shapeRenderer.rect(hpBarX, hpBarY, hpBarW, hpBarH);
-		int maxHp = Math.max(1, hero.getMaxHealth());
-		float hpFill = Math.max(0f, Math.min(1f, hero.getHealth() / (float) maxHp));
-		shapeRenderer.setColor(HP_RED);
-		shapeRenderer.rect(hpBarX, hpBarY, hpBarW * hpFill, hpBarH);
+		drawHudStatBar(LEFT_X0, hudLeftX1, hero.getHealth() + " / " + hero.getMaxHealth(),
+				Math.max(0f, Math.min(1f, hero.getHealth() / (float) Math.max(1, hero.getMaxHealth()))),
+				HUD_PANEL_Y_BOTTOM + HUD_HP_BAR_Y, HP_RED);
 
 		// Hero MOV bar
-		float movBarX = hpBarX;
-		float movBarY = HUD_PANEL_Y_BOTTOM + 74f;
-		float movBarW = hpBarW;
-		float movBarH = hpBarH;
-		shapeRenderer.setColor(DIM_TRACK);
-		shapeRenderer.rect(movBarX, movBarY, movBarW, movBarH);
-		int maxSpeed = Math.max(1, hero.getMaxSpeed());
-		float movFill = Math.max(0f, Math.min(1f, hero.getSpeed() / (float) maxSpeed));
-		shapeRenderer.setColor(MOV_BLUE);
-		shapeRenderer.rect(movBarX, movBarY, movBarW * movFill, movBarH);
+		drawHudStatBar(LEFT_X0, hudLeftX1, String.valueOf(hero.getSpeed()),
+				Math.max(0f, Math.min(1f, hero.getSpeed() / (float) Math.max(1, hero.getMaxSpeed()))),
+				HUD_PANEL_Y_BOTTOM + HUD_MOV_BAR_Y, MOV_BLUE);
 
 		// Weapon cards: dark card backgrounds + gold underline on active
 		Weapon activeWeapon = hero.getCurrentWeapon();
@@ -404,27 +400,14 @@ public class MyGdxGame extends ApplicationAdapter {
 		// Enemy panel content
 		if (adjacent != null) {
 			int enemyMaxHp = Math.max(1, adjacent.getMaxHealth());
-			float eBarX = hudRightX0 + 48f;
-			float eBarY = HUD_PANEL_Y_BOTTOM + 96f;
-			float eBarW = 150f;
-			float eBarH = 10f;
-			shapeRenderer.setColor(DIM_TRACK);
-			shapeRenderer.rect(eBarX, eBarY, eBarW, eBarH);
-			float eFill = Math.max(0f, Math.min(1f, adjacent.getHealth() / (float) enemyMaxHp));
-			shapeRenderer.setColor(HP_RED);
-			shapeRenderer.rect(eBarX, eBarY, eBarW * eFill, eBarH);
+			drawHudStatBar(hudRightX0, hudCamera.viewportWidth,
+					adjacent.getHealth() + " / " + adjacent.getMaxHealth(),
+					Math.max(0f, Math.min(1f, adjacent.getHealth() / (float) enemyMaxHp)),
+					HUD_PANEL_Y_BOTTOM + HUD_HP_BAR_Y, HP_RED);
 
-			// Enemy MOV bar
-			float eMovBarX = eBarX;
-			float eMovBarY = HUD_PANEL_Y_BOTTOM + 72f;
-			float eMovBarW = eBarW;
-			float eMovBarH = eBarH;
-			shapeRenderer.setColor(DIM_TRACK);
-			shapeRenderer.rect(eMovBarX, eMovBarY, eMovBarW, eMovBarH);
-			int eMaxSpeed = Math.max(1, adjacent.getMaxSpeed());
-			float eMovFill = Math.max(0f, Math.min(1f, adjacent.getSpeed() / (float) eMaxSpeed));
-			shapeRenderer.setColor(MOV_BLUE);
-			shapeRenderer.rect(eMovBarX, eMovBarY, eMovBarW * eMovFill, eMovBarH);
+			drawHudStatBar(hudRightX0, hudCamera.viewportWidth, String.valueOf(adjacent.getSpeed()),
+					Math.max(0f, Math.min(1f, adjacent.getSpeed() / (float) Math.max(1, adjacent.getMaxSpeed()))),
+					HUD_PANEL_Y_BOTTOM + HUD_MOV_BAR_Y, MOV_BLUE);
 		}
 
 		shapeRenderer.end();
@@ -468,23 +451,12 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.begin();
 
 		// Hero portrait (top-left) + HERO label to its right
-		Texture heroPortrait = hero.getTexture();
-		if (heroPortrait != null) {
-			batch.setColor(Color.WHITE);
-			batch.draw(heroPortrait, LEFT_X0 + 12f, HUD_PANEL_Y_TOP - 44f, 32f, 32f);
-		}
-		font.setColor(GOLD);
-		font.draw(batch, "HERO", LEFT_X0 + 52f, HUD_PANEL_Y_TOP - 20f);
+		drawHudPanelHeader(LEFT_X0, hudLeftX1, hero.getTexture(), "HERO", GOLD);
 
-		// HP
-		font.setColor(Color.WHITE);
-		font.draw(batch, "HP", LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 105f);
-		String hpText = hero.getHealth() + " / " + hero.getMaxHealth();
-		font.draw(batch, hpText, LEFT_X0 + 222f, HUD_PANEL_Y_BOTTOM + 105f);
-
-		// MOV
-		font.draw(batch, "MOV", LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 83f);
-		font.draw(batch, String.valueOf(hero.getSpeed()), LEFT_X0 + 222f, HUD_PANEL_Y_BOTTOM + 83f);
+		drawHudStatText(LEFT_X0, hudLeftX1, "HP",
+				hero.getHealth() + " / " + hero.getMaxHealth(), HUD_PANEL_Y_BOTTOM + HUD_HP_TEXT_Y);
+		drawHudStatText(LEFT_X0, hudLeftX1, "MOV",
+				String.valueOf(hero.getSpeed()), HUD_PANEL_Y_BOTTOM + HUD_MOV_TEXT_Y);
 
 		// Weapon cards
 		Weapon activeWeapon = hero.getCurrentWeapon();
@@ -558,33 +530,23 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		// Enemy panel (mirror hero: portrait top-left, name to its right)
 		if (adjacent != null) {
-			Texture portrait = adjacent.getTexture();
-			if (portrait != null) {
-				batch.setColor(Color.WHITE);
-				batch.draw(portrait, hudRightX0 + 12f, HUD_PANEL_Y_TOP - 44f, 32f, 32f);
-			}
+			drawHudPanelHeader(hudRightX0, hudCamera.viewportWidth, adjacent.getTexture(),
+					adjacent.getName().toUpperCase(), GOLD);
 
-			font.setColor(GOLD);
-			font.draw(batch, adjacent.getName().toUpperCase(), hudRightX0 + 52f, HUD_PANEL_Y_TOP - 20f);
+			drawHudStatText(hudRightX0, hudCamera.viewportWidth, "HP",
+					adjacent.getHealth() + " / " + adjacent.getMaxHealth(),
+					HUD_PANEL_Y_BOTTOM + HUD_HP_TEXT_Y);
+			drawHudStatText(hudRightX0, hudCamera.viewportWidth, "MOV",
+					String.valueOf(adjacent.getSpeed()), HUD_PANEL_Y_BOTTOM + HUD_MOV_TEXT_Y);
 
-			// HP row
-			font.setColor(Color.WHITE);
-			font.draw(batch, "HP", hudRightX0 + 12f, HUD_PANEL_Y_BOTTOM + 105f);
-			font.draw(batch, adjacent.getHealth() + " / " + adjacent.getMaxHealth(),
-					hudRightX0 + 206f, HUD_PANEL_Y_BOTTOM + 105f);
-
-			// MOV row
-			font.draw(batch, "MOV", hudRightX0 + 12f, HUD_PANEL_Y_BOTTOM + 81f);
-			font.draw(batch, String.valueOf(adjacent.getSpeed()),
-					hudRightX0 + 206f, HUD_PANEL_Y_BOTTOM + 81f);
-
-			// Weapon summary
 			Weapon mw = adjacent.getWeapon();
 			if (mw != null) {
 				int pct = Math.round(mw.getChanceToHit() * 100);
 				String line = mw.getName() + "  \u00B7  " + pct + "% hit  \u00B7  " + mw.getDamage() + " dmg";
+				float contentLeft = hudContentLeft(hudRightX0);
+				float maxLineW = hudContentRight(hudCamera.viewportWidth) - contentLeft;
 				font.setColor(MUTED);
-				font.draw(batch, line, hudRightX0 + 12f, HUD_PANEL_Y_BOTTOM + 40f);
+				font.draw(batch, truncateHudText(line, maxLineW), contentLeft, HUD_PANEL_Y_BOTTOM + 40f);
 			}
 		}
 
@@ -597,6 +559,76 @@ public class MyGdxGame extends ApplicationAdapter {
 	private void drawCenteredText(String text, float centerX, float y) {
 		glyphLayout.setText(font, text);
 		font.draw(batch, text, centerX - glyphLayout.width / 2f, y);
+	}
+
+	private float hudContentLeft(float panelX0) {
+		return panelX0 + HUD_PANEL_INSET;
+	}
+
+	private float hudContentRight(float panelX1) {
+		return panelX1 - HUD_PANEL_INSET;
+	}
+
+	private float hudStatBarWidth(float panelX0, float panelX1, String valueText) {
+		glyphLayout.setText(font, valueText);
+		float barX = hudContentLeft(panelX0) + HUD_STAT_LABEL_COL_W;
+		float barEnd = hudContentRight(panelX1) - HUD_STAT_ROW_GAP - glyphLayout.width;
+		return Math.max(20f, barEnd - barX);
+	}
+
+	private float hudStatBarX(float panelX0) {
+		return hudContentLeft(panelX0) + HUD_STAT_LABEL_COL_W;
+	}
+
+	private void drawHudStatBar(float panelX0, float panelX1, String valueText, float fillRatio, float barY,
+			Color fillColor) {
+		float barX = hudStatBarX(panelX0);
+		float barWidth = hudStatBarWidth(panelX0, panelX1, valueText);
+		shapeRenderer.setColor(DIM_TRACK);
+		shapeRenderer.rect(barX, barY, barWidth, HUD_BAR_H);
+		shapeRenderer.setColor(fillColor);
+		shapeRenderer.rect(barX, barY, barWidth * fillRatio, HUD_BAR_H);
+	}
+
+	private void drawHudStatText(float panelX0, float panelX1, String label, String valueText, float textY) {
+		font.setColor(Color.WHITE);
+		font.draw(batch, label, hudContentLeft(panelX0), textY);
+		glyphLayout.setText(font, valueText);
+		font.draw(batch, valueText, hudContentRight(panelX1) - glyphLayout.width, textY);
+	}
+
+	private void drawHudPanelHeader(float panelX0, float panelX1, Texture portrait, String name, Color nameColor) {
+		float contentLeft = hudContentLeft(panelX0);
+		float contentRight = hudContentRight(panelX1);
+		if (portrait != null) {
+			batch.setColor(Color.WHITE);
+			batch.draw(portrait, contentLeft, HUD_PANEL_Y_TOP - 44f, HUD_PORTRAIT_SIZE, HUD_PORTRAIT_SIZE);
+		}
+		font.setColor(nameColor);
+		float nameX = contentLeft + HUD_NAME_X_OFFSET;
+		font.draw(batch, truncateHudText(name, contentRight - nameX), nameX, HUD_PANEL_Y_TOP - 20f);
+	}
+
+	private String truncateHudText(String text, float maxWidth) {
+		glyphLayout.setText(font, text);
+		if (glyphLayout.width <= maxWidth) {
+			return text;
+		}
+		final String ellipsis = "...";
+		glyphLayout.setText(font, ellipsis);
+		if (glyphLayout.width > maxWidth) {
+			return "";
+		}
+		String trimmed = text;
+		while (trimmed.length() > 0) {
+			String candidate = trimmed + ellipsis;
+			glyphLayout.setText(font, candidate);
+			if (glyphLayout.width <= maxWidth) {
+				return candidate;
+			}
+			trimmed = trimmed.substring(0, trimmed.length() - 1);
+		}
+		return ellipsis;
 	}
 
 	private void renderCombatLog() {
