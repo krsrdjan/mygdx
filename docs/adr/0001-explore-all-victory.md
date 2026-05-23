@@ -1,5 +1,7 @@
 # Explore-all victory with survive-the-turn resolution
 
+> **Superseded by [ADR 0004](0004-exit-stairs-multi-floor-victory.md).** Kept for history.
+
 The game had no win condition—only death and restart. We needed a goal that fits the existing fog-of-war, room-by-room exploration loop without new art or AI systems.
 
 **Decision:** The player wins by fully exploring the dungeon (all 64 Rooms visited). Victory is checked after the Hero ends turn on the turn the last Room was explored, the monster phase runs normally, and the Hero is still alive. Game over takes precedence if the Hero dies during that monster phase. The Victory and Game over screens both show Round count and Monsters killed; the HUD shows Rooms explored (X / 64) during the run. When the final Room is explored, a toast and combat log message warn the player to survive the turn.

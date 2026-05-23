@@ -13,8 +13,8 @@ public class RoomMazeGenerator {
     public static final int WALL = 1;
     public static final int ROCK = 2;
 
-    private static final int HERO_SPAWN_ROOM_X = 4;
-    private static final int HERO_SPAWN_ROOM_Y = 4;
+    public static final int ENTRY_ROOM_X = 4;
+    public static final int ENTRY_ROOM_Y = 4;
 
     /** Local (x,y) within a 4×4 room — only placed on walkable cells. */
     private static final int[][][] AMBUSH_PATTERNS = {
@@ -51,18 +51,77 @@ public class RoomMazeGenerator {
      * Places {@link #ROCK} cells by {@link #ROOM_SIZE room} exit count. Call after perimeter walls are
      * finalized (e.g. after {@code ensureRoomInteriorsEmpty} in {@link GameBoard}).
      */
-    public void applyRoomLayouts(int[][] maze, int[][] roomConnections) {
+    public void applyRoomLayouts(int[][] maze, int[][] roomConnections, int exitRoomX, int exitRoomY) {
         if (roomConnections == null) {
             return;
         }
         for (int ry = 0; ry < ROOMS_H; ry++) {
             for (int rx = 0; rx < ROOMS_W; rx++) {
-                if (rx == HERO_SPAWN_ROOM_X && ry == HERO_SPAWN_ROOM_Y) {
+                if (isOpenLayoutRoom(rx, ry, exitRoomX, exitRoomY)) {
                     continue;
                 }
                 applyLayoutForRoom(maze, rx, ry, roomConnections[ry][rx]);
             }
         }
+    }
+
+    private static boolean isOpenLayoutRoom(int roomX, int roomY, int exitRoomX, int exitRoomY) {
+        return (roomX == ENTRY_ROOM_X && roomY == ENTRY_ROOM_Y)
+                || (roomX == exitRoomX && roomY == exitRoomY);
+    }
+
+    /** Picks a room at maximum hop count from the entry room; random tie-break. Never the entry room. */
+    public int[] pickExitRoom(int[][] roomConnections) {
+        int[][] dist = new int[ROOMS_H][ROOMS_W];
+        for (int y = 0; y < ROOMS_H; y++) {
+            Arrays.fill(dist[y], -1);
+        }
+
+        ArrayDeque<int[]> queue = new ArrayDeque<>();
+        dist[ENTRY_ROOM_Y][ENTRY_ROOM_X] = 0;
+        queue.add(new int[] { ENTRY_ROOM_X, ENTRY_ROOM_Y });
+
+        while (!queue.isEmpty()) {
+            int[] cell = queue.poll();
+            int x = cell[0];
+            int y = cell[1];
+            int connections = roomConnections[y][x];
+            for (int d = 0; d < 4; d++) {
+                if ((connections & (1 << d)) == 0) {
+                    continue;
+                }
+                int nx = x + DIRS[d][0];
+                int ny = y + DIRS[d][1];
+                if (nx < 0 || nx >= ROOMS_W || ny < 0 || ny >= ROOMS_H || dist[ny][nx] >= 0) {
+                    continue;
+                }
+                dist[ny][nx] = dist[y][x] + 1;
+                queue.add(new int[] { nx, ny });
+            }
+        }
+
+        int maxDist = -1;
+        for (int y = 0; y < ROOMS_H; y++) {
+            for (int x = 0; x < ROOMS_W; x++) {
+                if (dist[y][x] > maxDist) {
+                    maxDist = dist[y][x];
+                }
+            }
+        }
+
+        List<int[]> farthest = new ArrayList<>();
+        for (int y = 0; y < ROOMS_H; y++) {
+            for (int x = 0; x < ROOMS_W; x++) {
+                if (dist[y][x] == maxDist && !(x == ENTRY_ROOM_X && y == ENTRY_ROOM_Y)) {
+                    farthest.add(new int[] { x, y });
+                }
+            }
+        }
+
+        if (farthest.isEmpty()) {
+            return new int[] { ENTRY_ROOM_X, ROOMS_H - 1 };
+        }
+        return farthest.get(random.nextInt(farthest.size()));
     }
 
     private void applyLayoutForRoom(int[][] maze, int roomX, int roomY, int connections) {

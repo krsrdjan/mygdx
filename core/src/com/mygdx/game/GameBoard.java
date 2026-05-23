@@ -1,11 +1,16 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameBoard {
+
+    public static final int TOTAL_FLOORS = 3;
+    public static final int ENTRY_ROOM_X = RoomMazeGenerator.ENTRY_ROOM_X;
+    public static final int ENTRY_ROOM_Y = RoomMazeGenerator.ENTRY_ROOM_Y;
 
     private Square[][] board;
     private Hero hero;
@@ -24,18 +29,18 @@ public class GameBoard {
     public static final int BOARD_SQUARE_WIDTH = 32;
     public static final int ROOMS_WIDE = BOARD_SQUARE_WIDTH / 4;
     public static final int ROOMS_TALL = BOARD_SQUARE_HEIGHT / 4;
-    public static final int TOTAL_ROOMS = ROOMS_WIDE * ROOMS_TALL;
-    public boolean exploredAll = false;
-    private final boolean[][] roomExplored = new boolean[ROOMS_WIDE][ROOMS_TALL];
-    private int roomsExploredCount = 0;
+
+    private int currentFloor = 1;
+    private int exitRoomX;
+    private int exitRoomY;
     private int monstersKilled = 0;
     private boolean victory = false;
-    private boolean fullExplorationAnnounced = false;
     private StringCallback toastNotifier;
     private Texture wallTexture;
     private Texture rockTexture;
     private Texture unexploredTexture;
-    private final int[][] roomConnections;
+    private Texture stairsTexture;
+    private int[][] roomConnections;
     private final CombatLog combatLog = new CombatLog();
     private int round = 1;
 
@@ -62,12 +67,12 @@ public class GameBoard {
         return round;
     }
 
-    public int getRoomsExploredCount() {
-        return roomsExploredCount;
+    public int getCurrentFloor() {
+        return currentFloor;
     }
 
-    public int getTotalRooms() {
-        return TOTAL_ROOMS;
+    public int getTotalFloors() {
+        return TOTAL_FLOORS;
     }
 
     public int getMonstersKilled() {
@@ -88,27 +93,48 @@ public class GameBoard {
         wallTexture = TextureCache.getOrCreateSolid("_wall", 0.0f, 0.0f, 0.0f, 1.0f, SQUARE_SIZE);
         rockTexture = TextureCache.get("rock.png");
         unexploredTexture = TextureCache.getOrCreateSolid("_unexplored", 0.2f, 0.2f, 0.2f, 1.0f, SQUARE_SIZE);
+        stairsTexture = loadStairsTexture();
 
-        // Initialize all squares as empty floors
-        for (int x = 0; x < BOARD_SQUARE_WIDTH; x++) {
-            for (int y = 0; y < BOARD_SQUARE_HEIGHT; y++) {
-                board[x][y] = new Square(null);
+        hero = new Hero("hero.png", TEST_MODE ? 200 : 8, this);
+        if (TEST_MODE) {
+            hero.setMaxSpeed(200);
+        }
+
+        currentFloor = 1;
+        round = 1;
+        monstersKilled = 0;
+        generateCurrentFloor();
+        spawnOnExplore = true;
+    }
+
+    private Texture loadStairsTexture() {
+        if (Gdx.files.internal("stairs-down.png").exists()) {
+            return TextureCache.get("stairs-down.png");
+        }
+        return TextureCache.getOrCreateSolid("_stairs", 0.35f, 0.28f, 0.22f, 1.0f, SQUARE_SIZE * 2);
+    }
+
+    private void generateCurrentFloor() {
+        monsters.clear();
+        items.clear();
+        for (int x = 0; x < ROOMS_WIDE; x++) {
+            for (int y = 0; y < ROOMS_TALL; y++) {
+                roomSpawnAttempted[x][y] = false;
             }
         }
 
-        // Generate walls using RoomMazeGenerator
         RoomMazeGenerator generator = new RoomMazeGenerator();
         int[][] maze = generator.generate();
         roomConnections = generator.getRoomConnections();
-        
-        // Remove isolated single walls, keep walls that are part of larger structures
+        int[] exit = generator.pickExitRoom(roomConnections);
+        exitRoomX = exit[0];
+        exitRoomY = exit[1];
+
         int[][] cleanedMaze = removeIsolatedWalls(maze);
-        
-        // Ensure inner 2×2 of every room stays floor (perimeter walls unchanged)
         int[][] roomCleanedMaze = ensureRoomInteriorsEmpty(cleanedMaze);
+        generator.applyRoomLayouts(roomCleanedMaze, roomConnections, exitRoomX, exitRoomY);
 
-        generator.applyRoomLayouts(roomCleanedMaze, generator.getRoomConnections());
-
+        resetBoardCells();
         for (int x = 0; x < BOARD_SQUARE_WIDTH; x++) {
             for (int y = 0; y < BOARD_SQUARE_HEIGHT; y++) {
                 int cell = roomCleanedMaze[y][x];
@@ -120,19 +146,102 @@ public class GameBoard {
             }
         }
 
-        hero = new Hero("hero.png", TEST_MODE ? 200 : 8, this);
-        if (TEST_MODE) {
-            hero.setMaxSpeed(200);
-        }
-        Position spawn = findNearestEmpty(new Position(16, 16));
+        spawnOnExplore = false;
+        roomSpawnAttempted[ENTRY_ROOM_X][ENTRY_ROOM_Y] = true;
+        Position spawn = findNearestEmpty(entryRoomCenter());
         spawn = fallbackFindAnyEmpty(spawn);
         if (spawn == null) {
             spawn = new Position(0, 0);
         }
         hero.setPosition(spawn);
-        // Enable spawning only after initial placement to avoid flooding the start room
+        exploreEntryRoomFully();
+        heroTurn = true;
+        hero.startTurn();
         spawnOnExplore = true;
+    }
 
+    private Position entryRoomCenter() {
+        return new Position(ENTRY_ROOM_X * 4 + 2, ENTRY_ROOM_Y * 4 + 2);
+    }
+
+    private void resetBoardCells() {
+        for (int x = 0; x < BOARD_SQUARE_WIDTH; x++) {
+            for (int y = 0; y < BOARD_SQUARE_HEIGHT; y++) {
+                board[x][y] = new Square(null);
+            }
+        }
+    }
+
+    private void exploreEntryRoomFully() {
+        int startX = ENTRY_ROOM_X * 4;
+        int startY = ENTRY_ROOM_Y * 4;
+        for (int dx = 0; dx < 4; dx++) {
+            for (int dy = 0; dy < 4; dy++) {
+                Square square = board[startX + dx][startY + dy];
+                square.setExplored(true);
+            }
+        }
+    }
+
+    public Texture getStairsTexture() {
+        return stairsTexture;
+    }
+
+    public boolean isStairsAreaVisible() {
+        Square corner = getSquare(exitRoomX * 4 + 1, exitRoomY * 4 + 1);
+        return corner != null && corner.isExplored();
+    }
+
+    public int getStairsDrawX() {
+        return exitRoomX * 4 + 1;
+    }
+
+    public int getStairsDrawY() {
+        return exitRoomY * 4 + 1;
+    }
+
+    public void onHeroLandedOn(Position position) {
+        if (victory || !hero.isAlive()) {
+            return;
+        }
+        if (!isStairsSquare(position.x, position.y)) {
+            return;
+        }
+        hero.endTurn();
+        if (currentFloor >= TOTAL_FLOORS) {
+            triggerVictory();
+        } else {
+            descendToNextFloor();
+        }
+    }
+
+    private void descendToNextFloor() {
+        currentFloor++;
+        logCombat("Descending to Floor " + currentFloor + "...");
+        showToast("Descending to Floor " + currentFloor + "...");
+        generateCurrentFloor();
+    }
+
+    private void triggerVictory() {
+        victory = true;
+        heroTurn = false;
+        logCombat("Victory! You reached the deepest level.");
+        showToast("Victory! You reached the deepest level.");
+    }
+
+    private boolean isEntryRoom(int roomX, int roomY) {
+        return roomX == ENTRY_ROOM_X && roomY == ENTRY_ROOM_Y;
+    }
+
+    private boolean isStairsSquare(int worldX, int worldY) {
+        int roomX = worldX / 4;
+        int roomY = worldY / 4;
+        if (roomX != exitRoomX || roomY != exitRoomY) {
+            return false;
+        }
+        int localX = worldX % 4;
+        int localY = worldY % 4;
+        return localX >= 1 && localX <= 2 && localY >= 1 && localY <= 2;
     }
 
 	private Position findNearestEmpty(Position start) {
@@ -270,6 +379,9 @@ public class GameBoard {
         if (x < 0 || y < 0 || x >= BOARD_SQUARE_WIDTH || y >= BOARD_SQUARE_HEIGHT) {
             return false;
         }
+        if (TEST_MODE) {
+            return isHeroTraversable(x, y);
+        }
         Square s = board[x][y];
         // Hero click-to-move preview; monsters use isPassable instead
         return s.isExplored() && isSquareTraversable(x, y);
@@ -278,7 +390,7 @@ public class GameBoard {
     public Texture getTexture(int x, int y) {
         if (x >= 0 && x < BOARD_SQUARE_WIDTH && y >= 0 && y < BOARD_SQUARE_HEIGHT) {
             Square square = board[x][y];
-            if (square.isExplored() || exploredAll) {
+            if (square.isExplored()) {
                 return square.getTexture();
             } else {
                 return unexploredTexture;
@@ -294,39 +406,15 @@ public class GameBoard {
             boolean newlyExplored = !square.isExplored();
             square.setExplored(true);
 
-            if (newlyExplored) {
-                markRoomExploredIfNew(x, y);
-            }
-
-            if (spawnOnExplore && newlyExplored) {
+            if (newlyExplored && spawnOnExplore) {
                 int roomX = x / 4;
                 int roomY = y / 4;
                 if (roomX >= 0 && roomX < roomSpawnAttempted.length && roomY >= 0 && roomY < roomSpawnAttempted[0].length) {
-                    if (!roomSpawnAttempted[roomX][roomY]) {
+                    if (!roomSpawnAttempted[roomX][roomY] && !isEntryRoom(roomX, roomY)) {
                         roomSpawnAttempted[roomX][roomY] = true;
                         trySpawnMonsterInRoom(roomX, roomY);
                     }
                 }
-            }
-        }
-    }
-
-    private void markRoomExploredIfNew(int x, int y) {
-        int roomX = x / 4;
-        int roomY = y / 4;
-        if (roomX < 0 || roomX >= ROOMS_WIDE || roomY < 0 || roomY >= ROOMS_TALL) {
-            return;
-        }
-        if (roomExplored[roomX][roomY]) {
-            return;
-        }
-        roomExplored[roomX][roomY] = true;
-        roomsExploredCount++;
-        if (roomsExploredCount >= TOTAL_ROOMS) {
-            exploredAll = true;
-            if (!fullExplorationAnnounced) {
-                fullExplorationAnnounced = true;
-                showToast("All rooms explored! Survive this turn to win.");
             }
         }
     }
@@ -340,7 +428,8 @@ public class GameBoard {
                 int sx = startX + dx;
                 int sy = startY + dy;
                 if (sx >= 0 && sx < BOARD_SQUARE_WIDTH && sy >= 0 && sy < BOARD_SQUARE_HEIGHT) {
-                    if (isSquareEmpty(sx, sy) && isReachableFromRoomDoors(sx, sy, roomX, roomY)) {
+                    if (isSquareEmpty(sx, sy) && !isStairsSquare(sx, sy)
+                            && isReachableFromRoomDoors(sx, sy, roomX, roomY)) {
                         candidates.add(new Position(sx, sy));
                     }
                 }
@@ -349,11 +438,7 @@ public class GameBoard {
         if (!candidates.isEmpty()) {
             Position p = candidates.get(random.nextInt(candidates.size()));
 
-            if (TEST_MODE) {
-                WeaponPickup item = createRandomWeaponPickup();
-                item.setPosition(p);
-                items.add(item);
-            } else if (random.nextFloat() < 0.20f) {  // ~20% chance of item instead of monster
+            if (random.nextFloat() < 0.20f) {  // ~20% chance of item instead of monster
                 Item item = random.nextFloat() < 0.5f
                         ? new GreaterHealPotion(this)
                         : createRandomWeaponPickup();
@@ -438,7 +523,7 @@ public class GameBoard {
 
     public WeaponPickup getWeaponPickupAt(int x, int y) {
         Square square = getSquare(x, y);
-        if (square == null || (!square.isExplored() && !exploredAll)) {
+        if (square == null || !square.isExplored()) {
             return null;
         }
         for (Item item : items) {
@@ -495,46 +580,46 @@ public class GameBoard {
 
         if (Math.abs(dx) >= Math.abs(dy)) {
             if (dx > 0) {
-                if (isSquareTraversable(heroPos.x + 1, heroPos.y)) {
+                if (isHeroTraversable(heroPos.x + 1, heroPos.y)) {
                     hero.moveRight();
                     return;
                 }
             } else if (dx < 0) {
-                if (isSquareTraversable(heroPos.x - 1, heroPos.y)) {
+                if (isHeroTraversable(heroPos.x - 1, heroPos.y)) {
                     hero.moveLeft();
                     return;
                 }
             }
             if (dy > 0) {
-                if (isSquareTraversable(heroPos.x, heroPos.y + 1)) {
+                if (isHeroTraversable(heroPos.x, heroPos.y + 1)) {
                     hero.moveUp();
                     return;
                 }
             } else if (dy < 0) {
-                if (isSquareTraversable(heroPos.x, heroPos.y - 1)) {
+                if (isHeroTraversable(heroPos.x, heroPos.y - 1)) {
                     hero.moveDown();
                     return;
                 }
             }
         } else {
             if (dy > 0) {
-                if (isSquareTraversable(heroPos.x, heroPos.y + 1)) {
+                if (isHeroTraversable(heroPos.x, heroPos.y + 1)) {
                     hero.moveUp();
                     return;
                 }
             } else if (dy < 0) {
-                if (isSquareTraversable(heroPos.x, heroPos.y - 1)) {
+                if (isHeroTraversable(heroPos.x, heroPos.y - 1)) {
                     hero.moveDown();
                     return;
                 }
             }
             if (dx > 0) {
-                if (isSquareTraversable(heroPos.x + 1, heroPos.y)) {
+                if (isHeroTraversable(heroPos.x + 1, heroPos.y)) {
                     hero.moveRight();
                     return;
                 }
             } else if (dx < 0) {
-                if (isSquareTraversable(heroPos.x - 1, heroPos.y)) {
+                if (isHeroTraversable(heroPos.x - 1, heroPos.y)) {
                     hero.moveLeft();
                     return;
                 }
@@ -595,30 +680,10 @@ public class GameBoard {
     }
 
     public void endMonsterTurn() {
-        if (checkAndTriggerVictory()) {
-            return;
-        }
         round++;
         logCombat("Round " + round + " begins.");
         heroTurn = true;
         hero.startTurn();
-    }
-
-    private boolean checkAndTriggerVictory() {
-        if (victory) {
-            return true;
-        }
-        if (!hero.isAlive()) {
-            return false;
-        }
-        if (roomsExploredCount < TOTAL_ROOMS) {
-            return false;
-        }
-        victory = true;
-        heroTurn = false;
-        logCombat("Victory! The dungeon is fully explored.");
-        showToast("Victory! The dungeon is fully explored.");
-        return true;
     }
 
     public void notifyMonsterTurnComplete() {
@@ -653,6 +718,23 @@ public class GameBoard {
         Square square = board[x][y];
         Creature occupant = square.getCreature();
         return square.getTexture() == null && (occupant == null || occupant instanceof Item);
+    }
+
+    /** Hero movement check; in {@link #TEST_MODE} the hero may pass through {@link #rockTexture rocks} and monsters. */
+    public boolean isHeroTraversable(int x, int y) {
+        if (x >= BOARD_SQUARE_WIDTH || y >= BOARD_SQUARE_HEIGHT || x < 0 || y < 0) {
+            return false;
+        }
+        Square square = board[x][y];
+        Texture texture = square.getTexture();
+        if (texture == wallTexture) {
+            return false;
+        }
+        if (TEST_MODE) {
+            return texture == null || texture == rockTexture;
+        }
+        Creature occupant = square.getCreature();
+        return texture == null && (occupant == null || occupant instanceof Item);
     }
 
     /** Whether a floor square connects to this room's door passages (used for spawn placement). */

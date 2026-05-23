@@ -213,10 +213,23 @@ public class MyGdxGame extends ApplicationAdapter {
 							GameBoard.SQUARE_SIZE,
 							GameBoard.SQUARE_SIZE);
 				}
+
+				if (gameBoard.isStairsAreaVisible()
+						&& i == gameBoard.getStairsDrawX()
+						&& j == gameBoard.getStairsDrawY()) {
+					Texture stairsTex = gameBoard.getStairsTexture();
+					if (stairsTex != null) {
+						batch.draw(stairsTex,
+								i * GameBoard.SQUARE_SIZE,
+								j * GameBoard.SQUARE_SIZE,
+								GameBoard.SQUARE_SIZE * 2,
+								GameBoard.SQUARE_SIZE * 2);
+					}
+				}
 				
 				// Draw floor item, then actor (hero/monster) so actors render on top
 				Square square = gameBoard.getSquare(i, j);
-				if (square != null && (square.isExplored() || gameBoard.exploredAll)) {
+				if (square != null && square.isExplored()) {
 					Creature actor = gameBoard.getActorAt(i, j);
 					Item floorItem = gameBoard.getItemAt(i, j);
 					if (floorItem != null && actor == null) {
@@ -504,9 +517,9 @@ public class MyGdxGame extends ApplicationAdapter {
 				hudCenterX0 + (hudCenterX1 - hudCenterX0 - glyphLayout.width) / 2f,
 				HUD_PANEL_Y_TOP - 36f);
 
-		String roomsText = "Rooms " + gameBoard.getRoomsExploredCount() + " / " + gameBoard.getTotalRooms();
-		glyphLayout.setText(font, roomsText);
-		font.draw(batch, roomsText,
+		String floorText = "Floor " + gameBoard.getCurrentFloor() + " / " + gameBoard.getTotalFloors();
+		glyphLayout.setText(font, floorText);
+		font.draw(batch, floorText,
 				hudCenterX0 + (hudCenterX1 - hudCenterX0 - glyphLayout.width) / 2f,
 				HUD_PANEL_Y_TOP - 54f);
 
@@ -913,7 +926,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		shapeRenderer.end();
 
 		String title = victory ? "Victory!" : "Game Over";
-		String subtitle = victory ? "The dungeon is fully explored." : "Your hero has fallen.";
+		String subtitle = victory ? "You reached the deepest level." : "Your hero has fallen.";
 		String stats = "Round " + gameBoard.getRound() + "  \u00B7  Monsters killed " + gameBoard.getMonstersKilled();
 
 		batch.setProjectionMatrix(hudCamera.combined);

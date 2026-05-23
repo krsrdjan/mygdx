@@ -1,14 +1,38 @@
 # Turn-Based Dungeon Crawler
 
-A single-player, turn-based dungeon crawl on a procedurally generated grid. The player controls one **Hero** exploring fog-covered **Rooms**, fighting **Monsters**, and using **Weapons** and **Items**. One **Run** is one **Dungeon**; the player **wins** by fully exploring the dungeon or **loses** on **Game over**.
+A single-player, turn-based dungeon crawl on procedurally generated grids. The player controls one **Hero** exploring fog-covered **Rooms**, fighting **Monsters**, and using **Weapons** and **Items**. One **Run** spans multiple **Floors**; the **Hero** keeps stats and inventory across **Descent**. The player **wins** by reaching **Exit stairs** on Floor 3 or **loses** on **Game over**.
 
 ## Language
 
 ### Space and layout
 
 **Dungeon**:
-The entire playable grid for one run (32×32 **Squares** arranged as 8×8 **Rooms**).
+The playable grid for one **Floor** (32×32 **Squares** arranged as 8×8 **Rooms**). Each **Floor** gets a freshly generated **Dungeon** layout.
 _Avoid_: Level, map, board (except when referring to the `GameBoard` class in code)
+
+**Floor**:
+One **Dungeon** layout in a **Run**. A **Run** has exactly **3 Floors**. The **Hero** starts on Floor 1 and may **Descend** to Floors 2 and 3. Stats, **Weapon inventory**, and run counters persist across floors.
+_Avoid_: Level, depth, stage
+
+**Entry Room**:
+The fixed center **Room** where the **Hero** spawns on Floor 1 and reappears after each **Descent** on deeper **Floors** (same room coordinates every floor). **Safe hub**: exempt from **spawn on explore**; always auto-**Explored** when the **Hero** arrives (Floor 1 start and every **Descent**). Uses the open **Room layout** regardless of exit count.
+_Avoid_: Start room, spawn room
+
+**Descent**:
+Moving from the current **Floor** to the next deeper **Floor** via **Exit stairs**. Triggers **instantly** when the **Hero** steps onto a stairs **Square**—current hero turn ends, remaining **MOV** is discarded, and the previous **Dungeon** (including all **Monsters**) is discarded. A new **Dungeon** is generated; the **Hero** appears in the **Entry Room** with HP, **Weapon inventory**, **Round** count, and **Monsters killed** unchanged. **Toast** and **Combat log** announce the new floor (e.g. “Descending to Floor 2…”). On Floor 3, **Exit stairs** trigger **Victory** instead of **Descent**.
+_Avoid_: Level transition, floor change
+
+**Exit Room**:
+The **Room** chosen at **Dungeon** generation as the floor goal. Selected by **Room path distance** from the **Entry Room** (maximum hop count through carved **Room** passages—not grid distance). Ties among farthest **Rooms** are broken at random. Never the **Entry Room**. Changes every **Floor**. Uses the open **Room layout** (no **Rocks**), same as the **Entry Room**. Holds the **Exit stairs**. **Spawn on explore** uses normal rules (not exempt). No in-game hint points toward the **Exit Room**—the player finds it by exploration.
+_Avoid_: Goal room, stair room, boss room
+
+**Room path distance**:
+Hop count between two **Rooms** along the **Room** connectivity graph (BFS on the 8×8 maze the generator builds). One hop = one carved passage to an adjacent **Room**.
+_Avoid_: Manhattan distance, tile distance, grid distance
+
+**Exit stairs**:
+A 2×2 visual on the open center of the **Exit Room** (walkable **Squares** at local positions (1,1)–(2,2) within the **Room**). Rendered as one sprite (`stairs-down.png`, 128×128) covering the footprint; until that asset exists, a procedural solid placeholder via `TextureCache.getOrCreateSolid`. **Spawn on explore** never places a **Monster** or **Item** on these four **Squares**. Stepping onto any of them triggers **Descent** on Floors 1–2 or **Victory** on Floor 3—instantly, with no **End turn** or monster-phase gate.
+_Avoid_: Ladder, portal, exit tile
 
 **Square**:
 One cell on the dungeon grid. May hold a **Wall**, a **Rock**, a **Creature**, or open floor.
@@ -84,16 +108,12 @@ The act of marking Squares as Explored. When the **Hero** enters a Room, all 16 
 _Avoid_: Scouting, fog clearing
 
 **Spawn on explore**:
-The rule that the first time any Square in a Room is Explored, that Room gets exactly one spawn attempt (**80% Monster**, **20% Item**). Each Room spawns at most once per run. When the spawn is a **Monster**, type is chosen uniformly from the full roster (**equal weight** per type). When the spawn is an **Item**, it is **50%** **Greater Heal Potion** or **50%** **Weapon pickup** (**Heal Potion** does not spawn from explore).
+The rule that the first time any Square in a Room is Explored on the current **Floor**, that Room gets exactly one spawn attempt (**80% Monster**, **20% Item**). Each Room spawns at most once per **Floor**. When the spawn is a **Monster**, type is chosen uniformly from the full roster (**equal weight** per type). When the spawn is an **Item**, it is **50%** **Greater Heal Potion** or **50%** **Weapon pickup** (**Heal Potion** does not spawn from explore).
 _Avoid_: Room activation, encounter trigger
 
-**Fully explored dungeon**:
-Every Room in the dungeon has been Explored (all 64 Rooms visited by the Hero at least once). Because entering a Room Explores all 16 of its Squares, this equals full fog clearance across the grid. When the Hero explores the last remaining Room, a **toast** and **combat log** entry announce that all rooms are explored and the Hero must survive the turn to win.
-_Avoid_: 100% map, cleared dungeon
-
-**Rooms explored** (progress):
-Run stat shown in the HUD as `Rooms X / 64` (center panel, below **Round**). Increments when the Hero first **Explores** a Room—i.e. when that Room's Squares become Explored. Re-entering an already-explored Room does not increment again.
-_Avoid_: Map percentage, exploration score
+**Floor progress** (HUD):
+Run stat shown in the HUD center panel (below **Round**) as `Floor N / 3`. Increments on **Descent**; does not reset on **Game over** display. Replaces the former **Rooms explored** counter.
+_Avoid_: Depth indicator, level number
 
 ### Actors
 
@@ -237,7 +257,7 @@ A transient popup for player-facing events (especially item pickup). Also duplic
 _Avoid_: Notification, alert, popup
 
 **Victory**:
-The Hero achieves a **fully explored dungeon**. After the Hero **ends turn** on the turn the last Room became Explored, the **monster phase runs normally**—**Active** Monsters move and attack. If the Hero is still alive when that monster phase finishes and every Room is Explored, **Victory** triggers. If the Hero dies during that monster phase, **Game over** takes precedence. The **Victory screen** uses the same layout as **Game over** but with the HUD **gold** accent: title “Victory!”, subtitle “The dungeon is fully explored.”, **Round** and **Monsters killed**, gold **Restart** button.
+The **Hero** reaches **Exit stairs** on Floor 3 and steps onto them while alive. Triggers instantly (same transition as **Descent**—no **End turn** / monster-phase gate). The **Victory screen** uses the same layout as **Game over** but with the HUD **gold** accent: title “Victory!”, subtitle “You reached the deepest level.”, run summary with **Round** and **Monsters killed**, gold **Restart** button.
 _Avoid_: Win screen, completion, success state
 
 **Monsters killed**:
@@ -245,11 +265,11 @@ Run stat: count of **Monsters** the Hero reduced to 0 HP. Incremented once per M
 _Avoid_: Kill count, score, KOs
 
 **Game over**:
-The Hero's HP reached 0. Input stops except **Restart**. Shows the same run summary as **Victory**: **Round** and **Monsters killed**. A new run creates a fresh Dungeon.
+The Hero's HP reached 0. Input stops except **Restart**. Shows the same run summary as **Victory**: **Round** and **Monsters killed**. **Restart** starts a new **Run** at Floor 1.
 _Avoid_: Death screen, fail state
 
 **Run**:
-One play session from dungeon generation until **Victory** or **Game over**.
+One play session from Floor 1 until **Victory** or **Game over**. Spans multiple **Floors**; **Descent** does not end the **Run**.
 _Avoid_: Session, game, match
 
 ## Flagged ambiguities
@@ -262,6 +282,8 @@ _Avoid_: Session, game, match
 | **Board** | `GameBoard` is the state owner, not a physical object in the dungeon | **Dungeon** for the world; "board" only when discussing code |
 | **Item extends Creature** | Items have HP=1 and sit on Squares like Creatures | Domain: Item is a floor pickup, not a combatant—code model is legacy |
 | **Assets in repo** | Git tracks only a subset of `assets/`; full PNG/audio set exists locally for Hero and Monsters | Monster sprites use lowercase filenames (`ogre.png`, `skeleton.png`, etc.) |
+| **Victory** | ADR 0001 superseded by ADR 0004 (**Exit stairs** on Floor 3) | Implemented |
+| **Level** | Colloquial for **Floor** or whole **Run** | Use **Floor** for one grid; **Run** for the full descent |
 
 ## Example dialogue
 
@@ -275,8 +297,8 @@ _Avoid_: Session, game, match
 
 **Dev**: What ends a run?
 
-**Designer**: Two outcomes. **Victory** when every Room has been Explored—the Hero must **end turn**, survive the **monster phase**, and still be alive. Win and loss screens both show **Round** and **Monsters killed**; the HUD tracks **Rooms explored** during the run. **Restart** starts a new **Run** with a fresh **Dungeon**.
+**Designer**: Two outcomes. **Victory** when the **Hero** reaches **Exit stairs** on Floor 3. **Game over** when HP hits 0. Between floors, **Descent** via **Exit stairs** on Floors 1–2 keeps stats and inventory. The HUD shows **Floor progress** (`Floor N / 3`), **Round**, and **Monsters killed**. **Restart** starts a new **Run** at Floor 1.
 
-**Dev**: What's next after the victory loop?
+**Dev**: What's the goal each floor?
 
-**Designer**: **Content**—two new **Monsters** (Ogre, Skeleton) after the **Victory** loop ships. Playtest the five-type roster before picking the next **Item**.
+**Designer**: Find the **Exit Room**—the **Room** farthest by **Room path distance** from the **Entry Room**—and reach the **Exit stairs**. Exploration and **spawn on explore** still drive encounters, but clearing every **Room** is not required.
