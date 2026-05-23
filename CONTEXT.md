@@ -46,6 +46,22 @@ _Avoid_: World view, game canvas, viewport
 The view tracks the **Hero**, centering them in the **Play area** when not at a map edge. At the **Dungeon** boundary the camera clamps to the grid; on the south edge the Hero sits toward the bottom of the **Play area** (still above the **HUD strip**), with no empty space shown below the grid.
 _Avoid_: Scroll, pan, viewport center
 
+**Mobile web play**:
+Playing the game by opening a shared web link in a phone browser—load the page and play with touch. Does not include the desktop downloadable build. On mobile, the game is played in **landscape** with a **fixed dungeon zoom** (larger **Squares** in the **Play area**); the **HUD strip** is not zoomed.
+_Avoid_: Mobile app, native client, desktop web
+
+**Fixed dungeon zoom**:
+On **Mobile web play**, the **Play area** shows fewer **Squares** at once so each **Square** renders larger (fixed ×2 scale vs desktop web). The **HUD strip** keeps the same layout and scaling as desktop; only dungeon rendering is zoomed.
+_Avoid_: Pinch zoom, camera zoom slider, HUD scaling
+
+**Mobile device** (web):
+A client that qualifies for **Mobile web play** layout: primary input is touch **and** the screen’s shorter side is at most 768 CSS pixels. Desktop browsers and large tablets in non-touch mode use the standard layout.
+_Avoid_: Phone (vague), user-agent match
+
+**Landscape lock**:
+On **Mobile web play**, the game requires landscape orientation. If the device is held in portrait, a full-screen overlay blocks the **Dungeon** and **HUD strip** and all input until the player rotates; the canvas stays hidden until landscape.
+_Avoid_: Portrait mode, auto-rotate layout
+
 ### Visibility and discovery
 
 **Explored**:

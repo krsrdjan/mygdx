@@ -59,6 +59,23 @@ public class MyGdxGame extends ApplicationAdapter {
 	private static final float HUD_PANEL_Y_TOP = HUD_PANEL_Y_BOTTOM + HUD_PANEL_H;
 	// Play area logical height (screen above HUD strip); see docs/adr/0002-play-area-viewport.md
 	private static final float WORLD_PLAY_HEIGHT = WORLD_VIEW_HEIGHT - HUD_PANEL_Y_TOP;
+	private static final float MOBILE_DUNGEON_ZOOM = 2f;
+	private final float worldPlayMinWidth;
+	private final float worldPlayMinHeight;
+
+	public MyGdxGame() {
+		this(false);
+	}
+
+	public MyGdxGame(boolean mobileWebPlay) {
+		if (mobileWebPlay) {
+			worldPlayMinWidth = WORLD_VIEW_WIDTH / MOBILE_DUNGEON_ZOOM;
+			worldPlayMinHeight = WORLD_PLAY_HEIGHT / MOBILE_DUNGEON_ZOOM;
+		} else {
+			worldPlayMinWidth = WORLD_VIEW_WIDTH;
+			worldPlayMinHeight = WORLD_PLAY_HEIGHT;
+		}
+	}
 	private static final float LEFT_X0 = 0f, LEFT_X1 = 416f;
 	private static final float CENTER_X0 = 416f, CENTER_X1 = 864f;
 	private static final float RIGHT_X0 = 864f, RIGHT_X1 = 1280f;
@@ -93,11 +110,12 @@ public class MyGdxGame extends ApplicationAdapter {
 		tiledDrawable = new TiledDrawable(textureRegion);
 		
 		// World viewport: play area only. HUD viewport: full screen (see ADR 0002).
+		// Mobile web play uses a smaller world minimum (×2 dungeon zoom); HUD unchanged (ADR 0003).
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, WORLD_VIEW_WIDTH, WORLD_PLAY_HEIGHT);
+		camera.setToOrtho(false, worldPlayMinWidth, worldPlayMinHeight);
 		hudCamera = new OrthographicCamera();
 		hudCamera.setToOrtho(false, WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT);
-		worldViewport = new ExtendViewport(WORLD_VIEW_WIDTH, WORLD_PLAY_HEIGHT, camera);
+		worldViewport = new ExtendViewport(worldPlayMinWidth, worldPlayMinHeight, camera);
 		hudViewport = new ExtendViewport(WORLD_VIEW_WIDTH, WORLD_VIEW_HEIGHT, hudCamera);
 
 		font = new BitmapFont();
