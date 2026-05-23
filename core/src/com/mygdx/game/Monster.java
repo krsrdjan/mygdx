@@ -234,6 +234,8 @@ public class Monster extends Creature {
         if (lower.contains("troll")) return "Troll";
         if (lower.contains("orc")) return "Orc";
         if (lower.contains("werewolf")) return "Werewolf";
+        if (lower.contains("ogre")) return "Ogre";
+        if (lower.contains("skeleton")) return "Skeleton";
         return "Monster";
     }
 }

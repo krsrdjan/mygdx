@@ -71,7 +71,7 @@ The player-controlled Creature. Has movement budget (**MOV**), one attack per **
 _Avoid_: Player, character, avatar
 
 **Monster**:
-An enemy Creature placed by spawn-on-explore. Inactive until **Activated**; once active, takes turns moving toward and attacking the Hero. Sprites load from PNG files in `assets/` (Hero, Troll, Orc, Werewolf, etc.). **Ogre** and **Skeleton** have no art yet—use colored **placeholders** until `ogre.png` / `skeleton.png` are added; stats and AI stay the same after swap.
+An enemy Creature placed by spawn-on-explore. Inactive until **Activated**; once active, takes turns moving toward and attacking the Hero. Sprites load from PNG files in `assets/` (Hero, Troll, Orc, Werewolf, Ogre, Skeleton, etc.).
 _Avoid_: Enemy, mob, foe
 
 **Active** (monster):
@@ -83,7 +83,7 @@ The transition when a previously inactive Monster becomes Active. Happens when t
 _Avoid_: Aggro, wake up
 
 **Item**:
-A pickup on the dungeon floor (currently **Heal Potion** only). Auto-collected when the Hero is Near it; consumed via `use(Hero)`. Additional Item types are **deferred**—second content pass after **Victory** and the expanded **Monster** roster ship.
+A pickup on the dungeon floor (currently **Heal Potion** only). Auto-collected when the Hero is Near it; consumed via `use(Hero)`. Additional Item types are **deferred** until after playtesting the expanded **Monster** roster—specific types not chosen yet.
 _Avoid_: Loot, pickup, consumable (use Item for the domain concept; consumable describes behavior)
 
 **Heal Potion**:
@@ -106,11 +106,11 @@ A design role for a **Monster** type defined by its HP, MOV, and **Weapon** spre
 _Avoid_: Class, mob type, enemy tier
 
 **Ogre**:
-**Monster** archetype heavy tank (HP 3, MOV 3, **Hammer**). Until `ogre.png` exists, rendered as a dark-green placeholder solid `(0.15, 0.35, 0.12)`.
+**Monster** archetype heavy tank (HP 3, MOV 3, **Hammer**). Sprite: `ogre.png`.
 _Avoid_: Giant, brute
 
 **Skeleton**:
-**Monster** archetype swarm/fast (HP 1, MOV 7, **Rusty Blade**). Until `skeleton.png` exists, rendered as an off-white placeholder solid `(0.85, 0.82, 0.75)`.
+**Monster** archetype swarm/fast (HP 1, MOV 7, **Rusty Blade**). Sprite: `skeleton.png`.
 _Avoid_: Undead, ghoul
 
 **Rusty Blade**:
@@ -178,7 +178,7 @@ The Hero achieves a **fully explored dungeon**. After the Hero **ends turn** on 
 _Avoid_: Win screen, completion, success state
 
 **Monsters killed**:
-Run stat: count of **Monsters** the Hero reduced to 0 HP. Incremented once per Monster death from Hero damage (not from other causes—there are none today).
+Run stat: count of **Monsters** the Hero reduced to 0 HP. Incremented once per Monster death from Hero damage (not from other causes—there are none today). On death, each **Monster** has a 50% chance to leave a **Heal Potion** on its **Square** (separate from room spawn potions).
 _Avoid_: Kill count, score, KOs
 
 **Game over**:
@@ -198,7 +198,7 @@ _Avoid_: Session, game, match
 | **Speed** | HUD label "MOV" but code field `speed` | Player-facing: **MOV**; code may keep `speed` |
 | **Board** | `GameBoard` is the state owner, not a physical object in the dungeon | **Dungeon** for the world; "board" only when discussing code |
 | **Item extends Creature** | Items have HP=1 and sit on Squares like Creatures | Domain: Item is a floor pickup, not a combatant—code model is legacy |
-| **Assets in repo** | Git tracks only a subset of `assets/`; full PNG/audio set exists locally for Hero and original Monsters | New Monsters follow same filenames (`ogre.png`, `skeleton.png`); placeholders only until those files exist |
+| **Assets in repo** | Git tracks only a subset of `assets/`; full PNG/audio set exists locally for Hero and Monsters | Monster sprites use lowercase filenames (`ogre.png`, `skeleton.png`, etc.) |
 
 ## Example dialogue
 
@@ -216,4 +216,4 @@ _Avoid_: Session, game, match
 
 **Dev**: What's next after the victory loop?
 
-**Designer**: **Content**—two new **Monsters** (Ogre, Skeleton) after the **Victory** loop ships. **Items** come later.
+**Designer**: **Content**—two new **Monsters** (Ogre, Skeleton) after the **Victory** loop ships. Playtest the five-type roster before picking the next **Item**.

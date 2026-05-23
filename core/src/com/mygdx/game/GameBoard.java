@@ -110,13 +110,12 @@ public class GameBoard {
             }
         }
 
-		hero = new Hero("hero.png", 8, this);
-		// TEMP: bottom-row spawn for camera/HUD testing — revert to (16, 16) when done.
-		Position spawn = findNearestEmpty(new Position(16, 0));
-		spawn = fallbackFindAnyEmpty(spawn);
-		if (spawn == null) {
-			spawn = new Position(0, 0);
-		}
+        hero = new Hero("hero.png", 8, this);
+        Position spawn = findNearestEmpty(new Position(16, 16));
+        spawn = fallbackFindAnyEmpty(spawn);
+        if (spawn == null) {
+            spawn = new Position(0, 0);
+        }
         hero.setPosition(spawn);
         // Enable spawning only after initial placement to avoid flooding the start room
         spawnOnExplore = true;
