@@ -8,6 +8,8 @@ import java.util.List;
 
 public class Hero extends Creature {
 
+    public static final int MAX_WEAPON_INVENTORY = 3;
+
     private Sound weaponHit;
     private int MAX_SPEED = 8;
     private int speed = MAX_SPEED;
@@ -162,6 +164,11 @@ public class Hero extends Creature {
         return MAX_SPEED;
     }
 
+    public void setMaxSpeed(int maxSpeed) {
+        MAX_SPEED = maxSpeed;
+        speed = maxSpeed;
+    }
+
     public Collection<Weapon> getInventory() {
         return inventory;
     }
@@ -174,6 +181,24 @@ public class Hero extends Creature {
         if (inventory.contains(weapon)) {
             this.currentWeapon = weapon;
         }
+    }
+
+    public void addWeapon(Weapon weapon) {
+        if (inventory.size() < MAX_WEAPON_INVENTORY) {
+            inventory.add(weapon);
+        }
+    }
+
+    /** Replaces the equipped weapon with {@code weapon} and returns the displaced weapon. */
+    public Weapon swapEquippedWeapon(Weapon weapon) {
+        int idx = inventory.indexOf(currentWeapon);
+        if (idx < 0) {
+            idx = 0;
+        }
+        Weapon previous = inventory.get(idx);
+        inventory.set(idx, weapon);
+        currentWeapon = weapon;
+        return previous;
     }
 
     public void switchWeapon() {

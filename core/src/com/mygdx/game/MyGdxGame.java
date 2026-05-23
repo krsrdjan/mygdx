@@ -80,6 +80,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	// Weapon card click zones (populated in create())
 	private final Rectangle weaponCard1Bounds = new Rectangle();
 	private final Rectangle weaponCard2Bounds = new Rectangle();
+	private final Rectangle weaponCard3Bounds = new Rectangle();
 	private final Rectangle endTurnButtonBounds = new Rectangle();
 	private int hudScreenPx;
 	@Override
@@ -104,6 +105,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		
 		weaponCard1Bounds.set(LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 10f, 114f, 44f);
 		weaponCard2Bounds.set(LEFT_X0 + 134f, HUD_PANEL_Y_BOTTOM + 10f, 114f, 44f);
+		weaponCard3Bounds.set(LEFT_X0 + 256f, HUD_PANEL_Y_BOTTOM + 10f, 114f, 44f);
 		float endBtnW = 120f, endBtnH = 34f;
 		endTurnButtonBounds.set((CENTER_X0 + CENTER_X1 - endBtnW) / 2f, HUD_PANEL_Y_BOTTOM + 6f, endBtnW, endBtnH);
 
@@ -182,17 +184,16 @@ public class MyGdxGame extends ApplicationAdapter {
 							GameBoard.SQUARE_SIZE);
 				}
 				
-				// Draw creature on this square (hero, monsters, etc.)
+				// Draw floor item, then actor (hero/monster) so actors render on top
 				Square square = gameBoard.getSquare(i, j);
-				if (square != null && square.getCreature() != null
-						&& (square.isExplored() || gameBoard.exploredAll)) {
-					Texture creatureTex = square.getCreature().getTexture();
-					if (creatureTex != null) {
-						batch.draw(creatureTex,
-								i * GameBoard.SQUARE_SIZE,
-								j * GameBoard.SQUARE_SIZE,
-								GameBoard.SQUARE_SIZE,
-								GameBoard.SQUARE_SIZE);
+				if (square != null && (square.isExplored() || gameBoard.exploredAll)) {
+					Creature actor = gameBoard.getActorAt(i, j);
+					Item floorItem = gameBoard.getItemAt(i, j);
+					if (floorItem != null && actor == null) {
+						drawCreature(floorItem, i, j);
+					}
+					if (actor != null) {
+						drawCreature(actor, i, j);
 					}
 				}
 			}
@@ -205,14 +206,25 @@ public class MyGdxGame extends ApplicationAdapter {
 		hudViewport.apply(true);
 		renderHud();
 
-		// Render monster hover popup
-		renderMonsterHoverPopup();
+		// Render floor item / monster hover popup
+		renderPlayAreaHoverPopup();
 
 		// Render toasts above HUD
 		renderToasts();
 		renderVictoryDialog();
 		renderGameOverDialog();
 		handleEndRunInput();
+	}
+
+	private void drawCreature(Creature creature, int tileX, int tileY) {
+		Texture creatureTex = creature.getTexture();
+		if (creatureTex != null) {
+			batch.draw(creatureTex,
+					tileX * GameBoard.SQUARE_SIZE,
+					tileY * GameBoard.SQUARE_SIZE,
+					GameBoard.SQUARE_SIZE,
+					GameBoard.SQUARE_SIZE);
+		}
 	}
 	
 	private void updateCamera() {
@@ -336,7 +348,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		// Weapon cards: dark card backgrounds + gold underline on active
 		Weapon activeWeapon = hero.getCurrentWeapon();
 		List<Weapon> inv = new ArrayList<>(hero.getInventory());
-		Rectangle[] cardRects = new Rectangle[] { weaponCard1Bounds, weaponCard2Bounds };
+		Rectangle[] cardRects = weaponCardBounds();
 		for (int i = 0; i < cardRects.length; i++) {
 			if (i >= inv.size()) break;
 			Rectangle r = cardRects[i];
@@ -412,7 +424,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		// Weapon card borders
 		Weapon activeWeapon = hero.getCurrentWeapon();
 		List<Weapon> inv = new ArrayList<>(hero.getInventory());
-		Rectangle[] cardRects = new Rectangle[] { weaponCard1Bounds, weaponCard2Bounds };
+		Rectangle[] cardRects = weaponCardBounds();
 		for (int i = 0; i < cardRects.length; i++) {
 			if (i >= inv.size()) break;
 			Rectangle r = cardRects[i];
@@ -456,7 +468,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		// Weapon cards
 		Weapon activeWeapon = hero.getCurrentWeapon();
 		List<Weapon> inv = new ArrayList<>(hero.getInventory());
-		Rectangle[] cardRects = new Rectangle[] { weaponCard1Bounds, weaponCard2Bounds };
+		Rectangle[] cardRects = weaponCardBounds();
 		for (int i = 0; i < cardRects.length; i++) {
 			if (i >= inv.size()) break;
 			Weapon w = inv.get(i);
@@ -630,13 +642,12 @@ public class MyGdxGame extends ApplicationAdapter {
 			return true;
 		}
 		java.util.List<Weapon> inv = new java.util.ArrayList<>(hero.getInventory());
-		if (inv.size() >= 1 && weaponCard1Bounds.contains(touchPoint.x, touchPoint.y)) {
-			hero.setCurrentWeapon(inv.get(0));
-			return true;
-		}
-		if (inv.size() >= 2 && weaponCard2Bounds.contains(touchPoint.x, touchPoint.y)) {
-			hero.setCurrentWeapon(inv.get(1));
-			return true;
+		Rectangle[] cardRects = weaponCardBounds();
+		for (int i = 0; i < inv.size() && i < cardRects.length; i++) {
+			if (cardRects[i].contains(touchPoint.x, touchPoint.y)) {
+				hero.setCurrentWeapon(inv.get(i));
+				return true;
+			}
 		}
 		if (gameBoard.isHeroTurn() && endTurnButtonBounds.contains(touchPoint.x, touchPoint.y)) {
 			gameBoard.endHeroTurn();
@@ -681,7 +692,11 @@ public class MyGdxGame extends ApplicationAdapter {
 		batch.end();
 	}
 
-	private void renderMonsterHoverPopup() {
+	private Rectangle[] weaponCardBounds() {
+		return new Rectangle[] { weaponCard1Bounds, weaponCard2Bounds, weaponCard3Bounds };
+	}
+
+	private void renderPlayAreaHoverPopup() {
 		if (!gameBoard.getHero().isAlive() || gameBoard.isVictory()) return;
 
 		mouseHudCoords.set(Gdx.input.getX(), Gdx.input.getY(), 0);
@@ -694,18 +709,33 @@ public class MyGdxGame extends ApplicationAdapter {
 		int tileY = (int) Math.floor(mouseWorldCoords.y / GameBoard.SQUARE_SIZE);
 
 		Monster hovered = gameBoard.getMonsterAt(tileX, tileY);
-		if (hovered == null) return;
+		if (hovered != null) {
+			renderHoverPopup(
+					"Monster: " + hovered.getName() + "    HP: " + hovered.getHealth(),
+					formatWeaponLine(hovered.getWeapon()));
+			return;
+		}
 
+		WeaponPickup weaponPickup = gameBoard.getWeaponPickupAt(tileX, tileY);
+		if (weaponPickup != null) {
+			Weapon weapon = weaponPickup.getWeapon();
+			renderHoverPopup(
+					"Weapon: " + weapon.getName(),
+					formatWeaponLine(weapon));
+		}
+	}
+
+	private String formatWeaponLine(Weapon weapon) {
+		if (weapon == null) {
+			return null;
+		}
+		int hitPct = Math.round(weapon.getChanceToHit() * 100);
+		return weapon.getName() + "    Hit: " + hitPct + "%    Dmg: " + weapon.getDamage();
+	}
+
+	private void renderHoverPopup(String line1, String line2) {
 		mouseHudCoords.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 		hudViewport.unproject(mouseHudCoords);
-
-		String line1 = "Monster: " + hovered.getName() + "    HP: " + hovered.getHealth();
-		String line2 = null;
-		Weapon monsterWeapon = hovered.getWeapon();
-		if (monsterWeapon != null) {
-			int hitPct = Math.round(monsterWeapon.getChanceToHit() * 100);
-			line2 = monsterWeapon.getName() + "    Hit: " + hitPct + "%    Dmg: " + monsterWeapon.getDamage();
-		}
 
 		float padding = 8f;
 		float gap = 4f;
@@ -733,18 +763,16 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		shapeRenderer.setProjectionMatrix(hudCamera.combined);
 		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-		shapeRenderer.setColor(0f, 0f, 0f, 0.85f);
+		shapeRenderer.setColor(0.1f, 0.1f, 0.1f, 0.85f);
 		shapeRenderer.rect(boxX, boxY, boxW, boxH);
 		shapeRenderer.end();
 
 		batch.setProjectionMatrix(hudCamera.combined);
 		batch.begin();
 		font.setColor(Color.WHITE);
-		float textX = boxX + padding;
-		float textY = boxY + boxH - padding;
-		font.draw(batch, line1, textX, textY);
+		font.draw(batch, line1, boxX + padding, boxY + boxH - padding);
 		if (line2 != null) {
-			font.draw(batch, line2, textX, textY - lineH - gap);
+			font.draw(batch, line2, boxX + padding, boxY + boxH - padding - lineH - gap);
 		}
 		batch.end();
 	}

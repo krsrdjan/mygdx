@@ -99,12 +99,32 @@ A pickup on the dungeon floor (**Heal Potion**, **Greater Heal Potion**). Auto-c
 _Avoid_: Loot, pickup, consumable (use Item for the domain concept; consumable describes behavior)
 
 **Heal Potion**:
-An Item that restores 1 HP if the Hero is below max HP; otherwise **found but not consumed**—the potion stays on the floor and does not block movement. Sprite: `potion-red.png`. Room spawn-on-explore: **~15%** of **Rooms** (~75% of item spawns). **Monster** kill drops: **50%** chance (red only).
+An Item that restores 1 HP if the Hero is below max HP; otherwise **found but not consumed**—the potion stays on the floor and does not block movement. Sprite: `potion-red.png`. Room spawn-on-explore: **~33%** of **Item** spawns (~**7%** of **Rooms**). **Monster** kill drops: **50%** chance (red only).
 _Avoid_: Health potion, red potion
 
 **Greater Heal Potion**:
-An Item that restores 2 HP if the Hero is below max HP (capped at max); otherwise **found but not consumed**. Sprite: `potion-blue.png`. Room spawn-on-explore only: **~5%** of **Rooms** (~25% of item spawns). Does not drop from **Monster** kills.
+An Item that restores 2 HP if the Hero is below max HP (capped at max); otherwise **found but not consumed**. Sprite: `potion-blue.png`. Room spawn-on-explore only: **~33%** of **Item** spawns (~**7%** of **Rooms**). Does not drop from **Monster** kills.
 _Avoid_: Large potion, blue potion
+
+**Weapon pickup**:
+A floor **Item** that grants the **Hero** a **Weapon** when collected. Auto-collected on entering its **Square** (same as potions). Sprite: generic `weapon.png` for all types; the **Weapon** name and stats are shown when the player hovers that **Square** (same pattern as **Monster** inspect). Pool: **Mace**, **Big Club**, **Hammer** (equal weight among **Weapon pickup** spawns). Room spawn-on-explore: **~33%** of **Item** spawns (~**7%** of **Rooms**). If **Weapon inventory** has an empty slot (fewer than 3 **Weapons**), the **Weapon** is added without auto-equip—the player selects via **Weapon card** or keyboard switch. If inventory is full, collecting triggers **Weapon swap**. Removed from the floor on successful pickup (or becomes the swapped-out **Weapon**).
+_Avoid_: Weapon drop, gear loot, equipment chest
+
+**Weapon swap**:
+Exchanging the equipped **Weapon** with a **Weapon pickup** on the floor when **Weapon inventory** is full. The picked-up **Weapon** is equipped immediately; the old **Weapon** remains on the **Square** as a **Weapon pickup**. Duplicate **Weapon** types may exist simultaneously in **Weapon inventory** and on the floor. Lets the **Hero** rearrange loadout during a **Run** without losing **Weapons**.
+_Avoid_: Drop weapon, discard, trash slot
+
+**Weapon inventory**:
+The set of **Weapons** the **Hero** carries. Starts with **Axe** and **Sword**; **Weapon pickup** items add more. Maximum **3 Weapons** at once. The player equips one **Weapon** at a time via **Weapon card** taps or `I` / switch-weapon input. When at the cap, collecting a **Weapon pickup** triggers **Weapon swap** (equipped **Weapon** goes to the floor; floor **Weapon** is equipped).
+_Avoid_: Loadout, arsenal, equipment slots
+
+**Weapon card**:
+A HUD control showing one **Weapon** from the **Weapon inventory** (name, hit %, damage). Up to **3** cards when inventory is full. Tapping a card equips that **Weapon**. Gold underline marks the active **Weapon**.
+_Avoid_: Weapon slot, gear tab
+
+**Weapon pickup feedback**:
+On first pickup (empty inventory slot): **Toast** and **Combat log** entry with **Weapon** name and stats (e.g. "Found Mace! (80% hit, 1 dmg)"). On **Weapon swap** (full inventory): **Toast** and **Combat log** with both names (e.g. "Swapped Sword for Hammer"). Every swap shows a **Toast** (no throttling).
+_Avoid_: Loot notification, pickup popup
 
 ### Combat and equipment
 

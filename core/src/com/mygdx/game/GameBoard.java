@@ -14,6 +14,8 @@ public class GameBoard {
     private boolean spawnOnExplore = false;
     private boolean heroTurn = true;
     private final boolean[][] roomSpawnAttempted = new boolean[BOARD_SQUARE_WIDTH / 4][BOARD_SQUARE_HEIGHT / 4];
+    private static final boolean TEST_MODE = false;
+
     private final RandomMonsterFactory monsterFactory = new RandomMonsterFactory();
     private final java.util.Random random = new java.util.Random();
     private int activeMonstersTakingTurn = 0;
@@ -118,7 +120,10 @@ public class GameBoard {
             }
         }
 
-        hero = new Hero("hero.png", 20, this);
+        hero = new Hero("hero.png", TEST_MODE ? 200 : 20, this);
+        if (TEST_MODE) {
+            hero.setMaxSpeed(200);
+        }
         Position spawn = findNearestEmpty(new Position(16, 16));
         spawn = fallbackFindAnyEmpty(spawn);
         if (spawn == null) {
@@ -344,10 +349,20 @@ public class GameBoard {
         if (!candidates.isEmpty()) {
             Position p = candidates.get(random.nextInt(candidates.size()));
 
-            if (random.nextFloat() < 0.20f) {  // ~20% chance of item instead of monster
-                Item item = random.nextFloat() < 0.25f
-                        ? new GreaterHealPotion(this)
-                        : new HealPotion(this);
+            if (TEST_MODE) {
+                WeaponPickup item = createRandomWeaponPickup();
+                item.setPosition(p);
+                items.add(item);
+            } else if (random.nextFloat() < 0.20f) {  // ~20% chance of item instead of monster
+                float roll = random.nextFloat();
+                Item item;
+                if (roll < 1f / 3f) {
+                    item = new HealPotion(this);
+                } else if (roll < 2f / 3f) {
+                    item = new GreaterHealPotion(this);
+                } else {
+                    item = createRandomWeaponPickup();
+                }
                 item.setPosition(p);
                 items.add(item);
             } else {
@@ -403,6 +418,58 @@ public class GameBoard {
             }
         }
         return null;
+    }
+
+    public Item getItemAt(int x, int y) {
+        for (Item item : items) {
+            Position pos = item.getPosition();
+            if (pos != null && pos.x == x && pos.y == y) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    /** Hero or monster on a square; floor items under an actor are excluded. */
+    public Creature getActorAt(int x, int y) {
+        Hero h = hero;
+        if (h != null && h.isAlive()) {
+            Position heroPos = h.getPosition();
+            if (heroPos != null && heroPos.x == x && heroPos.y == y) {
+                return h;
+            }
+        }
+        return getMonsterAt(x, y);
+    }
+
+    public WeaponPickup getWeaponPickupAt(int x, int y) {
+        Square square = getSquare(x, y);
+        if (square == null || (!square.isExplored() && !exploredAll)) {
+            return null;
+        }
+        for (Item item : items) {
+            if (!(item instanceof WeaponPickup)) {
+                continue;
+            }
+            Position pos = item.getPosition();
+            if (pos != null && pos.x == x && pos.y == y) {
+                return (WeaponPickup) item;
+            }
+        }
+        return null;
+    }
+
+    private WeaponPickup createRandomWeaponPickup() {
+        float roll = random.nextFloat();
+        Weapon weapon;
+        if (roll < 1f / 3f) {
+            weapon = new Mace();
+        } else if (roll < 2f / 3f) {
+            weapon = new BigClub();
+        } else {
+            weapon = new Hammer();
+        }
+        return new WeaponPickup(weapon, this);
     }
 
     public void heroClickOnTile(int tileX, int tileY) {
