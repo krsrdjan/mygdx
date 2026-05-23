@@ -20,7 +20,7 @@ public class HealPotion extends Item {
 
         if (position != null) {
             Square square = board.getSquare(position.x, position.y);
-            if (square != null) {
+            if (square != null && square.getCreature() == this) {
                 square.setCreature(null);
             }
         }

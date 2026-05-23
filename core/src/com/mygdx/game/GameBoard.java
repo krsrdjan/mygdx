@@ -565,7 +565,23 @@ public class GameBoard {
             return false;
         }
         Square square = board[x][y];
-        return square.getTexture() == null && square.getCreature() == null;
+        Creature occupant = square.getCreature();
+        boolean passableOccupant = occupant == null || occupant instanceof Item;
+        return square.getTexture() == null && passableOccupant;
+    }
+
+    /** Puts a floor Item back on its Square after the Hero steps off (e.g. full HP, potion not consumed). */
+    public void restoreFloorItemAt(Position position) {
+        for (Item item : items) {
+            Position itemPos = item.getPosition();
+            if (itemPos != null && itemPos.x == position.x && itemPos.y == position.y) {
+                Square square = getSquare(position.x, position.y);
+                if (square != null && square.getCreature() == null) {
+                    square.setCreature(item);
+                }
+                return;
+            }
+        }
     }
 
     public void removeMonster(Monster monster) {
@@ -584,7 +600,8 @@ public class GameBoard {
         Position heroPos = hero.getPosition();
         java.util.List<Item> itemsToCollect = new java.util.ArrayList<>();
         for (Item item : items) {
-            if (Position.isNear(heroPos, item.getPosition())) {
+            Position itemPos = item.getPosition();
+            if (itemPos != null && itemPos.x == heroPos.x && itemPos.y == heroPos.y) {
                 itemsToCollect.add(item);
             }
         }

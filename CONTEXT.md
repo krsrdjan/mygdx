@@ -83,11 +83,11 @@ The transition when a previously inactive Monster becomes Active. Happens when t
 _Avoid_: Aggro, wake up
 
 **Item**:
-A pickup on the dungeon floor (currently **Heal Potion** only). Auto-collected when the Hero is Near it; consumed via `use(Hero)`. Additional Item types are **deferred** until after playtesting the expanded **Monster** roster—specific types not chosen yet.
+A pickup on the dungeon floor (currently **Heal Potion** only). Auto-collected when the Hero enters its **Square**; consumed via `use(Hero)`. Items occupy a **Square** but do not block **Hero** movement—an unconsumed Item remains on its **Square** when the Hero steps off. Additional Item types are **deferred** until after playtesting the expanded **Monster** roster—specific types not chosen yet.
 _Avoid_: Loot, pickup, consumable (use Item for the domain concept; consumable describes behavior)
 
 **Heal Potion**:
-An Item that restores 1 HP if the Hero is below max HP; otherwise found but not consumed.
+An Item that restores 1 HP if the Hero is below max HP; otherwise **found but not consumed**—the potion stays on the floor and does not block movement.
 _Avoid_: Health potion, red potion
 
 ### Combat and equipment

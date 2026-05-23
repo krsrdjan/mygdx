@@ -519,20 +519,16 @@ public class MyGdxGame extends ApplicationAdapter {
 		drawCenteredText("SPACE  end turn", (CENTER_X0 + centerMid) / 2f, hintY2);
 		drawCenteredText("I / Switch weapon", (centerMid + CENTER_X1) / 2f, hintY2);
 
-		// Enemy panel
+		// Enemy panel (mirror hero: portrait top-left, name to its right)
 		if (adjacent != null) {
-			font.setColor(MUTED);
-			font.draw(batch, "NEARBY ENEMY", RIGHT_X0 + 12f, HUD_PANEL_Y_TOP - 12f);
-
-			font.setColor(GOLD);
-			font.draw(batch, adjacent.getName().toUpperCase(), RIGHT_X0 + 12f, HUD_PANEL_Y_TOP - 32f);
-
-			// Portrait icon (top-right of panel)
 			Texture portrait = adjacent.getTexture();
 			if (portrait != null) {
 				batch.setColor(Color.WHITE);
-				batch.draw(portrait, RIGHT_X1 - 44f, HUD_PANEL_Y_TOP - 44f, 32f, 32f);
+				batch.draw(portrait, RIGHT_X0 + 12f, HUD_PANEL_Y_TOP - 44f, 32f, 32f);
 			}
+
+			font.setColor(GOLD);
+			font.draw(batch, adjacent.getName().toUpperCase(), RIGHT_X0 + 52f, HUD_PANEL_Y_TOP - 20f);
 
 			// HP row
 			font.setColor(Color.WHITE);
