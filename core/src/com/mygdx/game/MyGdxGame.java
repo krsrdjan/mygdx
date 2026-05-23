@@ -52,7 +52,7 @@ public class MyGdxGame extends ApplicationAdapter {
 
 	// HUD layout anchored to the bottom; minimum width 1280 (matches world min).
 	// With ExtendViewport, wider screens stretch the bar; taller screens add empty
-	// space above the HUD. Panel column splits (32.5% / 35% / 32.5%) at 1280 wide.
+	// space above the HUD. Panel columns are equal thirds of the current HUD width.
 	private static final float LOG_STRIP_H = 22f;
 	private static final float HUD_PANEL_Y_BOTTOM = LOG_STRIP_H;
 	private static final float HUD_PANEL_H = 160f;
@@ -76,10 +76,16 @@ public class MyGdxGame extends ApplicationAdapter {
 			worldPlayMinHeight = WORLD_PLAY_HEIGHT;
 		}
 	}
-	private static final float LEFT_X0 = 0f, LEFT_X1 = 416f;
-	private static final float CENTER_X0 = 416f, CENTER_X1 = 864f;
-	private static final float RIGHT_X0 = 864f, RIGHT_X1 = 1280f;
+	private static final float LEFT_X0 = 0f;
 	private static final float TOAST_Y = 195f;
+	private static final float WEAPON_CARD_W = 114f;
+	private static final float WEAPON_CARD_H = 44f;
+	private static final float WEAPON_CARD_GAP = 8f;
+	// Recomputed on resize — ExtendViewport widens the HUD on ultrawide / mobile landscape.
+	private float hudLeftX1;
+	private float hudCenterX0;
+	private float hudCenterX1;
+	private float hudRightX0;
 
 	// HUD colors
 	private static final Color HUD_BG = new Color(0.08f, 0.06f, 0.05f, 1f);
@@ -121,11 +127,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		font = new BitmapFont();
 		shapeRenderer = new ShapeRenderer();
 		
-		weaponCard1Bounds.set(LEFT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 10f, 114f, 44f);
-		weaponCard2Bounds.set(LEFT_X0 + 134f, HUD_PANEL_Y_BOTTOM + 10f, 114f, 44f);
-		weaponCard3Bounds.set(LEFT_X0 + 256f, HUD_PANEL_Y_BOTTOM + 10f, 114f, 44f);
-		float endBtnW = 120f, endBtnH = 34f;
-		endTurnButtonBounds.set((CENTER_X0 + CENTER_X1 - endBtnW) / 2f, HUD_PANEL_Y_BOTTOM + 6f, endBtnW, endBtnH);
+		updateHudPanelLayout();
 
 		inputAdapter = new MyInputAdapter(gameBoard);
 		inputAdapter.setViewport(worldViewport);
@@ -275,6 +277,7 @@ public class MyGdxGame extends ApplicationAdapter {
 			return;
 		}
 		hudViewport.update(width, height, true);
+		updateHudPanelLayout();
 		hudScreenPx = Math.round(HUD_PANEL_Y_TOP / hudCamera.viewportHeight * height);
 		int worldScreenH = height - hudScreenPx;
 		if (worldScreenH <= 0) {
@@ -381,7 +384,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		// "Your turn" pill or "Enemy turn" pill
 		float pillW = 110f;
 		float pillH = 22f;
-		float pillX = CENTER_X0 + (CENTER_X1 - CENTER_X0 - pillW) / 2f;
+		float pillX = hudCenterX0 + (hudCenterX1 - hudCenterX0 - pillW) / 2f;
 		float pillY = HUD_PANEL_Y_TOP - 28f;
 		if (gameBoard.isHeroTurn()) {
 			shapeRenderer.setColor(GOLD);
@@ -401,7 +404,7 @@ public class MyGdxGame extends ApplicationAdapter {
 		// Enemy panel content
 		if (adjacent != null) {
 			int enemyMaxHp = Math.max(1, adjacent.getMaxHealth());
-			float eBarX = RIGHT_X0 + 48f;
+			float eBarX = hudRightX0 + 48f;
 			float eBarY = HUD_PANEL_Y_BOTTOM + 96f;
 			float eBarW = 150f;
 			float eBarH = 10f;
@@ -436,8 +439,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		// Divider above log strip
 		shapeRenderer.line(0, HUD_PANEL_Y_BOTTOM, hudCamera.viewportWidth, HUD_PANEL_Y_BOTTOM);
 		// Vertical panel dividers
-		shapeRenderer.line(LEFT_X1, HUD_PANEL_Y_BOTTOM, LEFT_X1, HUD_PANEL_Y_TOP);
-		shapeRenderer.line(CENTER_X1, HUD_PANEL_Y_BOTTOM, CENTER_X1, HUD_PANEL_Y_TOP);
+		shapeRenderer.line(hudLeftX1, HUD_PANEL_Y_BOTTOM, hudLeftX1, HUD_PANEL_Y_TOP);
+		shapeRenderer.line(hudCenterX1, HUD_PANEL_Y_BOTTOM, hudCenterX1, HUD_PANEL_Y_TOP);
 
 		// Weapon card borders
 		Weapon activeWeapon = hero.getCurrentWeapon();
@@ -496,16 +499,19 @@ public class MyGdxGame extends ApplicationAdapter {
 			} else {
 				font.setColor(MUTED);
 			}
-			font.draw(batch, w.getName(), r.x + 8f, r.y + r.height - 8f);
+			glyphLayout.setText(font, w.getName());
+			font.draw(batch, w.getName(), r.x + (r.width - glyphLayout.width) / 2f, r.y + r.height - 8f);
 			int hitPct = Math.round(w.getChanceToHit() * 100);
+			String stats = hitPct + "%  " + w.getDamage() + " dmg";
 			font.setColor(MUTED);
-			font.draw(batch, hitPct + "%  " + w.getDamage() + " dmg", r.x + 8f, r.y + 16f);
+			glyphLayout.setText(font, stats);
+			font.draw(batch, stats, r.x + (r.width - glyphLayout.width) / 2f, r.y + 16f);
 		}
 
 		// Center panel: pill + controls
 		float pillW = 110f;
 		float pillH = 22f;
-		float pillX = CENTER_X0 + (CENTER_X1 - CENTER_X0 - pillW) / 2f;
+		float pillX = hudCenterX0 + (hudCenterX1 - hudCenterX0 - pillW) / 2f;
 		float pillY = HUD_PANEL_Y_TOP - 28f;
 		String pillText = gameBoard.isHeroTurn() ? "YOUR TURN" : "ENEMY TURN";
 		glyphLayout.setText(font, pillText);
@@ -523,13 +529,13 @@ public class MyGdxGame extends ApplicationAdapter {
 		String roundText = "Round " + gameBoard.getRound();
 		glyphLayout.setText(font, roundText);
 		font.draw(batch, roundText,
-				CENTER_X0 + (CENTER_X1 - CENTER_X0 - glyphLayout.width) / 2f,
+				hudCenterX0 + (hudCenterX1 - hudCenterX0 - glyphLayout.width) / 2f,
 				HUD_PANEL_Y_TOP - 36f);
 
 		String roomsText = "Rooms " + gameBoard.getRoomsExploredCount() + " / " + gameBoard.getTotalRooms();
 		glyphLayout.setText(font, roomsText);
 		font.draw(batch, roomsText,
-				CENTER_X0 + (CENTER_X1 - CENTER_X0 - glyphLayout.width) / 2f,
+				hudCenterX0 + (hudCenterX1 - hudCenterX0 - glyphLayout.width) / 2f,
 				HUD_PANEL_Y_TOP - 54f);
 
 		// END TURN button text
@@ -542,35 +548,35 @@ public class MyGdxGame extends ApplicationAdapter {
 
 		// Control hints (two columns) shifted below Round label
 		font.setColor(MUTED);
-		float centerMid = (CENTER_X0 + CENTER_X1) / 2f;
+		float centerMid = (hudCenterX0 + hudCenterX1) / 2f;
 		float hintY1 = HUD_PANEL_Y_BOTTOM + 98f;
 		float hintY2 = HUD_PANEL_Y_BOTTOM + 68f;
-		drawCenteredText("WASD", (CENTER_X0 + centerMid) / 2f, hintY1);
-		drawCenteredText("U / click", (centerMid + CENTER_X1) / 2f, hintY1);
-		drawCenteredText("SPACE  end turn", (CENTER_X0 + centerMid) / 2f, hintY2);
-		drawCenteredText("I / Switch weapon", (centerMid + CENTER_X1) / 2f, hintY2);
+		drawCenteredText("WASD", (hudCenterX0 + centerMid) / 2f, hintY1);
+		drawCenteredText("U / click", (centerMid + hudCenterX1) / 2f, hintY1);
+		drawCenteredText("SPACE  end turn", (hudCenterX0 + centerMid) / 2f, hintY2);
+		drawCenteredText("I / Switch weapon", (centerMid + hudCenterX1) / 2f, hintY2);
 
 		// Enemy panel (mirror hero: portrait top-left, name to its right)
 		if (adjacent != null) {
 			Texture portrait = adjacent.getTexture();
 			if (portrait != null) {
 				batch.setColor(Color.WHITE);
-				batch.draw(portrait, RIGHT_X0 + 12f, HUD_PANEL_Y_TOP - 44f, 32f, 32f);
+				batch.draw(portrait, hudRightX0 + 12f, HUD_PANEL_Y_TOP - 44f, 32f, 32f);
 			}
 
 			font.setColor(GOLD);
-			font.draw(batch, adjacent.getName().toUpperCase(), RIGHT_X0 + 52f, HUD_PANEL_Y_TOP - 20f);
+			font.draw(batch, adjacent.getName().toUpperCase(), hudRightX0 + 52f, HUD_PANEL_Y_TOP - 20f);
 
 			// HP row
 			font.setColor(Color.WHITE);
-			font.draw(batch, "HP", RIGHT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 105f);
+			font.draw(batch, "HP", hudRightX0 + 12f, HUD_PANEL_Y_BOTTOM + 105f);
 			font.draw(batch, adjacent.getHealth() + " / " + adjacent.getMaxHealth(),
-					RIGHT_X0 + 206f, HUD_PANEL_Y_BOTTOM + 105f);
+					hudRightX0 + 206f, HUD_PANEL_Y_BOTTOM + 105f);
 
 			// MOV row
-			font.draw(batch, "MOV", RIGHT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 81f);
+			font.draw(batch, "MOV", hudRightX0 + 12f, HUD_PANEL_Y_BOTTOM + 81f);
 			font.draw(batch, String.valueOf(adjacent.getSpeed()),
-					RIGHT_X0 + 206f, HUD_PANEL_Y_BOTTOM + 81f);
+					hudRightX0 + 206f, HUD_PANEL_Y_BOTTOM + 81f);
 
 			// Weapon summary
 			Weapon mw = adjacent.getWeapon();
@@ -578,7 +584,7 @@ public class MyGdxGame extends ApplicationAdapter {
 				int pct = Math.round(mw.getChanceToHit() * 100);
 				String line = mw.getName() + "  \u00B7  " + pct + "% hit  \u00B7  " + mw.getDamage() + " dmg";
 				font.setColor(MUTED);
-				font.draw(batch, line, RIGHT_X0 + 12f, HUD_PANEL_Y_BOTTOM + 40f);
+				font.draw(batch, line, hudRightX0 + 12f, HUD_PANEL_Y_BOTTOM + 40f);
 			}
 		}
 
@@ -708,6 +714,24 @@ public class MyGdxGame extends ApplicationAdapter {
 		font.setColor(1, 1, 1, alpha);
 		font.draw(batch, currentToast.getMessage(), boxX + padding, boxY + padding + textHeight);
 		batch.end();
+	}
+
+	private void updateHudPanelLayout() {
+		float w = hudCamera.viewportWidth;
+		hudLeftX1 = w / 3f;
+		hudCenterX0 = hudLeftX1;
+		hudCenterX1 = w * 2f / 3f;
+		hudRightX0 = hudCenterX1;
+		float endBtnW = 120f;
+		float endBtnH = 34f;
+		endTurnButtonBounds.set((hudCenterX0 + hudCenterX1 - endBtnW) / 2f, HUD_PANEL_Y_BOTTOM + 6f, endBtnW, endBtnH);
+
+		float rowWidth = 3f * WEAPON_CARD_W + 2f * WEAPON_CARD_GAP;
+		float rowStartX = (hudLeftX1 - rowWidth) / 2f;
+		float cardY = HUD_PANEL_Y_BOTTOM + 10f;
+		weaponCard1Bounds.set(rowStartX, cardY, WEAPON_CARD_W, WEAPON_CARD_H);
+		weaponCard2Bounds.set(rowStartX + WEAPON_CARD_W + WEAPON_CARD_GAP, cardY, WEAPON_CARD_W, WEAPON_CARD_H);
+		weaponCard3Bounds.set(rowStartX + 2f * (WEAPON_CARD_W + WEAPON_CARD_GAP), cardY, WEAPON_CARD_W, WEAPON_CARD_H);
 	}
 
 	private Rectangle[] weaponCardBounds() {

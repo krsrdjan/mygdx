@@ -65,7 +65,7 @@ tasks.register("stageWebDist") {
             into siteDir.get().asFile
         }
         copy {
-            from "webapp/index.html"
+            from "webapp"
             into siteDir.get().asFile
         }
     }

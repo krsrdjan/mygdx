@@ -4,10 +4,15 @@
         <title>My GDX Game</title>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+        <meta name="description" content="Turn-based dungeon crawler">
         <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-title" content="MyGDX">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta name="theme-color" content="#000000">
+        <link rel="manifest" href="manifest.webmanifest">
+        <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+        <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
         <style>
             html, body {
                 margin: 0;
@@ -74,6 +79,26 @@
                 color: #aaa;
                 max-width: 280px;
             }
+            #install-app {
+                position: fixed;
+                top: max(12px, env(safe-area-inset-top));
+                right: max(12px, env(safe-area-inset-right));
+                z-index: 9000;
+                display: none;
+                border: 1px solid #555;
+                border-radius: 999px;
+                padding: 10px 16px;
+                background: rgba(20, 20, 20, 0.92);
+                color: #fff;
+                font-family: system-ui, -apple-system, sans-serif;
+                font-size: 14px;
+                line-height: 1;
+                cursor: pointer;
+                touch-action: manipulation;
+            }
+            #install-app.visible {
+                display: block;
+            }
         </style>
     </head>
     <body oncontextmenu="return false">
@@ -82,6 +107,7 @@
             <h1>Rotate your device</h1>
             <p>Landscape mode is required to play.</p>
         </div>
+        <button id="install-app" type="button" hidden>Install app</button>
         <canvas id="canvas" hidden></canvas>
         <script type="text/javascript" charset="utf-8" src="app.js"></script>
         <script>
@@ -140,6 +166,40 @@
                 window.addEventListener("load", tryStartGame);
                 window.addEventListener("orientationchange", tryStartGame);
                 window.addEventListener("resize", tryStartGame);
+
+                if ("serviceWorker" in navigator) {
+                    window.addEventListener("load", function () {
+                        navigator.serviceWorker.register("./sw.js").catch(function () {});
+                    });
+                }
+
+                var installButton = document.getElementById("install-app");
+                var deferredInstallPrompt = null;
+
+                window.addEventListener("beforeinstallprompt", function (event) {
+                    event.preventDefault();
+                    deferredInstallPrompt = event;
+                    installButton.hidden = false;
+                    installButton.classList.add("visible");
+                });
+
+                installButton.addEventListener("click", function () {
+                    if (!deferredInstallPrompt) {
+                        return;
+                    }
+                    deferredInstallPrompt.prompt();
+                    deferredInstallPrompt.userChoice.finally(function () {
+                        deferredInstallPrompt = null;
+                        installButton.hidden = true;
+                        installButton.classList.remove("visible");
+                    });
+                });
+
+                window.addEventListener("appinstalled", function () {
+                    deferredInstallPrompt = null;
+                    installButton.hidden = true;
+                    installButton.classList.remove("visible");
+                });
             })();
         </script>
     </body>
