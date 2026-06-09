@@ -88,6 +88,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private static final float HUD_HP_BAR_Y = 96f;
 	private static final float HUD_MOV_TEXT_Y = 83f;
 	private static final float HUD_MOV_BAR_Y = 74f;
+	private static final float HUD_AC_TEXT_Y = 61f;
 	private static final float WEAPON_CARD_W = 114f;
 	private static final float WEAPON_CARD_H = 44f;
 	private static final float WEAPON_CARD_GAP = 8f;
@@ -470,6 +471,8 @@ public class MyGdxGame extends ApplicationAdapter {
 				hero.getHealth() + " / " + hero.getMaxHealth(), HUD_PANEL_Y_BOTTOM + HUD_HP_TEXT_Y);
 		drawHudStatText(LEFT_X0, hudLeftX1, "MOV",
 				String.valueOf(hero.getSpeed()), HUD_PANEL_Y_BOTTOM + HUD_MOV_TEXT_Y);
+		drawHudStatText(LEFT_X0, hudLeftX1, "AC",
+				String.valueOf(hero.getArmorClass()), HUD_PANEL_Y_BOTTOM + HUD_AC_TEXT_Y);
 
 		// Weapon cards
 		Weapon activeWeapon = hero.getCurrentWeapon();
@@ -486,8 +489,7 @@ public class MyGdxGame extends ApplicationAdapter {
 			}
 			glyphLayout.setText(font, w.getName());
 			font.draw(batch, w.getName(), r.x + (r.width - glyphLayout.width) / 2f, r.y + r.height - 8f);
-			int hitPct = Math.round(w.getChanceToHit() * 100);
-			String stats = hitPct + "%  " + w.getDamage() + " dmg";
+			String stats = Weapon.formatAttackBonus(w.getAttackBonus()) + "  " + w.getDamage() + " dmg";
 			font.setColor(MUTED);
 			glyphLayout.setText(font, stats);
 			font.draw(batch, stats, r.x + (r.width - glyphLayout.width) / 2f, r.y + 16f);
@@ -551,11 +553,13 @@ public class MyGdxGame extends ApplicationAdapter {
 					HUD_PANEL_Y_BOTTOM + HUD_HP_TEXT_Y);
 			drawHudStatText(hudRightX0, hudCamera.viewportWidth, "MOV",
 					String.valueOf(adjacent.getSpeed()), HUD_PANEL_Y_BOTTOM + HUD_MOV_TEXT_Y);
+			drawHudStatText(hudRightX0, hudCamera.viewportWidth, "AC",
+					String.valueOf(adjacent.getArmorClass()), HUD_PANEL_Y_BOTTOM + HUD_AC_TEXT_Y);
 
 			Weapon mw = adjacent.getWeapon();
 			if (mw != null) {
-				int pct = Math.round(mw.getChanceToHit() * 100);
-				String line = mw.getName() + "  \u00B7  " + pct + "% hit  \u00B7  " + mw.getDamage() + " dmg";
+				String line = mw.getName() + "  \u00B7  " + Weapon.formatAttackBonus(mw.getAttackBonus())
+						+ " atk  \u00B7  " + mw.getDamage() + " dmg";
 				float contentLeft = hudContentLeft(hudRightX0);
 				float maxLineW = hudContentRight(hudCamera.viewportWidth) - contentLeft;
 				font.setColor(MUTED);
@@ -836,8 +840,8 @@ public class MyGdxGame extends ApplicationAdapter {
 		if (weapon == null) {
 			return null;
 		}
-		int hitPct = Math.round(weapon.getChanceToHit() * 100);
-		return weapon.getName() + "    Hit: " + hitPct + "%    Dmg: " + weapon.getDamage();
+		return weapon.getName() + "    " + Weapon.formatAttackBonus(weapon.getAttackBonus())
+				+ " atk    Dmg: " + weapon.getDamage();
 	}
 
 	private void renderHoverPopup(String line1, String line2) {

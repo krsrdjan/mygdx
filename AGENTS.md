@@ -30,7 +30,7 @@ The game follows a turn-based board game pattern:
 - `Creature` is the base class for `Hero` and `Monster`; textures loaded via `TextureCache.get(image)`
 - `Hero` — player character; `MAX_WEAPON_INVENTORY = 3` slots; weapon methods: `addWeapon(Weapon)`, `switchWeapon()` (cycles inventory), `swapEquippedWeapon(Weapon)` (replaces current, returns displaced), `setCurrentWeapon(Weapon)`, `getCurrentWeapon()`; movement consumes `speed` (reset to `MAX_SPEED = 8` each turn); `heal(int amount)` clamps to `maxHealth`
 - `Monster` — two constructors: `Monster(image, health, board)` (defaults) and `Monster(image, health, damage, maxSpeed, board)` (custom stats); activate/move/attack logic runs via `startTurn(Hero)` called by `GameBoard.endHeroTurn()`
-- `Weapon` is abstract — constructor `Weapon(float chanceToHit, int damage, String name)`; subclasses: `Sword`, `Axe`, `Mace`, `BigClub`, `Bite`, `Hammer`, `RustyBlade`
+- `Weapon` is abstract — constructor `Weapon(int attackBonus, int damage, String name)`; subclasses: `Sword`, `Axe`, `Mace`, `BigClub`, `Bite`, `Hammer`, `RustyBlade`; `attackAgainst(int targetArmorClass)` rolls d20 + attackBonus vs AC
 - `Item` is abstract base for collectibles (extends `Creature`; implement `use(Hero)`); has `moveTo(Position, boolean occupySquare)` for repositioning without always claiming the square
 - `HealPotion` — Item subclass; texture `potion-red.png`; restores 1 HP on pickup
 - `GreaterHealPotion` — Item subclass; texture `potion-blue.png`; restores 2 HP on pickup
@@ -127,7 +127,7 @@ These sections mix **what this project already does** (caches, `dispose()`, two 
 4. No changes needed in platform modules
 
 ### New Weapon
-1. Extend `Weapon` — constructor `super(chanceToHit, damage, "Name")`
+1. Extend `Weapon` — constructor `super(attackBonus, damage, "Name")`
 2. Assign to a monster in `RandomMonsterFactory`, or place as a `WeaponPickup` item on the board
 
 ### New Item (consumable)

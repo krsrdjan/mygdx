@@ -1,9 +1,8 @@
 package com.mygdx.game;
 
 public class Bite extends Weapon {
-    
+
     public Bite() {
-        super(0.75f, 1, "Bite");
+        super(6, 1, "Bite");
     }
 }
-

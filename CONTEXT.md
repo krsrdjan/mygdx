@@ -118,11 +118,11 @@ _Avoid_: Depth indicator, level number
 ### Actors
 
 **Creature**:
-Anything with HP, a sprite, and life/death state. Base type for **Hero** and **Monster** (and, in code, **Item**).
+Anything with HP, **Armour Class (AC)**, a sprite, and life/death state. Base type for **Hero** and **Monster** (and, in code, **Item**).
 _Avoid_: Entity, actor, unit
 
 **Hero**:
-The player-controlled Creature. **8 max HP**, movement budget (**MOV**), one attack per **Turn**, and a **Weapon** inventory.
+The player-controlled Creature. **8 max HP**, **AC 14**, movement budget (**MOV**), one attack per **Turn**, and a **Weapon** inventory.
 _Avoid_: Player, character, avatar
 
 **Monster**:
@@ -166,25 +166,25 @@ The set of **Weapons** the **Hero** carries. Starts with **Axe** and **Sword**; 
 _Avoid_: Loadout, arsenal, equipment slots
 
 **Weapon card**:
-A **Hero panel** control showing one **Weapon** from the **Weapon inventory** (name, hit %, damage). Up to **3** cards when inventory is full. Tapping a card equips that **Weapon**. Gold underline marks the active **Weapon**.
+A **Hero panel** control showing one **Weapon** from the **Weapon inventory** (name, attack bonus, damage). Up to **3** cards when inventory is full. Tapping a card equips that **Weapon**. Gold underline marks the active **Weapon**.
 _Avoid_: Weapon slot, gear tab
 
 **Weapon pickup feedback**:
-On first pickup (empty inventory slot): **Toast** and **Combat log** entry with **Weapon** name and stats (e.g. "Found Mace! (80% hit, 1 dmg)"). On **Weapon swap** (full inventory): **Toast** and **Combat log** with both names (e.g. "Swapped Sword for Hammer"). Every swap shows a **Toast** (no throttling).
+On first pickup (empty inventory slot): **Toast** and **Combat log** entry with **Weapon** name and stats (e.g. "Found Mace! (+7 atk, 1 dmg)"). On **Weapon swap** (full inventory): **Toast** and **Combat log** with both names (e.g. "Swapped Sword for Hammer"). Every swap shows a **Toast** (no throttling).
 _Avoid_: Loot notification, pickup popup
 
 ### Combat and equipment
 
 **Monster archetype**:
-A design role for a **Monster** type defined by its HP, MOV, and **Weapon** spread—not unique AI. Roster (5 types, **equal weight** spawn):
+A design role for a **Monster** type defined by its HP, AC, MOV, and **Weapon** spread—not unique AI. Roster (5 types, **equal weight** spawn):
 
-| Monster | Archetype | HP | MOV | Weapon |
-|---------|-----------|----|-----|--------|
-| Skeleton | swarm/fast | 1 | 7 | Rusty Blade (65% hit, 1 dmg) |
-| Werewolf | fast/fragile | 1 | 6 | Bite (75% hit, 1 dmg) |
-| Orc | balanced | 2 | 5 | Mace (80% hit, 1 dmg) |
-| Troll | tank/bruiser | 2 | 4 | Big Club (50% hit, 2 dmg) |
-| Ogre | heavy tank | 3 | 3 | Hammer (40% hit, 3 dmg) |
+| Monster | Archetype | HP | AC | MOV | Weapon |
+|---------|-----------|----|----|-----|--------|
+| Skeleton | swarm/fast | 1 | 11 | 7 | Rusty Blade (+4 atk, 1 dmg) |
+| Werewolf | fast/fragile | 1 | 12 | 6 | Bite (+6 atk, 1 dmg) |
+| Orc | balanced | 2 | 13 | 5 | Mace (+7 atk, 1 dmg) |
+| Troll | tank/bruiser | 2 | 14 | 4 | Big Club (+1 atk, 2 dmg) |
+| Ogre | heavy tank | 3 | 15 | 3 | Hammer (−1 atk, 3 dmg) |
 
 _Avoid_: Class, mob type, enemy tier
 
@@ -197,23 +197,35 @@ _Avoid_: Giant, brute
 _Avoid_: Undead, ghoul
 
 **Rusty Blade**:
-A **Weapon** wielded by **Skeleton**—low accuracy, light damage; fits the swarm/fast archetype.
+A **Weapon** wielded by **Skeleton**—moderate **Attack bonus**, light damage; fits the swarm/fast archetype.
 _Avoid_: Short sword, dagger
 
 **Hammer**:
-A **Weapon** wielded by **Ogre**—slow, high damage, low hit chance; fits the heavy tank archetype.
+A **Weapon** wielded by **Ogre**—high damage, negative **Attack bonus**; fits the heavy tank archetype.
 _Avoid_: Maul, warhammer
 
 **Weapon**:
-An attack profile: display name, hit chance (0–1), and damage on hit. Hero and Monster each wield one Weapon when attacking.
+An attack profile: display name, **attack bonus** (integer added to the d20 **Attack roll**), and damage on **Hit**. Hero and Monster each wield one Weapon when attacking.
 _Avoid_: Attack type, gear, equipment slot
 
+**Armour Class (AC)**:
+How difficult a **Creature** is to hit. Each **Hero** and **Monster** has an AC; an **Attack roll** total must meet or exceed the target's AC to **Hit**. Represents armour, agility, and toughness combined.
+_Avoid_: Defense stat, dodge rating
+
+**Attack bonus**:
+The integer added to a d20 **Attack roll**, usually from the attacker's **Weapon**. Shown as "+N" (or "−N" when negative) in the HUD and pickup text.
+_Avoid_: Hit chance, to-hit modifier
+
+**Attack roll**:
+One d20 roll plus the attacker's **Attack bonus**. Compared against the target's **Armour Class (AC)**; total ≥ AC is a **Hit**, otherwise a **Miss**.
+_Avoid_: Hit check, accuracy roll
+
 **Hit**:
-An attack roll that succeeds; deals the Weapon's damage. A failed roll is a **Miss** (0 damage).
+An **Attack roll** whose total (d20 + **Attack bonus**) is equal to or greater than the target's **Armour Class (AC)**; deals the **Weapon**'s damage. A failed roll is a **Miss** (0 damage).
 _Avoid_: Strike, connect
 
 **Miss**:
-An attack roll that fails; no damage dealt.
+An **Attack roll** whose total is less than the target's **Armour Class (AC)**; no damage dealt.
 _Avoid_: Dodge, block (those imply different mechanics)
 
 **Near**:

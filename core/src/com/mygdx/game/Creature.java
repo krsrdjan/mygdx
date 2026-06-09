@@ -6,11 +6,17 @@ public class Creature {
     protected final Texture texture;
     protected int health;
     protected int maxHealth;
+    protected int armorClass;
 
     public Creature(String image, int health) {
+        this(image, health, 12);
+    }
+
+    public Creature(String image, int health, int armorClass) {
         this.texture = TextureCache.get(image);
         this.health = health;
         this.maxHealth = health;
+        this.armorClass = armorClass;
     }
 
     public Texture getTexture() {
@@ -29,4 +35,11 @@ public class Creature {
         return maxHealth;
     }
 
+    public int getArmorClass() {
+        return armorClass;
+    }
+
+    public void setArmorClass(int armorClass) {
+        this.armorClass = armorClass;
+    }
 }

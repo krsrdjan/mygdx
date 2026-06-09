@@ -20,8 +20,10 @@ public class Hero extends Creature {
     private List<Weapon> inventory = new ArrayList<>();
     private Weapon currentWeapon;
 
+    public static final int DEFAULT_ARMOR_CLASS = 14;
+
     public Hero(String image, int health, GameBoard board) {
-        super(image, health);
+        super(image, health, DEFAULT_ARMOR_CLASS);
         weaponHit = SoundCache.get("sword.wav");
         deathSound = SoundCache.get("death.mp3");
         this.board = board;
@@ -72,12 +74,12 @@ public class Hero extends Creature {
         return position;
     }
 
-    public int attack() {
+    public AttackResult attackAgainst(int targetArmorClass) {
         weaponHit.play(AudioConfig.VOLUME);
         if (currentWeapon != null) {
-            return currentWeapon.attack();
+            return currentWeapon.attackAgainst(targetArmorClass);
         }
-        return 0; // No weapon equipped
+        return new AttackResult(0, 0, 0, targetArmorClass, false, 0);
     }
 
     public void startTurn() {
@@ -145,12 +147,12 @@ public class Hero extends Creature {
         if(attack > 0) {
             Position monsterPos = monster.getPosition();
             if(Position.isNear(getPosition(), monsterPos)) {
-                int damage = attack();
-                if (damage > 0) {
-                    monster.takeDamage(damage);
-                    board.logCombat("Hit! " + damage + " damage");
+                AttackResult result = attackAgainst(monster.getArmorClass());
+                if (result.isHit()) {
+                    monster.takeDamage(result.getDamage());
+                    board.logCombat("Hit! " + result.formatRollVsAc() + " (" + result.getDamage() + " dmg)");
                 } else {
-                    board.logCombat("Miss!");
+                    board.logCombat("Miss! " + result.formatRollVsAc());
                 }
                 attack--;
             }

@@ -40,8 +40,8 @@ public class WeaponPickup extends Item {
     }
 
     static String formatFound(Weapon weapon) {
-        int hitPct = Math.round(weapon.getChanceToHit() * 100);
-        return "Found " + weapon.getName() + "! (" + hitPct + "% hit, " + weapon.getDamage() + " dmg)";
+        return "Found " + weapon.getName() + "! (" + Weapon.formatAttackBonus(weapon.getAttackBonus())
+                + " atk, " + weapon.getDamage() + " dmg)";
     }
 
     private void clearFromSquare() {

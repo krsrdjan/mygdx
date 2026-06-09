@@ -27,8 +27,8 @@ public class Monster extends Creature {
         this.name = inferNameFromImage(image);
     }
 
-    public Monster(String image, int health, int damage, int maxSpeed, GameBoard board) {
-        super(image, health);
+    public Monster(String image, int health, int damage, int maxSpeed, int armorClass, GameBoard board) {
+        super(image, health, armorClass);
         deathSound = SoundCache.get("death.mp3");
         weaponHit = SoundCache.get("sword.wav");
 
@@ -194,23 +194,26 @@ public class Monster extends Creature {
     public void attackHero(Hero hero) {
         Position heroPos = hero.getPosition();
         if(Position.isNear(heroPos, position)) {
-            weaponHit.play(AudioConfig.VOLUME);
-            int damage = attack();
-            if (damage > 0) {
-                hero.takeDamage(damage);
-                board.logCombat(name + " hits you for " + damage + " damage!");
+            AttackResult result = attackAgainst(hero.getArmorClass());
+            if (result.isHit()) {
+                hero.takeDamage(result.getDamage());
+                board.logCombat(name + " hits! " + result.formatRollVsAc() + " (" + result.getDamage() + " dmg)");
             } else {
-                board.logCombat(name + " misses!");
+                board.logCombat(name + " misses! " + result.formatRollVsAc());
             }
         }
     }
 
-    public int attack() {
+    public AttackResult attackAgainst(int targetArmorClass) {
+        weaponHit.play(AudioConfig.VOLUME);
         if (weapon != null) {
-            return weapon.attack();
+            return weapon.attackAgainst(targetArmorClass);
         }
-        // Fallback to old damage calculation if no weapon
-        return new Random().nextInt(damage);
+        int roll = new Random().nextInt(20) + 1;
+        int total = roll;
+        boolean hit = total >= targetArmorClass;
+        int damageDealt = hit ? damage : 0;
+        return new AttackResult(roll, 0, total, targetArmorClass, hit, damageDealt);
     }
     
     public Weapon getWeapon() {
