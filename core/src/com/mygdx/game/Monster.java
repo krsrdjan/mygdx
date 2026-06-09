@@ -17,6 +17,7 @@ public class Monster extends Creature {
     private boolean active = false;
     private final String name;
     private Weapon weapon;
+    private final int level;
 
     public Monster(String image, int health, GameBoard board) {
         super(image, health);
@@ -25,9 +26,10 @@ public class Monster extends Creature {
 
         this.board = board;
         this.name = inferNameFromImage(image);
+        this.level = health;
     }
 
-    public Monster(String image, int health, int damage, int maxSpeed, int armorClass, GameBoard board) {
+    public Monster(String image, int health, int damage, int maxSpeed, int armorClass, int level, GameBoard board) {
         super(image, health, armorClass);
         deathSound = SoundCache.get("death.mp3");
         weaponHit = SoundCache.get("sword.wav");
@@ -37,6 +39,7 @@ public class Monster extends Creature {
         this.MAX_SPEED = maxSpeed;
         this.speed = MAX_SPEED;
         this.name = inferNameFromImage(image);
+        this.level = level;
     }
     
     public void setWeapon(Weapon weapon) {
@@ -49,6 +52,10 @@ public class Monster extends Creature {
 
     public int getMaxSpeed() {
         return MAX_SPEED;
+    }
+
+    public int getLevel() {
+        return level;
     }
 
     public void takeDamage(int damage) {

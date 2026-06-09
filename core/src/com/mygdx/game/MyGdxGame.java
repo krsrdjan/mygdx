@@ -88,7 +88,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private static final float HUD_HP_BAR_Y = 96f;
 	private static final float HUD_MOV_TEXT_Y = 83f;
 	private static final float HUD_MOV_BAR_Y = 74f;
-	private static final float HUD_AC_TEXT_Y = 61f;
+	private static final float HUD_AC_TEXT_Y = 39f;
 	private static final float WEAPON_CARD_W = 114f;
 	private static final float WEAPON_CARD_H = 44f;
 	private static final float WEAPON_CARD_GAP = 8f;
@@ -464,15 +464,13 @@ public class MyGdxGame extends ApplicationAdapter {
 	private void renderHudText(Hero hero, Monster adjacent) {
 		batch.begin();
 
-		// Hero portrait (top-left) + HERO label to its right
-		drawHudPanelHeader(LEFT_X0, hudLeftX1, hero.getTexture(), "HERO", GOLD);
+		// Hero portrait + header row (HERO Lv, AC, EXP)
+		drawHeroPanelHeader(hero);
 
 		drawHudStatText(LEFT_X0, hudLeftX1, "HP",
 				hero.getHealth() + " / " + hero.getMaxHealth(), HUD_PANEL_Y_BOTTOM + HUD_HP_TEXT_Y);
 		drawHudStatText(LEFT_X0, hudLeftX1, "MOV",
 				String.valueOf(hero.getSpeed()), HUD_PANEL_Y_BOTTOM + HUD_MOV_TEXT_Y);
-		drawHudStatText(LEFT_X0, hudLeftX1, "AC",
-				String.valueOf(hero.getArmorClass()), HUD_PANEL_Y_BOTTOM + HUD_AC_TEXT_Y);
 
 		// Weapon cards
 		Weapon activeWeapon = hero.getCurrentWeapon();
@@ -624,6 +622,49 @@ public class MyGdxGame extends ApplicationAdapter {
 		font.setColor(nameColor);
 		float nameX = contentLeft + HUD_NAME_X_OFFSET;
 		font.draw(batch, truncateHudText(name, contentRight - nameX), nameX, HUD_PANEL_Y_TOP - 20f);
+	}
+
+	private void drawHeroPanelHeader(Hero hero) {
+		float contentLeft = hudContentLeft(LEFT_X0);
+		float contentRight = hudContentRight(hudLeftX1);
+		float headerY = HUD_PANEL_Y_TOP - 20f;
+		float nameX = contentLeft + HUD_NAME_X_OFFSET;
+
+		batch.setColor(Color.WHITE);
+		batch.draw(hero.getTexture(), contentLeft, HUD_PANEL_Y_TOP - 44f, HUD_PORTRAIT_SIZE, HUD_PORTRAIT_SIZE);
+
+		String acValue = String.valueOf(hero.getArmorClass());
+		String expValue = hero.getExperience() + " / " + hero.getExpPerLevel();
+		glyphLayout.setText(font, "AC");
+		float acLabelW = glyphLayout.width;
+		glyphLayout.setText(font, acValue);
+		float acValW = glyphLayout.width;
+		glyphLayout.setText(font, "EXP");
+		float expLabelW = glyphLayout.width;
+		glyphLayout.setText(font, expValue);
+		float expValW = glyphLayout.width;
+		float suffixW = 12f + acLabelW + 4f + acValW + 12f + expLabelW + 4f + expValW;
+
+		String heroTitle = "HERO  Lv " + hero.getLevel();
+		font.setColor(GOLD);
+		glyphLayout.setText(font, heroTitle);
+		float maxTitleW = Math.max(0f, contentRight - nameX - suffixW);
+		font.draw(batch, truncateHudText(heroTitle, maxTitleW), nameX, headerY);
+
+		float x = nameX + Math.min(glyphLayout.width, maxTitleW) + 12f;
+
+		font.setColor(MUTED);
+		font.draw(batch, "AC", x, headerY);
+		x += acLabelW + 4f;
+		font.setColor(Color.WHITE);
+		font.draw(batch, acValue, x, headerY);
+		x += acValW + 12f;
+
+		font.setColor(MUTED);
+		font.draw(batch, "EXP", x, headerY);
+		x += expLabelW + 4f;
+		font.setColor(Color.WHITE);
+		font.draw(batch, truncateHudText(expValue, contentRight - x), x, headerY);
 	}
 
 	private String truncateHudText(String text, float maxWidth) {

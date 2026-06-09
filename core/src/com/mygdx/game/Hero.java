@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Hero extends Creature {
 
-    public static final int MAX_WEAPON_INVENTORY = 3;
+    public static final int MAX_WEAPON_INVENTORY = 2;
 
     private Sound weaponHit;
     private int MAX_SPEED = 8;
@@ -21,17 +21,23 @@ public class Hero extends Creature {
     private Weapon currentWeapon;
 
     public static final int DEFAULT_ARMOR_CLASS = 14;
+    public static final int EXP_PER_LEVEL = 5;
+
+    private int level = 1;
+    private int experience = 0;
 
     public Hero(String image, int health, GameBoard board) {
         super(image, health, DEFAULT_ARMOR_CLASS);
+        this.board = board;
+
         weaponHit = SoundCache.get("sword.wav");
         deathSound = SoundCache.get("death.mp3");
-        this.board = board;
+        
         Sword sword = new Sword();
         Axe axe = new Axe();
-        inventory.add(axe);
         inventory.add(sword);
-        currentWeapon = axe;
+        inventory.add(axe);
+        currentWeapon = sword;
     }
 
     public void heal(int amount) {
@@ -149,7 +155,12 @@ public class Hero extends Creature {
             if(Position.isNear(getPosition(), monsterPos)) {
                 AttackResult result = attackAgainst(monster.getArmorClass());
                 if (result.isHit()) {
+                    boolean killingBlow = monster.getHealth() <= result.getDamage();
+                    int expValue = monster.getLevel();
                     monster.takeDamage(result.getDamage());
+                    if (killingBlow) {
+                        addExperience(expValue);
+                    }
                     board.logCombat("Hit! " + result.formatRollVsAc() + " (" + result.getDamage() + " dmg)");
                 } else {
                     board.logCombat("Miss! " + result.formatRollVsAc());
@@ -157,6 +168,41 @@ public class Hero extends Creature {
                 attack--;
             }
         }
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public int getExperience() {
+        return experience;
+    }
+
+    public int getExpPerLevel() {
+        return EXP_PER_LEVEL;
+    }
+
+    public void addExperience(int amount) {
+        if (amount <= 0) {
+            return;
+        }
+        experience += amount;
+        String expMessage = "Gained " + amount + " EXP";
+        board.logCombat(expMessage);
+        board.showToast(expMessage);
+        while (experience >= EXP_PER_LEVEL) {
+            levelUp();
+        }
+    }
+
+    private void levelUp() {
+        experience -= EXP_PER_LEVEL;
+        level++;
+        maxHealth++;
+        health = Math.min(health + 1, maxHealth);
+        String levelMessage = "Level up! Now Lv " + level + " (+1 max HP)";
+        board.logCombat(levelMessage);
+        board.showToast(levelMessage);
     }
 
     public int getSpeed() {

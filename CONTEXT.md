@@ -122,8 +122,20 @@ Anything with HP, **Armour Class (AC)**, a sprite, and life/death state. Base ty
 _Avoid_: Entity, actor, unit
 
 **Hero**:
-The player-controlled Creature. **8 max HP**, **AC 14**, movement budget (**MOV**), one attack per **Turn**, and a **Weapon** inventory.
+The player-controlled Creature. **8 max HP**, **AC 14**, movement budget (**MOV**), one attack per **Turn**, and a **Weapon** inventory. Starts at **Hero level** 1 with 0 **Experience (EXP)**; **Hero level** and EXP persist across **Descent** and reset only on **Restart**.
 _Avoid_: Player, character, avatar
+
+**Hero level**:
+The **Hero**'s progression rank within a **Run**, starting at 1. Distinct from **Floor** (dungeon depth). Each level-up requires **10 EXP**; reward is **+1 max HP** and **heal 1 HP** (capped at the new max).
+_Avoid_: Floor, depth, character level (ambiguous)
+
+**Experience (EXP)**:
+Points earned when the **Hero** defeats a **Monster**. Amount equals that **Monster**'s **level**. Shown in the **Hero panel** as progress toward the next **Hero level** (threshold **10 EXP** per level; remainder carries over on level-up).
+_Avoid_: Score, XP bar (use EXP in domain language)
+
+**Monster level**:
+A **Monster** stat representing how much **Experience (EXP)** the **Hero** earns on defeat. Initially set equal to HP for each roster type; may diverge later.
+_Avoid_: CR, challenge rating, tier
 
 **Monster**:
 An enemy Creature placed by spawn-on-explore. Inactive until **Activated**; once active, takes turns moving toward and attacking the Hero. Sprites load from PNG files in `assets/` (Hero, Troll, Orc, Werewolf, Ogre, Skeleton, etc.).
@@ -295,7 +307,7 @@ _Avoid_: Session, game, match
 | **Item extends Creature** | Items have HP=1 and sit on Squares like Creatures | Domain: Item is a floor pickup, not a combatant—code model is legacy |
 | **Assets in repo** | Git tracks only a subset of `assets/`; full PNG/audio set exists locally for Hero and Monsters | Monster sprites use lowercase filenames (`ogre.png`, `skeleton.png`, etc.) |
 | **Victory** | ADR 0001 superseded by ADR 0004 (**Exit stairs** on Floor 3) | Implemented |
-| **Level** | Colloquial for **Floor** or whole **Run** | Use **Floor** for one grid; **Run** for the full descent |
+| **Level** | Colloquial for **Floor**, whole **Run**, or **Hero level** | Use **Floor** for dungeon depth; **Hero level** for progression; **Run** for the full descent |
 
 ## Example dialogue
 
