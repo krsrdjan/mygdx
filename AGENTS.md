@@ -24,15 +24,22 @@ Source directories use `src/` (not `src/main/java/`). Assets live in root `asset
 
 The game follows a turn-based board game pattern:
 
-- `MyGdxGame` extends `ApplicationAdapter` — main game loop (create/render/dispose); dual `OrthographicCamera` + `ExtendViewport` (world **play area** min 1280×538, HUD full screen min 1280×720)
-- `GameBoard` holds `Square[][]` grid, manages turns, monsters, items, exploration; use `setToastNotifier(StringCallback)` to wire toast messages to the UI
+- `MyGdxGame` extends `ApplicationAdapter` — main game loop (create/render/dispose); dual `OrthographicCamera` + `ExtendViewport` (world **play area** min 1280×538, HUD full screen min 1280×720); constructor takes optional `boolean mobileWebPlay` flag (enables `MOBILE_DUNGEON_ZOOM = 2f`)
+- `GameBoard` holds `Square[][]` grid, manages turns, monsters, items, exploration; constants: `BOARD_SQUARE_WIDTH = 32`, `BOARD_SQUARE_HEIGHT = 32`, `SQUARE_SIZE = 64`, `ROOMS_WIDE = 8`, `ROOMS_TALL = 8`, `TOTAL_FLOORS = 3`; use `setToastNotifier(StringCallback)` to wire toast messages to the UI; key query methods: `isHeroTurn()`, `getRound()`, `getCurrentFloor()`, `getMonstersKilled()`, `isVictory()`; item lifecycle: `addItem(Item)`, `removeItem(Item)`, `restoreFloorItemAt(Position)`; combat log: `logCombat(String)` / `showToast(String)` both append to `CombatLog`; click-to-move entry point: `heroClickOnTile(int tileX, int tileY)`
+- `CombatLog` — rolling log (max 32 entries) of combat messages and toasts; obtained via `gameBoard.getCombatLog()`; rendered in the HUD log strip; deduplicates consecutive identical messages
 - `Creature` is the base class for `Hero` and `Monster`; textures loaded via `TextureCache.get(image)`
-- `Weapon` is abstract — subclasses: `Sword`, `Axe`, `Mace`, `BigClub`, `Bite`
-- `Item` is abstract base for collectibles (extends `Creature`; implement `use(Hero)`)
-- `Position` is an immutable 2D coordinate value object
+- `Hero` — player character; `MAX_WEAPON_INVENTORY = 3` slots; weapon methods: `addWeapon(Weapon)`, `switchWeapon()` (cycles inventory), `swapEquippedWeapon(Weapon)` (replaces current, returns displaced), `setCurrentWeapon(Weapon)`, `getCurrentWeapon()`; movement consumes `speed` (reset to `MAX_SPEED = 8` each turn); `heal(int amount)` clamps to `maxHealth`
+- `Monster` — two constructors: `Monster(image, health, board)` (defaults) and `Monster(image, health, damage, maxSpeed, board)` (custom stats); activate/move/attack logic runs via `startTurn(Hero)` called by `GameBoard.endHeroTurn()`
+- `Weapon` is abstract — constructor `Weapon(float chanceToHit, int damage, String name)`; subclasses: `Sword`, `Axe`, `Mace`, `BigClub`, `Bite`, `Hammer`, `RustyBlade`
+- `Item` is abstract base for collectibles (extends `Creature`; implement `use(Hero)`); has `moveTo(Position, boolean occupySquare)` for repositioning without always claiming the square
+- `HealPotion` — Item subclass; texture `potion-red.png`; restores 1 HP on pickup
+- `GreaterHealPotion` — Item subclass; texture `potion-blue.png`; restores 2 HP on pickup
+- `WeaponPickup` — Item subclass; texture `weapon.png`; on pickup: adds weapon to hero inventory if space available, otherwise calls `swapEquippedWeapon` and drops displaced weapon at same tile
+- `AudioConfig` — holds single constant `VOLUME = 0.5f`; used by Hero, Monster, and MyGdxGame for all sound/music playback volume
+- `Position` is an immutable 2D coordinate value object; `Position.isNear(a, b)` checks adjacency
 - `MyInputAdapter` extends `InputAdapter` for keyboard controls
 - `RoomMazeGenerator` handles procedural dungeon generation
-- `RandomMonsterFactory` creates monsters via factory pattern
+- `RandomMonsterFactory` creates monsters via factory methods: `createTroll`, `createOrc`, `createWerewolf`, `createOgre`, `createSkeleton`, `createRandomMonster`
 - `Toast` handles in-game notification popups
 - `TextureCache` — static cache for textures; `get(filename)` and `getOrCreateSolid(key, r, g, b, a, size)`; call `TextureCache.dispose()` in game `dispose()`
 - `SoundCache` — static cache for sounds; `get(filename)`; call `SoundCache.dispose()` in game `dispose()`
@@ -97,7 +104,8 @@ These sections mix **what this project already does** (caches, `dispose()`, two 
 ### Audio
 - Use `Sound` for short effects (< 5 seconds), `Music` for background tracks
 - `Music` streams from disk — only one active instance needed
-- Set volume via a config object (like `AudioConfig`) so it's adjustable globally
+- All volume is centralised in `AudioConfig.VOLUME` (currently `0.5f`) — pass it to every `sound.play(AudioConfig.VOLUME)` and `music.setVolume(AudioConfig.VOLUME)` call
+- Background music: `atmosphere.mp3` (looping, started in `MyGdxGame.create()`); sfx: `sword.wav` (hit), `death.mp3` (hero death)
 
 ## Gradle Commands
 
@@ -114,14 +122,26 @@ These sections mix **what this project already does** (caches, `dispose()`, two 
 
 ### New Monster
 1. Add the monster texture to `assets/`
-2. Register the monster in `RandomMonsterFactory` (image name, stats via `Monster` constructor, `setWeapon(...)` with an existing `Weapon` or a new `Weapon` subclass only if you need a new attack profile)
-3. No changes needed in platform modules
+2. Add a `createXxx(GameBoard board)` factory method in `RandomMonsterFactory` — use `Monster(image, health, damage, maxSpeed, board)` and call `monster.setWeapon(new YourWeapon())`
+3. Add the image name to `MONSTER_IMAGES[]` and wire it in `createForImage()`
+4. No changes needed in platform modules
 
 ### New Weapon
-1. Extend `Weapon` with `chanceToHit` and `damage` values
-2. Assign to a monster or make available to the hero
+1. Extend `Weapon` — constructor `super(chanceToHit, damage, "Name")`
+2. Assign to a monster in `RandomMonsterFactory`, or place as a `WeaponPickup` item on the board
 
-### New Item
-1. Extend `Item` abstract class in core/
-2. Add pickup/use logic in `Hero` or `GameBoard`
-3. Add texture to `assets/`
+### New Item (consumable)
+1. Extend `Item` in `core/` — call `super("texture.png", board)` in the constructor
+2. Implement `use(Hero hero)`: apply effect, call `board.showToast(...)`, call `board.removeItem(this)`, and null the square via `board.getSquare(position.x, position.y).setCreature(null)`
+3. See `HealPotion` (restores 1 HP) and `GreaterHealPotion` (restores 2 HP) as reference implementations
+4. Add the texture to `assets/`
+5. Spawn the item in `GameBoard` (search for where `HealPotion` is instantiated for placement patterns)
+
+### New Weapon Pickup (droppable weapon on the floor)
+1. Create the `Weapon` subclass (step above)
+2. Instantiate `new WeaponPickup(weapon, board)` and call `pickup.moveTo(position, true)` then `board.addItem(pickup)`
+3. `WeaponPickup` handles the full pick-up/swap/drop logic automatically
+
+### Existing Assets
+Textures in `assets/`: `hero.png`, `troll.png`, `orc.png`, `werewolf.png`, `ogre.png`, `skeleton.png`, `weapon.png`, `potion-red.png`, `potion-blue.png`, `rock.png`, `tile.jpeg`, `tile-small.jpeg`, `logo.png`, `startup-logo.png`
+Sounds: `sword.wav`, `death.mp3`, `atmosphere.mp3` (background), `music.mp3`
