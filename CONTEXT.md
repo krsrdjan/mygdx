@@ -138,20 +138,20 @@ A **Monster** stat representing how much **Experience (EXP)** the **Hero** earns
 _Avoid_: CR, challenge rating, tier
 
 **Monster**:
-An enemy Creature placed by spawn-on-explore. Inactive until **Activated**; once active, takes turns moving toward and attacking the Hero. Sprites load from PNG files in `assets/` (Hero, Troll, Orc, Werewolf, Ogre, Skeleton, etc.).
+An enemy Creature placed by spawn-on-explore. Inactive until **Activated**; once **Active**, moves toward and attacks the **Hero** on its **Turn** during the monster phase. Does not act on the **Turn** when **Activated**—the **Hero** may still spend remaining **MOV** or **Attack action** first. Sprites load from PNG files in `assets/` (Hero, Troll, Orc, Werewolf, Ogre, Skeleton, etc.).
 _Avoid_: Enemy, mob, foe
 
 **Active** (monster):
-A Monster that has been Activated (typically because the Hero came **Near** it). Only Active Monsters act during the monster phase. Active Monsters path toward the Hero through passable **Squares** regardless of fog (**Explored** or not).
+A **Monster** that has been **Activated**. Only **Active** Monsters act during the monster phase. **Active** Monsters path toward the **Hero** through passable **Squares** regardless of fog (**Explored** or not).
 _Avoid_: Aggroed, awakened, engaged
 
 **Activated**:
-The transition when a previously inactive Monster becomes Active. Happens when the Hero is Near that Monster's Position.
-_Avoid_: Aggro, wake up
+The transition when a previously inactive **Monster** becomes **Active** because the **Hero** first **Explored** the **Room** containing that **Monster** (including a **Monster** just placed by **spawn on explore** in the same moment). **Activation** does not consume the **Monster**'s **Turn**—it waits until the **Hero** **End turn**s.
+_Avoid_: Aggro, wake up, Near trigger
 
-**Initiative strike**:
-When a **Monster** with **1 max HP** is first **Activated**, it immediately attempts one melee attack (normal **Weapon** **Hit** / **Miss**) if **Near** the **Hero**. Fires once per **Monster** per **Run**; does not replace its **Turn** on **End turn** if still alive.
-_Avoid_: First strike, ambush, pre-emptive attack
+**Room activation**:
+When the **Hero** first **Explores** any **Square** in a **Room**, every **Monster** in that **Room** becomes **Active** once per **Floor** visit. Logged in the **Combat log** (e.g. "Werewolf awakens!"); no **Toast**. The **Hero** keeps any remaining **MOV** and may **Attack action** or retreat before **Active** Monsters take their **Turn**.
+_Avoid_: Proximity aggro, line-of-sight trigger
 
 **Item**:
 A pickup on the dungeon floor (**Heal Potion**, **Greater Heal Potion**). Auto-collected when the Hero enters its **Square**; consumed via `use(Hero)`. Items occupy a **Square** but do not block movement—**Hero** and **Monster** pathfinding may traverse Item **Squares**; an unconsumed Item is restored when the occupant steps off.
@@ -241,7 +241,7 @@ An **Attack roll** whose total is less than the target's **Armour Class (AC)**; 
 _Avoid_: Dodge, block (those imply different mechanics)
 
 **Near**:
-Chebyshev distance ≤ 1 between two Positions (orthogonal or diagonal neighbors). Required for melee **Attack action** and for **Activated** checks. **Items** are picked up by entering their **Square**, not by being **Near** alone.
+Chebyshev distance ≤ 1 between two Positions (orthogonal or diagonal neighbors). Required for melee **Attack action** and for the **Adjacent monster panel**. **Items** are picked up by entering their **Square**, not by being **Near** alone.
 _Avoid_: Adjacent (ambiguous — see Flagged ambiguities), in range
 
 **Very near**:
@@ -317,7 +317,7 @@ _Avoid_: Session, game, match
 
 **Dev**: Does every Monster fight immediately?
 
-**Designer**: No. New Monsters start inactive. When the **Hero** gets **Near** one, it becomes **Active**. On **end turn**, only **Active** Monsters take a **turn**—they path until **very near** the Hero, then attack if **Near**.
+**Designer**: No. New **Monsters** start inactive. When the **Hero** first **Explores** a **Room**, every **Monster** in that **Room** becomes **Active** (**Room activation**)—including one just spawned. They do not act until the **Hero** **End turn**s; the **Hero** may still move or attack first. On **End turn**, only **Active** **Monsters** take a **Turn**—they path until **very near** the **Hero**, then attack if **Near**.
 
 **Dev**: What ends a run?
 

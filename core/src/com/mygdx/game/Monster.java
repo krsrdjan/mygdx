@@ -227,15 +227,8 @@ public class Monster extends Creature {
         return weapon;
     }
 
-    public void activate(Hero hero) {
-        if (active) {
-            return;
-        }
+    public void activate() {
         active = true;
-        if (maxHealth == 1 && Position.isNear(position, hero.getPosition())) {
-            board.logCombat(name + " strikes first!");
-            attackHero(hero);
-        }
     }
 
     public boolean isActive() {

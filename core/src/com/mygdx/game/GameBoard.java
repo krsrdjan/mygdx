@@ -19,6 +19,7 @@ public class GameBoard {
     private boolean spawnOnExplore = false;
     private boolean heroTurn = true;
     private final boolean[][] roomSpawnAttempted = new boolean[BOARD_SQUARE_WIDTH / 4][BOARD_SQUARE_HEIGHT / 4];
+    private final boolean[][] roomMonstersActivated = new boolean[BOARD_SQUARE_WIDTH / 4][BOARD_SQUARE_HEIGHT / 4];
     private static final boolean TEST_MODE = false;
 
     private final RandomMonsterFactory monsterFactory = new RandomMonsterFactory();
@@ -120,6 +121,7 @@ public class GameBoard {
         for (int x = 0; x < ROOMS_WIDE; x++) {
             for (int y = 0; y < ROOMS_TALL; y++) {
                 roomSpawnAttempted[x][y] = false;
+                roomMonstersActivated[x][y] = false;
             }
         }
 
@@ -416,6 +418,37 @@ public class GameBoard {
                     }
                 }
             }
+
+            if (newlyExplored) {
+                activateMonstersInRoom(x / 4, y / 4);
+            }
+        }
+    }
+
+    private void activateMonstersInRoom(int roomX, int roomY) {
+        if (roomX < 0 || roomY < 0 || roomX >= roomMonstersActivated.length
+                || roomY >= roomMonstersActivated[0].length) {
+            return;
+        }
+        if (roomMonstersActivated[roomX][roomY]) {
+            return;
+        }
+        roomMonstersActivated[roomX][roomY] = true;
+
+        int startX = roomX * 4;
+        int startY = roomY * 4;
+        int endX = startX + 4;
+        int endY = startY + 4;
+
+        for (Monster m : monsters) {
+            Position p = m.getPosition();
+            if (p == null || m.isActive()) {
+                continue;
+            }
+            if (p.x >= startX && p.x < endX && p.y >= startY && p.y < endY) {
+                m.activate();
+                logCombat(m.getName() + " awakens!");
+            }
         }
     }
 
@@ -451,16 +484,6 @@ public class GameBoard {
             }
         }
     }
-
-    public void activateNearMonsters(Position position) {
-        Hero hero = this.hero;
-        for (Monster m : monsters) {
-            if (Position.isNear(m.getPosition(), position)) {
-                m.activate(hero);
-            }
-        }
-    }
-
 
     public void moveHeroUp() {
         hero.moveUp();

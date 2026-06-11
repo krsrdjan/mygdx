@@ -60,7 +60,6 @@ public class Hero extends Creature {
         this.position = newPosition;
 
         exploreAroundHero(newPosition);
-        this.board.activateNearMonsters(newPosition);
         this.board.collectNearbyItems(this);
         this.board.onHeroLandedOn(newPosition);
     }
