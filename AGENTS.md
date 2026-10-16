@@ -2,11 +2,11 @@
 
 ## Tech Stack
 
-- **Framework**: libGDX 1.14.0
+- **Framework**: libGDX 1.14.2
 - **Language**: Java 17 (configurable via `javaVersion` in root build.gradle)
 - **Build**: Gradle multi-module (core, desktop, teavm)
 - **Desktop backend**: LWJGL3
-- **Web backend**: gdx-teavm 1.4.0 (TeaVM → JavaScript, served via Gretty/Jetty)
+- **Web backend**: gdx-teavm 1.6.2 (TeaVM → JavaScript, served via Gretty/Jetty)
 - **Package**: `com.mygdx.game`
 
 ## Project Structure

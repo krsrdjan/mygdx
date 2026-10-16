@@ -1,11 +1,9 @@
 package com.mygdx.game;
 
 import java.io.File;
-import com.github.xpenatan.gdx.backends.teavm.config.AssetFileHandle;
-import com.github.xpenatan.gdx.backends.teavm.config.TeaBuildConfiguration;
-import com.github.xpenatan.gdx.backends.teavm.config.TeaBuilder;
-import org.teavm.tooling.TeaVMTargetType;
-import org.teavm.tooling.TeaVMTool;
+import com.github.xpenatan.gdx.teavm.backends.shared.config.AssetFileHandle;
+import com.github.xpenatan.gdx.teavm.backends.shared.config.builder.TeaBuilder;
+import com.github.xpenatan.gdx.teavm.backends.web.config.backend.WebBackend;
 import org.teavm.vm.TeaVMOptimizationLevel;
 
 public class TeaVMBuilder {
@@ -13,27 +11,22 @@ public class TeaVMBuilder {
     private static final boolean DEBUG = false;
 
     public static void main(String[] arguments) {
-        TeaBuildConfiguration teaBuildConfiguration = new TeaBuildConfiguration();
-        teaBuildConfiguration.assetsPath.add(new AssetFileHandle("../assets"));
-        // Keep generated JS and custom index.html in the same published folder.
-        teaBuildConfiguration.webappPath = new File("build/dist/webapp").getAbsolutePath();
-        teaBuildConfiguration.targetType = TeaVMTargetType.JAVASCRIPT;
-        // Use the index.html shipped under teavm/webapp/ instead of the gdx-teavm default
-        // so we can opt into a mobile-friendly viewport and a canvas that fills the screen.
-        teaBuildConfiguration.useDefaultHtmlIndex = false;
+        WebBackend backend = new WebBackend()
+                .setGenerateIndexHtml(false);
 
-        TeaBuilder.config(teaBuildConfiguration);
-        TeaVMTool tool = new TeaVMTool();
-
-        tool.setMainClass("com.mygdx.game.TeaVMLauncher");
-        tool.setOptimizationLevel(DEBUG ? TeaVMOptimizationLevel.SIMPLE : TeaVMOptimizationLevel.ADVANCED);
-        tool.setObfuscated(!DEBUG);
+        TeaBuilder builder = new TeaBuilder(backend)
+                .addAssets(new AssetFileHandle("../assets"))
+                .setMainClass("com.mygdx.game.TeaVMLauncher")
+                .setOutputName("app")
+                .setOptimizationLevel(DEBUG ? TeaVMOptimizationLevel.SIMPLE : TeaVMOptimizationLevel.ADVANCED)
+                .setObfuscated(!DEBUG);
 
         if (DEBUG) {
-            tool.setDebugInformationGenerated(true);
-            tool.setSourceMapsFileGenerated(true);
+            builder.setDebugInformationGenerated(true);
+            builder.setSourceMapsFileGenerated(true);
         }
 
-        TeaBuilder.build(tool);
+        // Outputs to build/dist/webapp/ (app.js + assets); custom index.html comes from teavm/webapp/.
+        builder.build(new File("build/dist"));
     }
 }

@@ -1,5 +1,7 @@
-sourceCompatibility = JavaVersion.toVersion(javaVersion)
-targetCompatibility = JavaVersion.toVersion(javaVersion)
+java {
+    sourceCompatibility = JavaVersion.toVersion(javaVersion)
+    targetCompatibility = JavaVersion.toVersion(javaVersion)
+}
 sourceSets.main.java.srcDirs = [ "src/" ]
 sourceSets.main.resources.srcDirs = ["../assets"]
 
@@ -37,7 +39,7 @@ tasks.register('debug', JavaExec) {
 }
 
 tasks.register('dist', Jar) {
-    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes 'Main-Class': project.mainClassName
     }

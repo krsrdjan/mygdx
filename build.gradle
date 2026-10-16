@@ -4,8 +4,8 @@ allprojects {
     version = '1.0'
     ext {
         appName = "My GDX Game"
-        gdxVersion = '1.14.0'
-        gdxTeaVMVersion = '1.4.0'
+        gdxVersion = '1.14.2'
+        gdxTeaVMVersion = '1.6.2'
         javaVersion = project.findProperty('javaVersion') ?: '17'
     }
 
@@ -43,6 +43,6 @@ project(":teavm") {
 
     dependencies {
         implementation project(":core")
-        implementation "com.github.xpenatan.gdx-teavm:backend-teavm:$gdxTeaVMVersion"
+        implementation "com.github.xpenatan.gdx-teavm:backend-web:$gdxTeaVMVersion"
     }
 }
