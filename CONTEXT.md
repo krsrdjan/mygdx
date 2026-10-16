@@ -94,7 +94,7 @@ A client that qualifies for **Mobile web play** layout: primary input is touch *
 _Avoid_: Phone (vague), user-agent match
 
 **Landscape lock**:
-On **Mobile web play**, the game requires landscape orientation. If the device is held in portrait, a full-screen overlay blocks the **Dungeon** and **HUD strip** and all input until the player rotates; the canvas stays hidden until landscape.
+On **Mobile web play**, the game requires landscape orientation. If the device is held in portrait, a full-screen overlay blocks the whole game and all input until the player rotates; the canvas stays hidden until landscape. That includes the **Splash**, **Main menu**, **Hero selection**, and the **Run**.
 _Avoid_: Portrait mode, auto-rotate layout
 
 ### Visibility and discovery
@@ -122,8 +122,20 @@ Anything with HP, **Armour Class (AC)**, a sprite, and life/death state. Base ty
 _Avoid_: Entity, actor, unit
 
 **Hero**:
-The player-controlled Creature. **8 max HP**, **AC 14**, movement budget (**MOV**), one attack per **Turn**, and a **Weapon** inventory. Starts at **Hero level** 1 with 0 **Experience (EXP)**; **Hero level** and EXP persist across **Descent** and reset only on **Restart**.
+The player-controlled Creature for a **Run**, created from the chosen **Hero kit**. The kit sets max HP, **AC**, **MOV**, portrait, and the starting **Weapon**. One attack per **Turn**, and a **Weapon** inventory. Starts at **Hero level** 1 with 0 **Experience (EXP)**; **Hero level** and EXP persist across **Descent** and reset when a new **Run** starts. Level-up rules are the same for every kit.
 _Avoid_: Player, character, avatar
+
+**Hero kit**:
+A named starting loadout chosen on **Hero selection** before a **Run**. Supplies the **Hero**'s portrait, starting **Weapon**, and at most one differing stat. Once the **Run** starts, the kit is the **Hero**. The kits are **Squire** and **Brute**.
+_Avoid_: Class, character, avatar, hero type
+
+**Squire**:
+A **Hero kit**. Portrait `hero.png`. **Sword** (+6 attack, 1 damage). 8 max HP, **AC 14**, **MOV** 8. Highlighted each time **Hero selection** opens.
+_Avoid_: Knight, warrior, fighter
+
+**Brute**:
+A **Hero kit**. Portrait `hero.png`. **Axe** (−1 attack, 2 damage). 8 max HP, **AC 14**, **MOV** 6. **MOV** 6 is the full movement budget at the start of each **Turn**.
+_Avoid_: Berserker, axeman
 
 **Hero level**:
 The **Hero**'s progression rank within a **Run**, starting at 1. Distinct from **Floor** (dungeon depth). Each level-up requires **10 EXP**; reward is **+1 max HP** and **heal 1 HP** (capped at the new max).
@@ -174,7 +186,7 @@ Exchanging the equipped **Weapon** with a **Weapon pickup** on the floor when **
 _Avoid_: Drop weapon, discard, trash slot
 
 **Weapon inventory**:
-The set of **Weapons** the **Hero** carries. Starts with **Axe** and **Sword**; **Weapon pickup** items add more. Maximum **3 Weapons** at once. The player equips one **Weapon** at a time via **Weapon card** taps or `I` / switch-weapon input. When at the cap, collecting a **Weapon pickup** triggers **Weapon swap** (equipped **Weapon** goes to the floor; floor **Weapon** is equipped).
+The set of **Weapons** the **Hero** carries. Starts with the **Hero kit**'s single **Weapon**, already equipped (**Squire**: **Sword**, **Brute**: **Axe**); **Weapon pickup** items add more. Maximum **3 Weapons** at once. The player equips one **Weapon** at a time via **Weapon card** taps or `I` / switch-weapon input. When at the cap, collecting a **Weapon pickup** triggers **Weapon swap** (equipped **Weapon** goes to the floor; floor **Weapon** is equipped).
 _Avoid_: Loadout, arsenal, equipment slots
 
 **Weapon card**:
@@ -281,7 +293,7 @@ A transient popup for player-facing events (especially item pickup). Also duplic
 _Avoid_: Notification, alert, popup
 
 **Victory**:
-The **Hero** reaches **Exit stairs** on Floor 3 and steps onto them while alive. Triggers instantly (same transition as **Descent**—no **End turn** / monster-phase gate). The **Victory screen** uses the same layout as **Game over** but with the HUD **gold** accent: title “Victory!”, subtitle “You reached the deepest level.”, run summary with **Round** and **Monsters killed**, gold **Restart** button.
+The **Hero** reaches **Exit stairs** on Floor 3 and steps onto them while alive. Triggers instantly (same transition as **Descent**—no **End turn** / monster-phase gate). The **Victory screen** uses the same layout as **Game over** but with the HUD **gold** accent: title “Victory!”, subtitle “You reached the deepest level.”, run summary with **Round** and **Monsters killed**, gold **Restart** button. **Restart** returns to **Hero selection**.
 _Avoid_: Win screen, completion, success state
 
 **Monsters killed**:
@@ -289,12 +301,36 @@ Run stat: count of **Monsters** the Hero reduced to 0 HP. Incremented once per M
 _Avoid_: Kill count, score, KOs
 
 **Game over**:
-The Hero's HP reached 0. Input stops except **Restart**. Shows the same run summary as **Victory**: **Round** and **Monsters killed**. **Restart** starts a new **Run** at Floor 1.
+The Hero's HP reached 0. Input stops except **Restart**. Shows the same run summary as **Victory**: **Round** and **Monsters killed**. **Restart** returns to **Hero selection**.
 _Avoid_: Death screen, fail state
 
 **Run**:
-One play session from Floor 1 until **Victory** or **Game over**. Spans multiple **Floors**; **Descent** does not end the **Run**.
+One play session from Floor 1 until **Victory** or **Game over**. Spans multiple **Floors**; **Descent** does not end the **Run**. A new **Run** starts when a **Hero kit** is chosen, at Floor 1. No control during a **Run** returns to the **Main menu** or **Hero selection**.
 _Avoid_: Session, game, match
+
+**Front door**:
+The screens before a **Run** on a **Cold launch**: **Splash**, then **Main menu**, then **Hero selection**. Fills the window. The **Play area** / **HUD strip** split applies only during a **Run**. Uses the same dark background and gold accent as the **HUD strip**. No new art and no UI sound effects. See ADR 0005.
+_Avoid_: Title flow, boot sequence, intro
+
+**Cold launch**:
+Opening the game application. Shows the **Front door**. Distinct from **Restart**. Starts **Atmosphere** and leaves that same loop running.
+_Avoid_: Boot, startup, app start
+
+**Atmosphere**:
+The looping background track (`atmosphere.mp3`). Starts on **Cold launch** and keeps playing through the **Front door**, the **Run**, **Victory**, and **Game over**. **Begin** and **Restart** do not restart it.
+_Avoid_: Menu music, theme, soundtrack
+
+**Splash**:
+The brand screen on a **Cold launch**, before the **Main menu**. Shows `startup-logo.png` and the title **Turn-Based Adventure**. That title is also the desktop window title. Advances on its own after two seconds; a tap, click, or any key skips it. Not shown on **Restart**.
+_Avoid_: Title screen, intro, loading screen
+
+**Main menu**:
+The home screen after the **Splash** on a **Cold launch**. **Play** opens **Hero selection**. Enter is **Play**. **Quit** closes the desktop game immediately; Esc is **Quit** on desktop. The web game has no **Quit**, and Esc does nothing there.
+_Avoid_: Title menu, start screen, home screen
+
+**Hero selection**:
+The screen where the player picks a **Hero kit** before a **Run**. Shows **Squire** on the left and **Brute** on the right, each with its name, starting **Weapon** (attack bonus and damage), HP, **AC**, and **MOV**. The highlighted kit is the one **Begin** uses; **Squire** is highlighted each time the screen opens. Click or tap a kit to highlight it; Left/Right or A/D moves the highlight. **Begin** or Enter starts the **Run** immediately. **Back** or Esc returns to the **Main menu**; a finished **Run** stays finished. **Play** on the **Main menu** opens this screen. **Restart** from **Victory** or **Game over** returns here.
+_Avoid_: Character select, class select, hero menu
 
 ## Flagged ambiguities
 
@@ -308,6 +344,8 @@ _Avoid_: Session, game, match
 | **Assets in repo** | Git tracks only a subset of `assets/`; full PNG/audio set exists locally for Hero and Monsters | Monster sprites use lowercase filenames (`ogre.png`, `skeleton.png`, etc.) |
 | **Victory** | ADR 0001 superseded by ADR 0004 (**Exit stairs** on Floor 3) | Implemented |
 | **Level** | Colloquial for **Floor**, whole **Run**, or **Hero level** | Use **Floor** for dungeon depth; **Hero level** for progression; **Run** for the full descent |
+| **Weapon inventory cap** | Glossary says **3 Weapons**; `Hero.MAX_WEAPON_INVENTORY` is 2 | Parked. Outside the front door |
+| **EXP per level** | Glossary says **10 EXP**; `Hero.EXP_PER_LEVEL` is 5 | Parked. Outside the front door |
 
 ## Example dialogue
 
@@ -321,7 +359,11 @@ _Avoid_: Session, game, match
 
 **Dev**: What ends a run?
 
-**Designer**: Two outcomes. **Victory** when the **Hero** reaches **Exit stairs** on Floor 3. **Game over** when HP hits 0. Between floors, **Descent** via **Exit stairs** on Floors 1–2 keeps stats and inventory. The HUD shows **Floor progress** (`Floor N / 3`), **Round**, and **Monsters killed**. **Restart** starts a new **Run** at Floor 1.
+**Designer**: Two outcomes. **Victory** when the **Hero** reaches **Exit stairs** on Floor 3. **Game over** when HP hits 0. Between floors, **Descent** via **Exit stairs** on Floors 1–2 keeps stats and inventory. The HUD shows **Floor progress** (`Floor N / 3`), **Round**, and **Monsters killed**. **Restart** returns to **Hero selection**; choosing a **Hero kit** starts a new **Run** at Floor 1.
+
+**Dev**: What does the player see before the first Floor?
+
+**Designer**: On a **Cold launch**, the **Splash** (**Turn-Based Adventure**), then the **Main menu** (**Play**, and **Quit** on desktop), then **Hero selection**. **Squire** (Sword, MOV 8) starts highlighted; **Brute** (Axe, MOV 6) is the other **Hero kit**. **Begin** starts the **Run** at Floor 1. **Atmosphere** is already playing and keeps looping. **Restart** after **Victory** or **Game over** returns to **Hero selection**, not to a new dungeon.
 
 **Dev**: What's the goal each floor?
 
