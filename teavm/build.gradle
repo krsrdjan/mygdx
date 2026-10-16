@@ -1,5 +1,5 @@
 plugins {
-    id 'org.gretty' version "4.1.4"
+    id 'org.gretty' version "5.0.2"
 }
 
 gretty {
@@ -8,8 +8,10 @@ gretty {
     extraResourceBase 'build/dist/site'
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+java {
+    sourceCompatibility = JavaVersion.toVersion(javaVersion)
+    targetCompatibility = JavaVersion.toVersion(javaVersion)
+}
 
 sourceSets.main.java.srcDirs = ["src/"]
 sourceSets.main.resources.srcDirs += [rootProject.file('assets').path]
@@ -18,12 +20,12 @@ project.ext.mainClassName = "com.mygdx.game.TeaVMBuilder"
 eclipse.project.name = appName + "-teavm"
 
 dependencies {
-    implementation "com.github.xpenatan.gdx-teavm:backend-teavm:$gdxTeaVMVersion"
+    implementation "com.github.xpenatan.gdx-teavm:backend-web:$gdxTeaVMVersion"
     implementation project(':core')
 }
 
-def teavmOutputDir = layout.buildDirectory.dir("dist/webapp/webapp")
-def teavmAppJs = layout.buildDirectory.file("dist/webapp/webapp/app.js")
+def teavmOutputDir = layout.buildDirectory.dir("dist/webapp")
+def teavmAppJs = layout.buildDirectory.file("dist/webapp/app.js")
 def siteDir = layout.buildDirectory.dir("dist/site")
 
 tasks.register("buildJavaScript", JavaExec) {
@@ -45,27 +47,23 @@ tasks.register("copyWebapp", Copy) {
 }
 
 tasks.register("stageWebDist") {
-    setDescription("Flatten TeaVM webapp/ output for static hosting (Vercel, Gretty)")
+    setDescription("Stage TeaVM webapp output for static hosting (Vercel, Gretty)")
     dependsOn tasks.named("copyWebapp")
     inputs.dir(teavmOutputDir)
     outputs.dir(siteDir)
     doLast {
-        def nested = teavmOutputDir.get().asFile
+        def webapp = teavmOutputDir.get().asFile
         def appJs = teavmAppJs.get().asFile
         if (!appJs.isFile()) {
             throw new GradleException(
                 "TeaVM did not produce ${appJs}. " +
-                "Contents of ${nested.parentFile}: ${nested.parentFile.list()?.toList() ?: '[]'}"
+                "Contents of ${webapp}: ${webapp.list()?.toList() ?: '[]'}"
             )
         }
         delete siteDir.get().asFile
         siteDir.get().asFile.mkdirs()
         copy {
-            from nested
-            into siteDir.get().asFile
-        }
-        copy {
-            from "webapp"
+            from webapp
             into siteDir.get().asFile
         }
     }
