@@ -40,10 +40,10 @@ A turn-based dungeon crawler built with libGDX, inspired by classic DnD gameplay
 
 ## Tech Stack
 
-- **libGDX** 1.14.0
+- **libGDX** 1.14.2
 - **Java** 17
-- **Gradle** (multi-module: core, desktop, teavm)
-- **LWJGL3** desktop backend · **gdx-teavm** for web (JavaScript)
+- **Gradle** 9.8.1 (multi-module: core, desktop, teavm)
+- **LWJGL3** desktop backend · **gdx-teavm** 1.6.2 for web (JavaScript)
 
 ## Project Structure
 

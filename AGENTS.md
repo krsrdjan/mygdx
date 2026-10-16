@@ -2,11 +2,11 @@
 
 ## Tech Stack
 
-- **Framework**: libGDX 1.14.0
+- **Framework**: libGDX 1.14.2
 - **Language**: Java 17 (configurable via `javaVersion` in root build.gradle)
 - **Build**: Gradle multi-module (core, desktop, teavm)
 - **Desktop backend**: LWJGL3
-- **Web backend**: gdx-teavm 1.4.0 (TeaVM → JavaScript, served via Gretty/Jetty)
+- **Web backend**: gdx-teavm 1.6.2 (TeaVM → JavaScript, served via Gretty/Jetty)
 - **Package**: `com.mygdx.game`
 
 ## Project Structure
@@ -145,3 +145,18 @@ These sections mix **what this project already does** (caches, `dispose()`, two 
 ### Existing Assets
 Textures in `assets/`: `hero.png`, `troll.png`, `orc.png`, `werewolf.png`, `ogre.png`, `skeleton.png`, `weapon.png`, `potion-red.png`, `potion-blue.png`, `rock.png`, `tile.jpeg`, `tile-small.jpeg`, `logo.png`, `startup-logo.png`
 Sounds: `sword.wav`, `death.mp3`, `atmosphere.mp3` (background), `music.mp3`
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as markdown under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default role strings: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `GLOSSARY.md` + `docs/adr/`. See `docs/agents/domain.md`.
+

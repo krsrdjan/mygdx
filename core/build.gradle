@@ -1,5 +1,7 @@
-sourceCompatibility = JavaVersion.toVersion(javaVersion)
-targetCompatibility = JavaVersion.toVersion(javaVersion)
+java {
+    sourceCompatibility = JavaVersion.toVersion(javaVersion)
+    targetCompatibility = JavaVersion.toVersion(javaVersion)
+}
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 sourceSets.main.java.srcDirs = [ "src/" ]
