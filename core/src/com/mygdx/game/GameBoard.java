@@ -96,7 +96,7 @@ public class GameBoard {
         unexploredTexture = TextureCache.getOrCreateSolid("_unexplored", 0.2f, 0.2f, 0.2f, 1.0f, SQUARE_SIZE);
         stairsTexture = loadStairsTexture();
 
-        hero = new Hero("hero.png", TEST_MODE ? 200 : 8, this);
+        hero = new Hero("pixellab-make-this-hero-as-tabletop-tok-1791269201372.png", TEST_MODE ? 200 : 8, this);
         if (TEST_MODE) {
             hero.setMaxSpeed(200);
         }
