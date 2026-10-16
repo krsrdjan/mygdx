@@ -19,12 +19,22 @@ public class MyInputAdapter extends InputAdapter {
         boolean handleHudTouch(int screenX, int screenY);
     }
 
+    public interface FrontDoorHandler {
+        boolean handleKey(int keycode);
+        boolean handleTouch(int screenX, int screenY);
+    }
+
     private GameBoard gameBoard;
     private Viewport worldViewport;
     private HudClickHandler hudClickHandler;
+    private FrontDoorHandler frontDoorHandler;
     private final Vector3 worldCoords = new Vector3();
 
     public MyInputAdapter(GameBoard gameBoard) {
+        this.gameBoard = gameBoard;
+    }
+
+    public void setGameBoard(GameBoard gameBoard) {
         this.gameBoard = gameBoard;
     }
 
@@ -36,9 +46,16 @@ public class MyInputAdapter extends InputAdapter {
         this.hudClickHandler = hudClickHandler;
     }
 
+    public void setFrontDoorHandler(FrontDoorHandler frontDoorHandler) {
+        this.frontDoorHandler = frontDoorHandler;
+    }
+
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        if (worldViewport == null) {
+        if (frontDoorHandler != null && frontDoorHandler.handleTouch(screenX, screenY)) {
+            return true;
+        }
+        if (gameBoard == null || worldViewport == null) {
             return false;
         }
         if (!gameBoard.getHero().isAlive() || gameBoard.isVictory()) {
@@ -63,7 +80,12 @@ public class MyInputAdapter extends InputAdapter {
 
     @Override
     public boolean keyDown(int keycode) {
-        //System.out.println("touchDown called " + keycode);
+        if (frontDoorHandler != null && frontDoorHandler.handleKey(keycode)) {
+            return true;
+        }
+        if (gameBoard == null) {
+            return false;
+        }
         if (!gameBoard.getHero().isAlive() || gameBoard.isVictory()) {
             return true; // swallow gameplay input when run is over
         }

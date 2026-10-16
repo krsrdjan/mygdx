@@ -89,6 +89,10 @@ public class GameBoard {
     }
 
     public GameBoard() {
+        this(HeroKit.SQUIRE);
+    }
+
+    public GameBoard(HeroKit kit) {
         board = new Square[BOARD_SQUARE_WIDTH][BOARD_SQUARE_HEIGHT];
 
         wallTexture = TextureCache.getOrCreateSolid("_wall", 0.0f, 0.0f, 0.0f, 1.0f, SQUARE_SIZE);
@@ -96,7 +100,8 @@ public class GameBoard {
         unexploredTexture = TextureCache.getOrCreateSolid("_unexplored", 0.2f, 0.2f, 0.2f, 1.0f, SQUARE_SIZE);
         stairsTexture = loadStairsTexture();
 
-        hero = new Hero("hero.png", TEST_MODE ? 200 : 8, this);
+        HeroKit startingKit = kit != null ? kit : HeroKit.SQUIRE;
+        hero = new Hero(startingKit, TEST_MODE ? 200 : startingKit.maxHp(), this);
         if (TEST_MODE) {
             hero.setMaxSpeed(200);
         }

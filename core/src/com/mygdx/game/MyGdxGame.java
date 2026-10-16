@@ -1,7 +1,9 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.Application;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -25,6 +27,7 @@ import java.util.List;
 
 public class MyGdxGame extends ApplicationAdapter {
 	GameBoard gameBoard;
+	GameFlow gameFlow;
 	SpriteBatch batch;
 	Texture tile;
 	TiledDrawable tiledDrawable;
@@ -46,6 +49,12 @@ public class MyGdxGame extends ApplicationAdapter {
 	private List<Toast> activeToasts = new ArrayList<>();
 	private final GlyphLayout glyphLayout = new GlyphLayout();
 	private final Rectangle restartButtonBounds = new Rectangle();
+	private final Rectangle playButtonBounds = new Rectangle();
+	private final Rectangle quitButtonBounds = new Rectangle();
+	private final Rectangle beginButtonBounds = new Rectangle();
+	private final Rectangle backButtonBounds = new Rectangle();
+	private final Rectangle squireCardBounds = new Rectangle();
+	private final Rectangle bruteCardBounds = new Rectangle();
 	private final Vector3 touchPoint = new Vector3();
 	private final Vector3 mouseWorldCoords = new Vector3();
 	private final Vector3 mouseHudCoords = new Vector3();
@@ -119,7 +128,7 @@ public class MyGdxGame extends ApplicationAdapter {
 	private int hudScreenPx;
 	@Override
 	public void create () {	// this is done once
-		gameBoard = new GameBoard();
+		gameFlow = new GameFlow();
 		batch = new SpriteBatch();
 
 		tile = new Texture("tile-small.jpeg");
@@ -140,11 +149,20 @@ public class MyGdxGame extends ApplicationAdapter {
 		
 		updateHudPanelLayout();
 
-		inputAdapter = new MyInputAdapter(gameBoard);
+		inputAdapter = new MyInputAdapter(null);
 		inputAdapter.setViewport(worldViewport);
 		inputAdapter.setHudClickHandler(new MyInputAdapter.HudClickHandler() {
 			public boolean handleHudTouch(int sx, int sy) {
 				return MyGdxGame.this.handleHudClick(sx, sy);
+			}
+		});
+		inputAdapter.setFrontDoorHandler(new MyInputAdapter.FrontDoorHandler() {
+			public boolean handleKey(int keycode) {
+				return MyGdxGame.this.handleFrontDoorKey(keycode);
+			}
+
+			public boolean handleTouch(int screenX, int screenY) {
+				return MyGdxGame.this.handleFrontDoorTouch(screenX, screenY);
 			}
 		});
 		Gdx.input.setInputProcessor(inputAdapter);
@@ -152,13 +170,6 @@ public class MyGdxGame extends ApplicationAdapter {
 		// Web (TeaVM): first resize can be 0x0 before the canvas has layout. Skip
 		// viewport updates until dimensions are positive to avoid glViewport(0,0,0,0).
 		updateViewportsIfSized(Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
-
-		// Set toast notifier for game board
-		gameBoard.setToastNotifier(new StringCallback() {
-			public void call(String value) {
-				showToast(value);
-			}
-		});
 
         music = Gdx.audio.newMusic(Gdx.files.internal("atmosphere.mp3"));
         music.setLooping(true);
@@ -169,10 +180,22 @@ public class MyGdxGame extends ApplicationAdapter {
 	@Override
 	public void render () { // this is loop rendered 60 FPS
 		float deltaTime = Gdx.graphics.getDeltaTime();
-		
-		// Update toasts
+		if (gameFlow.isQuitRequested()) {
+			Gdx.app.exit();
+			return;
+		}
+
 		updateToasts(deltaTime);
-		
+
+		if (gameFlow.phase() != GameFlow.Phase.RUN) {
+			gameFlow.advance(deltaTime);
+			renderFrontDoor();
+			return;
+		}
+		if (gameBoard == null) {
+			startRun();
+		}
+
 		ScreenUtils.clear(0.5f, 0.5f, 0.5f, 1);
 
 		// Recover if we skipped an initial 0x0 resize (TeaVM / mobile WebView).
@@ -1011,20 +1034,239 @@ public class MyGdxGame extends ApplicationAdapter {
 	}
 
 	private void restartGame() {
-		gameBoard = new GameBoard();
+		gameFlow.restart();
+		gameBoard = null;
+		activeToasts.clear();
+		inputAdapter.setGameBoard(null);
+	}
+
+	private void startRun() {
+		HeroKit kit = gameFlow.runKit() != null ? gameFlow.runKit() : HeroKit.SQUIRE;
+		gameBoard = new GameBoard(kit);
 		gameBoard.setToastNotifier(new StringCallback() {
 			public void call(String value) {
 				showToast(value);
 			}
 		});
+		inputAdapter.setGameBoard(gameBoard);
 		activeToasts.clear();
-		inputAdapter = new MyInputAdapter(gameBoard);
-		inputAdapter.setViewport(worldViewport);
-		inputAdapter.setHudClickHandler(new MyInputAdapter.HudClickHandler() {
-			public boolean handleHudTouch(int sx, int sy) {
-				return MyGdxGame.this.handleHudClick(sx, sy);
+	}
+
+	private boolean showQuit() {
+		return Gdx.app.getType() == Application.ApplicationType.Desktop;
+	}
+
+	private boolean handleFrontDoorKey(int keycode) {
+		if (gameFlow.phase() == GameFlow.Phase.RUN) {
+			return false;
+		}
+		if (gameFlow.phase() == GameFlow.Phase.SPLASH) {
+			gameFlow.skipSplash();
+			return true;
+		}
+		if (gameFlow.phase() == GameFlow.Phase.MAIN_MENU) {
+			if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) {
+				gameFlow.play();
+			} else if (keycode == Input.Keys.ESCAPE && showQuit()) {
+				gameFlow.quit();
 			}
-		});
-		Gdx.input.setInputProcessor(inputAdapter);
+			return true;
+		}
+		if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) {
+			gameFlow.begin();
+		} else if (keycode == Input.Keys.ESCAPE) {
+			gameFlow.back();
+		} else if (keycode == Input.Keys.A || keycode == Input.Keys.LEFT) {
+			gameFlow.moveHighlight(-1);
+		} else if (keycode == Input.Keys.D || keycode == Input.Keys.RIGHT) {
+			gameFlow.moveHighlight(1);
+		}
+		return true;
+	}
+
+	private boolean handleFrontDoorTouch(int screenX, int screenY) {
+		if (gameFlow.phase() == GameFlow.Phase.RUN) {
+			return false;
+		}
+		if (gameFlow.phase() == GameFlow.Phase.SPLASH) {
+			gameFlow.skipSplash();
+			return true;
+		}
+		touchPoint.set(screenX, screenY, 0);
+		hudViewport.unproject(touchPoint);
+		if (gameFlow.phase() == GameFlow.Phase.MAIN_MENU) {
+			if (playButtonBounds.contains(touchPoint.x, touchPoint.y)) {
+				gameFlow.play();
+			} else if (showQuit() && quitButtonBounds.contains(touchPoint.x, touchPoint.y)) {
+				gameFlow.quit();
+			}
+			return true;
+		}
+		if (squireCardBounds.contains(touchPoint.x, touchPoint.y)) {
+			gameFlow.highlight(HeroKit.SQUIRE);
+		} else if (bruteCardBounds.contains(touchPoint.x, touchPoint.y)) {
+			gameFlow.highlight(HeroKit.BRUTE);
+		} else if (beginButtonBounds.contains(touchPoint.x, touchPoint.y)) {
+			gameFlow.begin();
+		} else if (backButtonBounds.contains(touchPoint.x, touchPoint.y)) {
+			gameFlow.back();
+		}
+		return true;
+	}
+
+	private void renderFrontDoor() {
+		ScreenUtils.clear(HUD_BG.r, HUD_BG.g, HUD_BG.b, 1f);
+		if (hudViewport.getScreenWidth() <= 0 || hudViewport.getScreenHeight() <= 0) {
+			updateViewportsIfSized(Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
+		}
+		if (hudViewport.getScreenWidth() <= 0 || hudViewport.getScreenHeight() <= 0) {
+			return;
+		}
+		hudViewport.apply(true);
+		layoutFrontDoor();
+		if (gameFlow.phase() == GameFlow.Phase.SPLASH) {
+			renderSplash();
+		} else if (gameFlow.phase() == GameFlow.Phase.MAIN_MENU) {
+			renderMainMenu();
+		} else {
+			renderHeroSelection();
+		}
+	}
+
+	private void layoutFrontDoor() {
+		float width = hudCamera.viewportWidth;
+		float height = hudCamera.viewportHeight;
+		float buttonWidth = 220f;
+		float buttonHeight = 52f;
+		float centerX = (width - buttonWidth) / 2f;
+		playButtonBounds.set(centerX, height * 0.46f, buttonWidth, buttonHeight);
+		quitButtonBounds.set(centerX, height * 0.46f - buttonHeight - 16f, buttonWidth, buttonHeight);
+
+		float cardWidth = 280f;
+		float cardHeight = 230f;
+		float gap = 36f;
+		float cardsX = (width - (cardWidth * 2f + gap)) / 2f;
+		float cardsY = height * 0.36f;
+		squireCardBounds.set(cardsX, cardsY, cardWidth, cardHeight);
+		bruteCardBounds.set(cardsX + cardWidth + gap, cardsY, cardWidth, cardHeight);
+
+		float actionsY = cardsY - buttonHeight - 28f;
+		backButtonBounds.set(width / 2f - buttonWidth - 12f, actionsY, buttonWidth, buttonHeight);
+		beginButtonBounds.set(width / 2f + 12f, actionsY, buttonWidth, buttonHeight);
+	}
+
+	private void renderSplash() {
+		Texture logo = TextureCache.get("startup-logo.png");
+		float logoWidth = Math.min(560f, hudCamera.viewportWidth * 0.55f);
+		float logoHeight = logoWidth * logo.getHeight() / (float) logo.getWidth();
+		float logoX = (hudCamera.viewportWidth - logoWidth) / 2f;
+		float logoY = (hudCamera.viewportHeight - logoHeight) / 2f + 28f;
+
+		batch.setProjectionMatrix(hudCamera.combined);
+		batch.begin();
+		batch.setColor(Color.WHITE);
+		batch.draw(logo, logoX, logoY, logoWidth, logoHeight);
+		drawCentered("Turn-Based Adventure", hudCamera.viewportWidth / 2f, logoY - 36f, 2f, GOLD);
+		batch.end();
+		font.getData().setScale(1f);
+	}
+
+	private void renderMainMenu() {
+		shapeRenderer.setProjectionMatrix(hudCamera.combined);
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		shapeRenderer.setColor(GOLD);
+		shapeRenderer.rect(playButtonBounds.x, playButtonBounds.y, playButtonBounds.width, playButtonBounds.height);
+		if (showQuit()) {
+			shapeRenderer.setColor(BORDER);
+			shapeRenderer.rect(quitButtonBounds.x, quitButtonBounds.y, quitButtonBounds.width, quitButtonBounds.height);
+		}
+		shapeRenderer.end();
+
+		batch.setProjectionMatrix(hudCamera.combined);
+		batch.begin();
+		drawCentered("Turn-Based Adventure", hudCamera.viewportWidth / 2f, hudCamera.viewportHeight * 0.72f, 2.5f, GOLD);
+		drawCenteredInRect("Play", playButtonBounds, 1.6f, GOLD_PILL_TEXT);
+		if (showQuit()) {
+			drawCenteredInRect("Quit", quitButtonBounds, 1.6f, GOLD);
+		}
+		batch.end();
+		font.getData().setScale(1f);
+	}
+
+	private void renderHeroSelection() {
+		shapeRenderer.setProjectionMatrix(hudCamera.combined);
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		drawKitCard(squireCardBounds, gameFlow.highlightedKit() == HeroKit.SQUIRE);
+		drawKitCard(bruteCardBounds, gameFlow.highlightedKit() == HeroKit.BRUTE);
+		shapeRenderer.setColor(BORDER);
+		shapeRenderer.rect(backButtonBounds.x, backButtonBounds.y, backButtonBounds.width, backButtonBounds.height);
+		shapeRenderer.setColor(GOLD);
+		shapeRenderer.rect(beginButtonBounds.x, beginButtonBounds.y, beginButtonBounds.width, beginButtonBounds.height);
+		shapeRenderer.end();
+
+		batch.setProjectionMatrix(hudCamera.combined);
+		batch.begin();
+		drawCentered("Choose a hero", hudCamera.viewportWidth / 2f, hudCamera.viewportHeight * 0.82f, 2f, GOLD);
+		drawKitText(HeroKit.SQUIRE, squireCardBounds);
+		drawKitText(HeroKit.BRUTE, bruteCardBounds);
+		drawCenteredInRect("Back", backButtonBounds, 1.4f, GOLD);
+		drawCenteredInRect("Begin", beginButtonBounds, 1.4f, GOLD_PILL_TEXT);
+		batch.end();
+		font.getData().setScale(1f);
+	}
+
+	private void drawKitCard(Rectangle card, boolean highlighted) {
+		if (highlighted) {
+			shapeRenderer.setColor(GOLD);
+			shapeRenderer.rect(card.x - 4f, card.y - 4f, card.width + 8f, card.height + 8f);
+		}
+		shapeRenderer.setColor(0.14f, 0.11f, 0.09f, 1f);
+		shapeRenderer.rect(card.x, card.y, card.width, card.height);
+	}
+
+	private void drawKitText(HeroKit kit, Rectangle card) {
+		float textX = card.x + 16f;
+		float textY = card.y + card.height - 36f;
+		boolean highlighted = gameFlow.highlightedKit() == kit;
+		font.getData().setScale(1.5f);
+		font.setColor(highlighted ? GOLD : Color.WHITE);
+		font.draw(batch, kit.displayName(), textX, textY);
+		font.getData().setScale(1f);
+		font.setColor(Color.WHITE);
+		textY -= 40f;
+		font.draw(batch, kit.weaponName(), textX, textY);
+		textY -= 22f;
+		font.setColor(MUTED);
+		font.draw(batch, Weapon.formatAttackBonus(kit.attackBonus()) + " atk, " + kit.damage() + " dmg", textX, textY);
+		textY -= 32f;
+		font.setColor(Color.WHITE);
+		font.draw(batch, "HP " + kit.maxHp(), textX, textY);
+		textY -= 22f;
+		font.draw(batch, "AC " + kit.armorClass(), textX, textY);
+		textY -= 22f;
+		font.draw(batch, "MOV " + kit.mov(), textX, textY);
+
+		Texture portrait = TextureCache.get(kit.portraitFile());
+		batch.setColor(Color.WHITE);
+		batch.draw(portrait, card.x + card.width - 64f, card.y + card.height - 64f, 48f, 48f);
+		font.getData().setScale(1f);
+	}
+
+	private void drawCentered(String text, float centerX, float baselineY, float scale, Color color) {
+		font.getData().setScale(scale);
+		font.setColor(color);
+		glyphLayout.setText(font, text);
+		font.draw(batch, text, centerX - glyphLayout.width / 2f, baselineY);
+		font.getData().setScale(1f);
+	}
+
+	private void drawCenteredInRect(String text, Rectangle rect, float scale, Color color) {
+		font.getData().setScale(scale);
+		font.setColor(color);
+		glyphLayout.setText(font, text);
+		font.draw(batch, text,
+				rect.x + (rect.width - glyphLayout.width) / 2f,
+				rect.y + (rect.height + glyphLayout.height) / 2f);
+		font.getData().setScale(1f);
 	}
 }

@@ -26,18 +26,17 @@ public class Hero extends Creature {
     private int level = 1;
     private int experience = 0;
 
-    public Hero(String image, int health, GameBoard board) {
-        super(image, health, DEFAULT_ARMOR_CLASS);
+    public Hero(HeroKit kit, int health, GameBoard board) {
+        super(kit.portraitFile(), health, kit.armorClass());
         this.board = board;
 
         weaponHit = SoundCache.get("sword.wav");
         deathSound = SoundCache.get("death.mp3");
-        
-        Sword sword = new Sword();
-        Axe axe = new Axe();
-        inventory.add(sword);
-        inventory.add(axe);
-        currentWeapon = sword;
+        setMaxSpeed(kit.mov());
+
+        Weapon startingWeapon = kit.startingWeapon();
+        inventory.add(startingWeapon);
+        currentWeapon = startingWeapon;
     }
 
     public void heal(int amount) {
