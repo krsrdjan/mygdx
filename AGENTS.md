@@ -145,3 +145,18 @@ These sections mix **what this project already does** (caches, `dispose()`, two 
 ### Existing Assets
 Textures in `assets/`: `hero.png`, `troll.png`, `orc.png`, `werewolf.png`, `ogre.png`, `skeleton.png`, `weapon.png`, `potion-red.png`, `potion-blue.png`, `rock.png`, `tile.jpeg`, `tile-small.jpeg`, `logo.png`, `startup-logo.png`
 Sounds: `sword.wav`, `death.mp3`, `atmosphere.mp3` (background), `music.mp3`
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as markdown under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default role strings: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `GLOSSARY.md` + `docs/adr/`. See `docs/agents/domain.md`.
+
